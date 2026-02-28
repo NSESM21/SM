@@ -810,9 +810,13 @@ function buildConsolidated(term) {
 }
 
 // ── MODAL with live stock data via Yahoo Finance ──
+let chgMode = 'open'; // 'open' = from day open | 'close' = from prev close
+let modalPriceData = {}; // store fetched data for re-render on toggle
+
 function openModal(tfLabel, catLabel, stocks) {
   const existing = document.getElementById('tv-modal');
   if (existing) existing.remove();
+  modalPriceData = {};
 
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
@@ -824,27 +828,33 @@ function openModal(tfLabel, catLabel, stocks) {
           <div class="modal-title">${catLabel} <span style="color:var(--muted);font-weight:400">in</span> ${tfLabel}</div>
           <div class="modal-sub">${stocks.length} stocks · Live market data</div>
         </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:0.65rem;color:var(--muted);font-family:Oxanium,sans-serif;letter-spacing:0.08em">CHG FROM</span>
+          <button id="toggleChgMode"
+            onclick="toggleChgMode()"
+            style="font-family:Oxanium,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;
+                   padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--accent);
+                   background:rgba(0,229,160,0.12);color:var(--accent);transition:all 0.2s">
+            DAY OPEN
+          </button>
+        </div>
         <button class="modal-close" onclick="document.getElementById('tv-modal').remove()">✕</button>
       </div>
       <div class="modal-body">
         <table class="price-table" id="price-table">
           <thead>
-            <tr>
+            <tr id="price-table-hdr">
               <th>Symbol</th>
               <th style="text-align:right">LTP (₹)</th>
-              <th style="text-align:right">Chg</th>
-              <th style="text-align:right">Chg %</th>
+              <th style="text-align:right" id="hdr-chg">Chg (Open)</th>
+              <th style="text-align:right" id="hdr-chgpct">Chg% (Open)</th>
+              <th style="text-align:right">Open</th>
+              <th style="text-align:right">Prev Close</th>
               <th style="text-align:right">Day H</th>
               <th style="text-align:right">Day L</th>
               <th style="text-align:right">52W H</th>
               <th style="text-align:right">52W L</th>
-              <th class="fund-col" style="text-align:right">P/E</th>
-              <th class="fund-col" style="text-align:right">Fwd P/E</th>
-              <th class="fund-col" style="text-align:right">Book Val</th>
-              <th class="fund-col" style="text-align:right">P/B</th>
-              <th class="fund-col" style="text-align:right">EPS</th>
-              <th class="fund-col" style="text-align:right">Debt/Eq</th>
-              <th class="fund-col" style="text-align:right">Mkt Cap</th>
+              <th style="text-align:right">Mkt Cap</th>
             </tr>
           </thead>
           <tbody id="price-tbody">
@@ -853,7 +863,7 @@ function openModal(tfLabel, catLabel, stocks) {
                 <span class="sym-name">${s}</span>
                 <a href="https://www.nseindia.com/get-quotes/equity?symbol=${s}" target="_blank" class="sym-link">NSE ↗</a>
               </td>
-              <td style="text-align:right" class="loading-cell" colspan="7">
+              <td style="text-align:right" class="loading-cell" colspan="10">
                 <span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>
               </td>
             </tr>`).join('')}
@@ -867,6 +877,71 @@ function openModal(tfLabel, catLabel, stocks) {
 
   // Fetch prices for all stocks
   fetchStockPrices(stocks);
+}
+
+function toggleChgMode() {
+  chgMode = chgMode === 'open' ? 'close' : 'open';
+  const btn = document.getElementById('toggleChgMode');
+  const hdrChg = document.getElementById('hdr-chg');
+  const hdrPct = document.getElementById('hdr-chgpct');
+  if (chgMode === 'open') {
+    btn.textContent = 'DAY OPEN';
+    btn.style.borderColor = 'var(--accent)';
+    btn.style.color = 'var(--accent)';
+    btn.style.background = 'rgba(0,229,160,0.12)';
+    hdrChg.textContent = 'Chg (Open)';
+    hdrPct.textContent = 'Chg% (Open)';
+  } else {
+    btn.textContent = 'PREV CLOSE';
+    btn.style.borderColor = '#38bdf8';
+    btn.style.color = '#38bdf8';
+    btn.style.background = 'rgba(56,189,248,0.12)';
+    hdrChg.textContent = 'Chg (Close)';
+    hdrPct.textContent = 'Chg% (Close)';
+  }
+  // Re-render all rows with new mode
+  renderModalRows(modalPriceData);
+}
+
+function renderModalRows(priceData) {
+  const status = marketStatus();
+  Object.keys(priceData).forEach(symbol => {
+    const row = document.getElementById('row-' + symbol);
+    if (!row) return;
+    const q = priceData[symbol];
+    if (!q || !q.price) return;
+
+    const open      = q.open      || q.price;
+    const prevClose = q.prevClose || q.open || q.price;
+
+    // Choose chg source based on toggle
+    const chg    = chgMode === 'open'
+                   ? (q.chgFromOpen  != null ? q.chgFromOpen  : q.price - open)
+                   : (q.chgFromClose != null ? q.chgFromClose : q.price - prevClose);
+    const chgPct = chgMode === 'open'
+                   ? (q.chgPctFromOpen  != null ? q.chgPctFromOpen  : (open > 0 ? (q.price - open) / open * 100 : 0))
+                   : (q.chgPctFromClose != null ? q.chgPctFromClose : (prevClose > 0 ? (q.price - prevClose) / prevClose * 100 : 0));
+
+    const isUp  = chg >= 0;
+    const color = isUp ? '#00e5a0' : '#fb7185';
+    const arrow = isUp ? '▲' : '▼';
+
+    row.innerHTML = `
+      <td class="sym-cell">
+        <span class="sym-name">${symbol}</span>
+        <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
+      </td>
+      <td style="text-align:right;font-weight:700;color:#ffffff;font-size:0.85rem">₹${fmt(q.price)}</td>
+      <td style="text-align:right;font-weight:600;color:${color}">${arrow} ${fmt(Math.abs(chg))}</td>
+      <td style="text-align:right;font-weight:700;color:${color};font-size:0.82rem">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</td>
+      <td style="text-align:right;color:var(--muted);font-weight:500">₹${fmt(open)}</td>
+      <td style="text-align:right;color:var(--muted);font-weight:500">₹${fmt(prevClose)}</td>
+      <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.high)}</td>
+      <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.low)}</td>
+      <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.high52)}</td>
+      <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.low52)}</td>
+      <td style="text-align:right;color:#ffffff;font-weight:500">${fmtCap(q.marketCap)}</td>`;
+  });
 }
 
 // Check if NSE market is open (Mon-Fri, 9:15am - 3:30pm IST)
@@ -891,7 +966,6 @@ async function fetchStockPrices(stocks) {
   }
 
   try {
-    // Call our Apps Script with action=prices — it fetches from Yahoo server-side (no CORS!)
     const url = `${APPS_SCRIPT_URL}?action=prices&symbols=${stocks.join(',')}`;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
@@ -903,47 +977,26 @@ async function fetchStockPrices(stocks) {
 
     console.log('Price data received:', Object.keys(priceData).length, 'stocks');
 
+    // Store globally so toggle can re-render without re-fetching
     stocks.forEach(symbol => {
-      const row = document.getElementById('row-' + symbol);
-      if (!row) return;
       const q = priceData[symbol];
-
       if (q && q.price) {
-        const chg = q.chg || 0;
-        const chgPct = q.chgPct || 0;
-        const isUp = chg >= 0;
-        const color = isUp ? '#00e5a0' : '#fb7185';
-        const arrow = isUp ? '▲' : '▼';
-
-        row.innerHTML = `
-          <td class="sym-cell">
-            <span class="sym-name">${symbol}</span>
-            <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
-          </td>
-          <td style="text-align:right;font-weight:700;color:#ffffff;font-size:0.85rem">₹${fmt(q.price)}</td>
-          <td style="text-align:right;font-weight:600;color:${color}">${arrow} ${fmt(Math.abs(chg))}</td>
-          <td style="text-align:right;font-weight:700;color:${color};font-size:0.82rem">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</td>
-          <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.high)}</td>
-          <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.low)}</td>
-          <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.high52)}</td>
-          <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.low52)}</td>
-          <td style="text-align:right;color:#ffffff;font-weight:600">${fmtX(q.pe)}</td>
-          <td style="text-align:right;color:#ffffff;font-weight:600">${fmtX(q.forwardPe)}</td>
-          <td style="text-align:right;color:#ffffff;font-weight:600">₹${fmtX(q.bookValue)}</td>
-          <td style="text-align:right;color:#ffffff;font-weight:600">${fmtX(q.pb)}</td>
-          <td style="text-align:right;color:#ffffff;font-weight:600">${fmtX(q.eps)}</td>
-          <td style="text-align:right;color:${q.debtEq > 1 ? '#fb7185' : '#00e5a0'};font-weight:600">${fmtX(q.debtEq)}</td>
-          <td style="text-align:right;color:#ffffff;font-weight:500">${fmtCap(q.marketCap)}</td>`;
+        modalPriceData[symbol] = q;
       } else {
-        row.innerHTML = `
+        // Show no-data row
+        const row = document.getElementById('row-' + symbol);
+        if (row) row.innerHTML = `
           <td class="sym-cell"><span class="sym-name">${symbol}</span>
             <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
           </td>
-          <td colspan="14" style="text-align:center;color:var(--muted);font-size:0.68rem">
+          <td colspan="10" style="text-align:center;color:var(--muted);font-size:0.68rem">
             No data ${status.open ? '' : '(market closed)'}
           </td>`;
       }
     });
+
+    // Render all rows using current chgMode
+    renderModalRows(modalPriceData);
 
   } catch(e) {
     console.error('Price fetch error:', e);
@@ -951,7 +1004,7 @@ async function fetchStockPrices(stocks) {
       const row = document.getElementById('row-' + s);
       if (row) row.innerHTML = `
         <td class="sym-cell"><span class="sym-name">${s}</span></td>
-        <td colspan="14" style="text-align:center;color:var(--c-mid);font-size:0.68rem">Error: ${e.message}</td>`;
+        <td colspan="10" style="text-align:center;color:var(--c-mid);font-size:0.68rem">Error: ${e.message}</td>`;
     });
   }
 }
