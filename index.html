@@ -53,88 +53,88 @@
   --c-trd: #22d3ee;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 13px; }
-body { background: var(--bg); color: var(--text); font-family: Calibri, 'Calibri', 'Segoe UI', sans-serif; min-height: 100vh; }
+html { font-size: 15px; }
+body { background: var(--bg); color: var(--text); font-family: Calibri, 'Segoe UI', sans-serif; min-height: 100vh; }
 body::before {
   content: '';
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background:
-    radial-gradient(ellipse 60% 40% at 10% 0%, rgba(0,229,160,0.05) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 30% at 90% 100%, rgba(56,189,248,0.04) 0%, transparent 60%);
+    radial-gradient(ellipse 60% 40% at 10% 0%, rgba(0,229,160,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 90% 100%, rgba(56,189,248,0.05) 0%, transparent 60%);
 }
 
 /* ── HEADER ── */
 header {
   position: sticky; top: 0; z-index: 300;
-  background: rgba(10,12,16,0.97); backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px; height: 52px;
-  display: flex; align-items: center; gap: 18px;
+  background: rgba(10,12,16,0.98); backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border2);
+  padding: 0 28px; height: 62px;
+  display: flex; align-items: center; gap: 20px;
 }
-.logo { font-family:'Bebas Neue',sans-serif; font-weight:400; font-size:1.6rem; letter-spacing:0.08em; color:var(--accent); }
+.logo { font-family:'Bebas Neue',sans-serif; font-weight:400; font-size:2rem; letter-spacing:0.08em; color:var(--accent); }
 .logo span { color:#ffffff; }
-.hdr-div { width:1px; height:26px; background:var(--border); }
-.hdr-sub { font-size:0.72rem; color:#ffffff; letter-spacing:0.12em; text-transform:uppercase; font-family:'Oxanium',sans-serif; font-weight:600; }
+.hdr-div { width:1px; height:30px; background:var(--border2); }
+.hdr-sub { font-size:0.82rem; color:#aabcd0; letter-spacing:0.14em; text-transform:uppercase; font-family:'Oxanium',sans-serif; font-weight:600; }
 
 /* live badge */
 .live-badge {
-  display:flex; align-items:center; gap:5px;
-  font-size:0.65rem; color:#ffffff; letter-spacing:0.1em; text-transform:uppercase;
-  background:rgba(0,229,160,0.12); border:1px solid rgba(0,229,160,0.35);
-  padding:4px 12px; border-radius:20px; font-family:'Oxanium',sans-serif; font-weight:600;
+  display:flex; align-items:center; gap:6px;
+  font-size:0.75rem; color:#ffffff; letter-spacing:0.1em; text-transform:uppercase;
+  background:rgba(0,229,160,0.13); border:1px solid rgba(0,229,160,0.4);
+  padding:6px 16px; border-radius:20px; font-family:'Oxanium',sans-serif; font-weight:700;
 }
 .live-dot {
-  width:6px; height:6px; border-radius:50%; background:var(--accent);
+  width:8px; height:8px; border-radius:50%; background:var(--accent);
   animation: pulse 2s infinite;
 }
 @keyframes pulse {
-  0%,100% { opacity:1; transform:scale(1); }
-  50% { opacity:0.4; transform:scale(0.7); }
+  0%,100% { opacity:1; transform:scale(1); box-shadow:0 0 0 0 rgba(0,229,160,0.4); }
+  50% { opacity:0.5; transform:scale(0.75); box-shadow:0 0 0 4px rgba(0,229,160,0); }
 }
-.last-updated { font-size:0.62rem; color:#ffffff; margin-left:4px; font-family:Calibri,sans-serif; }
+.last-updated { font-size:0.72rem; color:#aabcd0; margin-left:4px; font-family:Calibri,sans-serif; }
 
 .search-wrap { margin-left:auto; position:relative; }
 #gSearch {
-  background:var(--surface2); border:1px solid var(--border); color:#ffffff;
-  font-family:Calibri,sans-serif; font-size:0.85rem;
-  padding:6px 12px 6px 32px; border-radius:5px; width:200px; outline:none;
-  transition: border-color 0.2s, width 0.3s;
+  background:var(--surface2); border:1px solid var(--border2); color:#ffffff;
+  font-family:Calibri,sans-serif; font-size:0.97rem;
+  padding:8px 15px 8px 36px; border-radius:7px; width:220px; outline:none;
+  transition: border-color 0.2s, width 0.3s, box-shadow 0.2s;
 }
-#gSearch:focus { border-color:var(--accent); width:280px; }
+#gSearch:focus { border-color:var(--accent); width:300px; box-shadow:0 0 0 3px rgba(0,229,160,0.12); }
 #gSearch::placeholder { color:var(--muted); }
-.si { position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.85rem; }
+.si { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.95rem; }
 
 /* refresh btn */
 .refresh-btn {
-  background:transparent; border:1px solid rgba(255,255,255,0.3); color:#ffffff;
-  padding:5px 14px; border-radius:4px; font-family:'Oxanium',sans-serif;
-  font-size:0.7rem; cursor:pointer; letter-spacing:0.08em; font-weight:600;
-  transition:all 0.2s; display:flex; align-items:center; gap:5px;
+  background:transparent; border:1px solid rgba(255,255,255,0.25); color:#d0dce8;
+  padding:7px 18px; border-radius:6px; font-family:'Oxanium',sans-serif;
+  font-size:0.76rem; cursor:pointer; letter-spacing:0.08em; font-weight:700;
+  transition:all 0.2s; display:flex; align-items:center; gap:6px;
 }
-.refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+.refresh-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(0,229,160,0.06); }
 .refresh-btn.spinning svg { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── SHEET TAB BAR ── */
 .sheet-bar {
-  position: sticky; top: 52px; z-index: 200;
+  position: sticky; top: 62px; z-index: 200;
   background: var(--surface);
   border-bottom: 2px solid var(--border2);
-  display: flex; padding: 0 20px;
+  display: flex; padding: 0 24px;
   overflow-x: auto; scrollbar-width: none;
 }
 .sheet-bar::-webkit-scrollbar { display: none; }
 .stab {
-  font-family:'Oxanium',sans-serif; font-size:0.72rem; font-weight:700;
-  letter-spacing:0.1em; text-transform:uppercase;
-  padding:10px 22px; border:none; background:transparent;
+  font-family:'Oxanium',sans-serif; font-size:0.84rem; font-weight:700;
+  letter-spacing:0.14em; text-transform:uppercase;
+  padding:14px 28px; border:none; background:transparent;
   color:var(--muted); cursor:pointer; white-space:nowrap;
   border-bottom:3px solid transparent; margin-bottom:-2px;
   transition:all 0.2s;
 }
-.stab:hover { color:var(--text); background:var(--surface2); }
+.stab:hover { color:var(--text); background:rgba(255,255,255,0.03); }
 .stab.active { color:var(--text); border-bottom-color:var(--accent); }
-.stab .dot { width:6px; height:6px; border-radius:50%; display:inline-block; margin-right:6px; vertical-align:middle; }
+.stab .dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:8px; vertical-align:middle; }
 
 /* ── LOADING / ERROR ── */
 .state-screen {
@@ -142,134 +142,213 @@ header {
   min-height:60vh; gap:16px; color:var(--muted);
 }
 .spinner {
-  width:36px; height:36px; border:2px solid var(--border2);
+  width:42px; height:42px; border:2.5px solid var(--border2);
   border-top-color:var(--accent); border-radius:50%;
   animation: spin 0.8s linear infinite;
 }
-.state-screen h2 { font-family:'Oxanium',sans-serif; font-size:1rem; color:var(--text); }
-.state-screen p { font-size:0.72rem; max-width:420px; text-align:center; line-height:1.7; }
+.state-screen h2 { font-family:'Oxanium',sans-serif; font-size:1.15rem; color:var(--text); }
+.state-screen p { font-size:0.84rem; max-width:420px; text-align:center; line-height:1.7; }
 .err-box {
   background:rgba(251,113,133,0.08); border:1px solid rgba(251,113,133,0.25);
-  border-radius:8px; padding:16px 24px; text-align:center;
+  border-radius:10px; padding:20px 28px; text-align:center;
 }
 .retry-btn {
-  margin-top:12px; background:transparent; border:1px solid var(--c-mid);
-  color:var(--c-mid); padding:6px 20px; border-radius:4px;
-  font-family:Calibri,sans-serif; font-size:0.72rem; cursor:pointer;
+  margin-top:14px; background:transparent; border:1px solid var(--c-mid);
+  color:var(--c-mid); padding:7px 22px; border-radius:5px;
+  font-family:Calibri,sans-serif; font-size:0.82rem; cursor:pointer;
   transition:all 0.2s;
 }
 .retry-btn:hover { background:rgba(251,113,133,0.1); }
 
 /* ── MAIN TABLE ── */
-main { padding: 8px 8px 8px; position:relative; z-index:1; }
+main { padding: 12px; position:relative; z-index:1; }
 .master-wrap {
-  border-radius:8px; border:1px solid var(--border);
-  overflow:auto; height:calc(100vh - 148px);
+  border-radius:10px; border:1px solid var(--border2);
+  overflow:auto; height:calc(100vh - 168px);
   background:var(--surface);
 }
 table { border-collapse:collapse; white-space:nowrap; width:100%; }
 thead tr:first-child th { position:sticky; top:0; z-index:20; }
-thead tr:nth-child(2) th { position:sticky; top:30px; z-index:19; }
+thead tr:nth-child(2) th { position:sticky; top:42px; z-index:19; }
 th.rn, td.rn {
   position:sticky; left:0; z-index:25;
   background:var(--surface2); border-right:2px solid var(--border2);
-  color:var(--muted); font-size:0.6rem;
-  width:32px; min-width:32px; text-align:center; padding:0 4px;
+  color:#6a7d96; font-size:0.72rem;
+  width:40px; min-width:40px; text-align:center; padding:0 4px;
+  font-family:'Oxanium',sans-serif; font-weight:600;
 }
 thead tr:first-child th.rn, thead tr:nth-child(2) th.rn { z-index:30; }
 th.grp-head {
   text-align:center; font-family:'Bebas Neue',sans-serif;
-  font-size:1.1rem; font-weight:400; letter-spacing:0.12em; text-transform:uppercase;
-  padding:7px 10px; border-right:2px solid var(--border2); border-bottom:1px solid var(--border2);
-  background:var(--surface2); height:36px;
+  font-size:1.4rem; font-weight:400; letter-spacing:0.18em; text-transform:uppercase;
+  padding:9px 14px; border-right:2px solid var(--border2); border-bottom:1px solid var(--border2);
+  background:var(--surface2); height:42px;
 }
 th.grp-head:last-child { border-right:none; }
 th.cat-head {
-  font-family:'Oxanium',sans-serif; font-size:0.82rem; font-weight:700;
-  letter-spacing:0.08em; text-transform:uppercase;
-  padding:8px 10px; border-right:1px solid var(--border); border-bottom:2px solid var(--border2);
-  background:var(--surface2); height:38px; width:calc((100vw - 32px) / 7); min-width:110px;
+  font-family:'Oxanium',sans-serif; font-size:0.92rem; font-weight:800;
+  letter-spacing:0.12em; text-transform:uppercase;
+  padding:12px 16px; border-right:1px solid var(--border); border-bottom:2px solid var(--border2);
+  background:var(--surface2); height:46px; width:calc((100vw - 40px) / 7); min-width:130px;
 }
 th.cat-head.last-in-group { border-right:2px solid var(--border2); }
 th.cat-head:last-child { border-right:none; }
 td {
-  padding:8px 10px; border-right:1px solid var(--border); border-bottom:1px solid var(--border);
-  font-size:1rem; height:38px; vertical-align:middle;
-  width:calc((100vw - 32px) / 7); min-width:110px;
+  padding:11px 16px; border-right:1px solid var(--border); border-bottom:1px solid var(--border);
+  font-size:1.05rem; height:48px; vertical-align:middle;
+  width:calc((100vw - 40px) / 7); min-width:130px;
   color:#ffffff; font-family:Calibri,sans-serif;
 }
 td.last-in-group { border-right:2px solid var(--border2); }
 td:last-child { border-right:none; }
 tr:last-child td { border-bottom:none; }
-tr:hover td { background:rgba(255,255,255,0.02); }
+tr:hover td { background:rgba(255,255,255,0.035); }
 tr:hover td.rn { background:var(--surface2); }
 .sp {
-  display:inline-block; padding:2px 9px; border-radius:3px;
-  font-size:0.92rem; font-weight:600; letter-spacing:0.02em; border:1px solid;
-  font-family:Calibri,sans-serif;
+  display:inline-block; padding:5px 14px; border-radius:5px;
+  font-size:1.02rem; font-weight:700; letter-spacing:0.03em; border:1px solid;
+  font-family:Calibri,sans-serif; transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
 }
-.sp.acc  { color:var(--c-acc); border-color:rgba(0,229,160,0.3);  background:rgba(0,229,160,0.07); }
-.sp.n50  { color:var(--c-n50); border-color:rgba(56,189,248,0.3); background:rgba(56,189,248,0.07); }
-.sp.nx50 { color:var(--c-nx50);border-color:rgba(251,191,36,0.3); background:rgba(251,191,36,0.07); }
-.sp.mid  { color:var(--c-mid); border-color:rgba(251,113,133,0.3);background:rgba(251,113,133,0.07); }
-.sp.sml  { color:var(--c-sml); border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.07); }
-.sp.idx  { color:var(--c-idx); border-color:rgba(244,114,182,0.3);background:rgba(244,114,182,0.07); }
-.sp.trd  { color:var(--c-trd); border-color:rgba(34,211,238,0.3); background:rgba(34,211,238,0.07); }
-.sp.hl   { box-shadow:0 0 0 2px currentColor; font-weight:700; }
-mark { background:rgba(0,229,160,0.25); color:var(--accent); border-radius:2px; padding:0 1px; }
+.sp:hover { opacity:0.9; transform:scale(1.05); cursor:default; box-shadow:0 2px 8px rgba(0,0,0,0.4); }
+.sp.acc  { color:#00e5a0; border-color:rgba(0,229,160,0.45);  background:rgba(0,229,160,0.12); }
+.sp.n50  { color:#38bdf8; border-color:rgba(56,189,248,0.45); background:rgba(56,189,248,0.12); }
+.sp.nx50 { color:#fbbf24; border-color:rgba(251,191,36,0.45); background:rgba(251,191,36,0.12); }
+.sp.mid  { color:#fb7185; border-color:rgba(251,113,133,0.45);background:rgba(251,113,133,0.12); }
+.sp.sml  { color:#a78bfa; border-color:rgba(167,139,250,0.45);background:rgba(167,139,250,0.12); }
+.sp.idx  { color:#f472b6; border-color:rgba(244,114,182,0.45);background:rgba(244,114,182,0.12); }
+.sp.trd  { color:#22d3ee; border-color:rgba(34,211,238,0.45); background:rgba(34,211,238,0.12); }
+.sp.hl   { box-shadow:0 0 0 2px currentColor; font-weight:800; }
+mark { background:rgba(0,229,160,0.28); color:var(--accent); border-radius:2px; padding:0 2px; }
 
 /* ── TF PILL SELECTOR BAR ── */
 .tf-pill-bar {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  margin-bottom: 8px; padding: 2px 0;
+  display: flex; flex-wrap: wrap; gap: 9px;
+  margin-bottom: 12px; padding: 2px 0;
 }
 .tf-pill {
-  font-family: 'Oxanium', sans-serif; font-size: 0.82rem; font-weight: 700;
-  letter-spacing: 0.07em; text-transform: uppercase;
-  padding: 6px 16px; border-radius: 20px; border: 1px solid;
+  font-family: 'Oxanium', sans-serif; font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 8px 20px; border-radius: 24px; border: 1px solid;
   cursor: pointer; transition: all 0.18s; white-space: nowrap;
   background: transparent;
 }
-.tf-pill:hover { opacity: 0.85; transform: translateY(-1px); }
-.tf-pill.active { font-weight: 800; }
+.tf-pill:hover { opacity: 0.85; transform: translateY(-2px); box-shadow:0 4px 14px rgba(0,0,0,0.35); }
+.tf-pill.active { font-weight: 800; box-shadow:0 2px 12px rgba(0,0,0,0.3); }
 
 /* legend */
 .legend {
-  display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; align-items:center;
-  font-size:0.65rem; color:var(--muted);
+  display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px; align-items:center;
+  font-size:0.78rem; color:var(--muted); font-family:'Oxanium',sans-serif;
 }
-.leg-item { display:flex; align-items:center; gap:5px; }
-.leg-dot { width:8px; height:8px; border-radius:2px; }
+.leg-item { display:flex; align-items:center; gap:6px; font-weight:600; letter-spacing:0.05em; }
+.leg-dot { width:10px; height:10px; border-radius:3px; }
 
-/* ── PRICE TABLE ── */
-.price-table { width:100%; border-collapse:collapse; font-size:0.85rem; font-family:Calibri,sans-serif; }
+/* ── MODAL TABS ── */
+.modal-tabs {
+  display: flex; gap: 0; border-bottom: 2px solid var(--border2);
+  background: var(--surface2); padding: 0 20px;
+}
+.modal-tab {
+  font-family: 'Oxanium', sans-serif; font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 12px 22px; border: none; background: transparent;
+  color: var(--muted); cursor: pointer; white-space: nowrap;
+  border-bottom: 3px solid transparent; margin-bottom: -2px;
+  transition: all 0.2s;
+}
+.modal-tab:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.modal-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+.modal-tab-panel { display: none; }
+.modal-tab-panel.active { display: block; }
+
+/* ── PRICE TABLE (POPUP) ── */
+.price-table { width:100%; border-collapse:collapse; font-size:1rem; font-family:Calibri,sans-serif; }
 .price-table th {
-  font-family:'Oxanium',sans-serif; font-size:0.62rem; font-weight:700;
-  letter-spacing:0.1em; text-transform:uppercase; color:#ffffff;
-  padding:8px 12px; border-bottom:2px solid var(--border2);
+  font-family:'Oxanium',sans-serif; font-size:0.76rem; font-weight:800;
+  letter-spacing:0.12em; text-transform:uppercase; color:#c8d8ea;
+  padding:13px 16px; border-bottom:2px solid var(--border2);
   background:var(--surface2); position:sticky; top:0; z-index:5;
+  white-space:nowrap;
 }
-.price-table th.fund-col { color:#ffffff; }
-.price-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; color:#ffffff; font-family:Calibri,sans-serif; font-size:0.85rem; }
-.price-table td.fund-col { color:#ffffff !important; font-weight:600; }
+.price-table th.fund-col { color:#fde68a; }
+/* ── STICKY FIRST COLUMN ── */
+.price-table th.col-sym,
+.price-table td.col-sym {
+  position: sticky; left: 0; z-index: 4;
+  background: var(--surface); border-right: 2px solid var(--border2);
+  min-width: 170px;
+}
+.price-table th.col-sym { background: var(--surface2); z-index: 6; }
+.price-table tbody tr:nth-child(even) td.col-sym { background: #13161e; }
+.price-table tbody tr:hover td.col-sym { background: #1a1e28 !important; }
+.price-table td {
+  padding:15px 16px; border-bottom:1px solid var(--border);
+  vertical-align:middle; color:#ffffff;
+  font-family:Calibri,sans-serif; font-size:1rem;
+}
+.price-table td.fund-col { color:#ffffff !important; font-weight:700; }
 .price-table tr:last-child td { border-bottom:none; }
-.price-table tr:hover td { background:rgba(255,255,255,0.02); }
-.sym-cell { display:flex; align-items:center; gap:8px; }
-.sym-name { font-weight:700; font-size:0.88rem; color:#ffffff; font-family:Calibri,sans-serif; }
+.price-table tr:hover td { background:rgba(255,255,255,0.04); }
+.price-table tbody tr:nth-child(even) td { background:rgba(255,255,255,0.015); }
+.price-table tbody tr:nth-child(even):hover td { background:rgba(255,255,255,0.04); }
+.sym-cell { display:flex; align-items:center; gap:10px; }
+.sym-name { font-weight:800; font-size:1.08rem; color:#ffffff; font-family:Calibri,sans-serif; letter-spacing:0.03em; }
 .sym-link {
-  font-size:0.58rem; color:var(--muted); text-decoration:none;
-  border:1px solid var(--border); padding:1px 5px; border-radius:3px;
-  transition:all 0.15s;
+  font-size:0.65rem; color:var(--muted); text-decoration:none;
+  border:1px solid var(--border2); padding:3px 8px; border-radius:4px;
+  transition:all 0.15s; font-family:'Oxanium',sans-serif; font-weight:600; letter-spacing:0.06em;
 }
-.sym-link:hover { color:var(--accent); border-color:var(--accent); }
-.loading-dots { color:var(--muted); font-size:0.68rem; }
+.sym-link:hover { color:var(--accent); border-color:var(--accent); background:rgba(0,229,160,0.08); }
+.loading-dots { color:var(--muted); font-size:0.8rem; }
 .loading-dots span { animation:blink 1.2s infinite; }
 .loading-dots span:nth-child(2) { animation-delay:0.2s; }
 .loading-dots span:nth-child(3) { animation-delay:0.4s; }
 @keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
 
+/* color helpers */
+.val-green { color: #00e5a0 !important; font-weight: 700; }
+.val-red   { color: #fb7185 !important; font-weight: 700; }
+.val-yellow{ color: #fbbf24 !important; font-weight: 800; }
+.val-purple{ color: #a78bfa !important; font-weight: 800; }
+
+/* fundamentals card grid */
+.fund-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px; padding: 20px;
+}
+.fund-card {
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.fund-card:hover { border-color: var(--dim); box-shadow: 0 4px 18px rgba(0,0,0,0.3); }
+.fund-card-sym {
+  font-weight: 800; font-size: 1.05rem; color: #ffffff;
+  font-family: Calibri, sans-serif; letter-spacing: 0.03em;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.fund-card-sym a {
+  font-size: 0.62rem; color: var(--muted); text-decoration: none;
+  border: 1px solid var(--border2); padding: 2px 7px; border-radius: 4px;
+  font-family: 'Oxanium', sans-serif; font-weight: 600; transition: all 0.15s;
+}
+.fund-card-sym a:hover { color: var(--accent); border-color: var(--accent); }
+.fund-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.fund-metric {
+  display: flex; flex-direction: column; gap: 4px;
+  background: var(--surface); border-radius: 7px;
+  padding: 10px 12px; border: 1px solid var(--border);
+}
+.fund-metric-label {
+  font-family: 'Oxanium', sans-serif; font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+}
+.fund-metric-value { font-size: 1.05rem; font-weight: 800; font-family: Calibri, sans-serif; line-height: 1.2; }
+
 /* scrollbar */
-::-webkit-scrollbar { width:10px; height:10px; }
+::-webkit-scrollbar { width:8px; height:8px; }
 ::-webkit-scrollbar-track { background:var(--surface); border-radius:6px; }
 ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:6px; border:2px solid var(--surface); }
 ::-webkit-scrollbar-thumb:hover { background:var(--dim); }
@@ -277,78 +356,80 @@ mark { background:rgba(0,229,160,0.25); color:var(--accent); border-radius:2px; 
 /* ── CONSOLIDATED CARDS ── */
 .con-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px; padding: 4px;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 20px; padding: 4px;
 }
 .con-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 10px; overflow: hidden;
-  transition: border-color 0.2s, transform 0.2s;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 14px; overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.con-card:hover { border-color: var(--dim); }
+.con-card:hover { border-color: var(--dim); box-shadow:0 6px 28px rgba(0,0,0,0.35); }
 .con-card-hd {
-  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  padding: 16px 20px; border-bottom: 2px solid var(--border2);
   background: var(--surface2);
   display: flex; align-items: center; justify-content: space-between;
 }
 .con-card-title {
   font-family: 'Bebas Neue', sans-serif; font-weight: 400;
-  font-size: 1rem; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 1.4rem; letter-spacing: 0.14em; text-transform: uppercase;
 }
-.con-card-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.con-card-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
 .cat-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px; border-radius: 6px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 15px; border-radius: 9px;
   background: var(--surface2); border: 1px solid var(--border);
-  cursor: pointer; transition: all 0.15s;
+  cursor: pointer; transition: all 0.18s;
 }
-.cat-row:hover { border-color: var(--dim); transform: translateX(3px); }
+.cat-row:hover { border-color: var(--border2); transform: translateX(5px); background: rgba(255,255,255,0.04); box-shadow:0 3px 14px rgba(0,0,0,0.3); }
 .cat-row-label {
-  font-family: 'Oxanium', sans-serif; font-size: 0.65rem;
-  font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-  min-width: 80px;
+  font-family: 'Oxanium', sans-serif; font-size: 0.78rem;
+  font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+  min-width: 90px;
 }
-.cat-row-pills { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+.cat-row-pills { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
 .cat-row-count {
-  font-size: 0.6rem; background: var(--border2); padding: 2px 7px;
-  border-radius: 20px; color: var(--muted); white-space: nowrap;
+  font-size: 0.72rem; background: var(--border2); padding: 3px 11px;
+  border-radius: 20px; color: #c8d8e8; white-space: nowrap;
+  font-family:'Oxanium',sans-serif; font-weight:700;
 }
-.cat-row-arrow { color: var(--muted); font-size: 0.75rem; }
+.cat-row-arrow { color: #6a7d96; font-size: 1.1rem; font-weight: 700; }
 .pill-sm {
-  font-size: 0.64rem; padding: 2px 7px; border-radius: 3px;
-  border: 1px solid; white-space: nowrap;
+  font-size: 0.78rem; padding: 4px 11px; border-radius: 5px;
+  border: 1px solid; white-space: nowrap; font-weight:700;
+  font-family:Calibri,sans-serif;
 }
 
 /* ── MODAL ── */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+  background: rgba(0,0,0,0.84); backdrop-filter: blur(10px);
   display: flex; align-items: center; justify-content: center;
-  padding: 20px; animation: fadeIn 0.15s ease;
+  padding: 24px; animation: fadeIn 0.15s ease;
 }
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 .modal {
   background: var(--surface); border: 1px solid var(--border2);
-  border-radius: 12px; width: 100%; max-width: 1200px;
-  max-height: 88vh; display: flex; flex-direction: column;
-  animation: slideUp 0.2s ease;
+  border-radius: 16px; width: 100%; max-width: 1400px;
+  max-height: 90vh; display: flex; flex-direction: column;
+  animation: slideUp 0.22s ease; box-shadow:0 28px 90px rgba(0,0,0,0.7);
 }
-@keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+@keyframes slideUp { from { transform:translateY(28px); opacity:0; } to { transform:translateY(0); opacity:1; } }
 .modal-hd {
-  padding: 14px 20px; border-bottom: 1px solid var(--border);
+  padding: 18px 26px; border-bottom: 2px solid var(--border2);
   display: flex; align-items: center; justify-content: space-between;
-  background: var(--surface2); border-radius: 12px 12px 0 0;
+  background: var(--surface2); border-radius: 16px 16px 0 0;
 }
-.modal-title { font-family: 'Bebas Neue', sans-serif; font-weight: 400; font-size: 1.2rem; letter-spacing: 0.08em; }
-.modal-sub { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-weight: 400; font-size: 1.7rem; letter-spacing: 0.1em; }
+.modal-sub { font-size: 0.78rem; color: #a0b4c8; margin-top: 4px; font-family:'Oxanium',sans-serif; letter-spacing:0.07em; }
 .modal-close {
   background: var(--border2); border: none; color: var(--text);
-  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
-  font-size: 1rem; display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s;
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
 }
-.modal-close:hover { background: var(--c-mid); }
-.modal-body { flex: 1; overflow: auto; padding: 16px 20px; }
+.modal-close:hover { background: var(--c-mid); transform:scale(1.12); }
+.modal-body { flex: 1; overflow: auto; padding: 0; }
 .tv-stock-row {
   display: grid;
   grid-template-columns: 140px 1fr;
@@ -735,7 +816,7 @@ function buildTable(tfs, term) {
             <th class="grp-head" colspan="7" style="color:${tf.color};border-top:3px solid ${tf.color};position:sticky;top:0;z-index:20">${tf.label}</th>
           </tr>
           <tr>
-            <th class="rn" style="position:sticky;top:30px;z-index:19"></th>
+            <th class="rn" style="position:sticky;top:42px;z-index:19"></th>
             ${hdr}
           </tr>
         </thead>
@@ -789,7 +870,7 @@ function buildConsolidated(term) {
         data-cat="${cat.label}"
         data-stocks='${JSON.stringify(stocks)}'>
         <div class="cat-row-label" style="color:${cat.color}">${cat.label}</div>
-        <div class="cat-row-pills">${pills || '<span style="color:var(--muted);font-size:0.65rem">—</span>'}</div>
+        <div class="cat-row-pills">${pills || '<span style="color:var(--muted);font-size:0.72rem;font-style:italic">—</span>'}</div>
         <div class="cat-row-count">${stocks.length}</div>
         <div class="cat-row-arrow">›</div>
       </div>`;
@@ -800,7 +881,7 @@ function buildConsolidated(term) {
     return `<div class="con-card">
       <div class="con-card-hd">
         <div class="con-card-title" style="color:${tf.color}">${tf.label}</div>
-        <span style="font-size:0.6rem;color:var(--muted);background:var(--border2);padding:2px 10px;border-radius:20px">${totalStocks} stocks</span>
+        <span style="font-size:0.76rem;color:#c8d8e8;background:var(--border2);padding:4px 14px;border-radius:20px;font-family:Oxanium,sans-serif;font-weight:700;letter-spacing:0.06em">${totalStocks} stocks</span>
       </div>
       <div class="con-card-body">${catRows}</div>
     </div>`;
@@ -810,13 +891,15 @@ function buildConsolidated(term) {
 }
 
 // ── MODAL with live stock data via Yahoo Finance ──
-let chgMode = 'open'; // 'open' = from day open | 'close' = from prev close
-let modalPriceData = {}; // store fetched data for re-render on toggle
+let chgMode = 'open';
+let modalPriceData = {};
+let activeModalTab = 'price';
 
 function openModal(tfLabel, catLabel, stocks) {
   const existing = document.getElementById('tv-modal');
   if (existing) existing.remove();
   modalPriceData = {};
+  activeModalTab = 'price';
 
   const modal = document.createElement('div');
   modal.className = 'modal-overlay';
@@ -825,58 +908,108 @@ function openModal(tfLabel, catLabel, stocks) {
     <div class="modal">
       <div class="modal-hd">
         <div>
-          <div class="modal-title">${catLabel} <span style="color:var(--muted);font-weight:400">in</span> ${tfLabel}</div>
-          <div class="modal-sub">${stocks.length} stocks · Live market data</div>
+          <div class="modal-title">${catLabel} <span style="color:var(--border2);font-weight:400;font-size:1rem">✦</span> <span style="color:#a0b4c8">${tfLabel}</span></div>
+          <div class="modal-sub">${stocks.length} stocks &nbsp;·&nbsp; Live market data via Yahoo Finance</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:0.65rem;color:var(--muted);font-family:Oxanium,sans-serif;letter-spacing:0.08em">CHG FROM</span>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:0.76rem;color:#a0b4c8;font-family:Oxanium,sans-serif;letter-spacing:0.1em;font-weight:600">CHG FROM</span>
           <button id="toggleChgMode"
             onclick="toggleChgMode()"
-            style="font-family:Oxanium,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;
-                   padding:4px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--accent);
-                   background:rgba(0,229,160,0.12);color:var(--accent);transition:all 0.2s">
+            style="font-family:Oxanium,sans-serif;font-size:0.8rem;font-weight:800;letter-spacing:0.1em;
+                   padding:7px 18px;border-radius:24px;cursor:pointer;border:1px solid var(--accent);
+                   background:rgba(0,229,160,0.13);color:var(--accent);transition:all 0.2s">
             DAY OPEN
           </button>
         </div>
         <button class="modal-close" onclick="document.getElementById('tv-modal').remove()">✕</button>
       </div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab active" id="mtab-price" onclick="switchModalTab('price')">📈 Price & Range</button>
+        <button class="modal-tab" id="mtab-fund" onclick="switchModalTab('fund')">🏦 Fundamentals</button>
+      </div>
+
       <div class="modal-body">
-        <table class="price-table" id="price-table">
-          <thead>
-            <tr id="price-table-hdr">
-              <th>Symbol</th>
-              <th style="text-align:right">LTP (₹)</th>
-              <th style="text-align:right" id="hdr-chg">Chg (Open)</th>
-              <th style="text-align:right" id="hdr-chgpct">Chg% (Open)</th>
-              <th style="text-align:right">Open</th>
-              <th style="text-align:right">Prev Close</th>
-              <th style="text-align:right">Day H</th>
-              <th style="text-align:right">Day L</th>
-              <th style="text-align:right">52W H</th>
-              <th style="text-align:right">52W L</th>
-              <th style="text-align:right">Mkt Cap</th>
-            </tr>
-          </thead>
-          <tbody id="price-tbody">
-            ${stocks.map(s => `<tr id="row-${s}">
-              <td class="sym-cell">
-                <span class="sym-name">${s}</span>
-                <a href="https://www.nseindia.com/get-quotes/equity?symbol=${s}" target="_blank" class="sym-link">NSE ↗</a>
-              </td>
-              <td style="text-align:right" class="loading-cell" colspan="10">
-                <span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>
-              </td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
+        <!-- PRICE TAB -->
+        <div class="modal-tab-panel active" id="mpanel-price">
+          <table class="price-table" id="price-table">
+            <thead>
+              <tr id="price-table-hdr">
+                <th class="col-sym">Symbol</th>
+                <th style="text-align:right;color:#00e5a0;min-width:110px">LTP (₹)</th>
+                <th style="text-align:right;min-width:110px" id="hdr-chg">Chg (Open)</th>
+                <th style="text-align:right;min-width:110px" id="hdr-chgpct">Chg% (Open)</th>
+                <th style="text-align:right;color:#8dafc8;min-width:100px">Open</th>
+                <th style="text-align:right;color:#8dafc8;min-width:110px">Prev Close</th>
+                <th style="text-align:right;color:#00e5a0;min-width:105px">Day High</th>
+                <th style="text-align:right;color:#fb7185;min-width:105px">Day Low</th>
+                <th style="text-align:right;color:#00e5a0;min-width:105px">52W High</th>
+                <th style="text-align:right;color:#fb7185;min-width:105px">52W Low</th>
+              </tr>
+            </thead>
+            <tbody id="price-tbody">
+              ${stocks.map(s => `<tr id="row-${s}">
+                <td class="col-sym sym-cell">
+                  <span class="sym-name">${s}</span>
+                  <a href="https://www.nseindia.com/get-quotes/equity?symbol=${s}" target="_blank" class="sym-link">NSE ↗</a>
+                </td>
+                <td style="text-align:right" colspan="9">
+                  <span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>
+                </td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FUNDAMENTALS TAB -->
+        <div class="modal-tab-panel" id="mpanel-fund">
+          <div style="padding:10px 20px 0;display:flex;align-items:center;gap:18px;font-family:Oxanium,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.08em;color:var(--muted)">
+            <span style="color:#a0b4c8">PE COLOR GUIDE:</span>
+            <span style="color:#00e5a0">● &lt;15 Undervalued</span>
+            <span style="color:#fbbf24">● 15–25 Fair</span>
+            <span style="color:#fb923c">● 25–40 Expensive</span>
+            <span style="color:#fb7185">● &gt;40 High</span>
+            <span style="color:#a78bfa;margin-left:8px">EPS: purple = positive &nbsp;|&nbsp; <span style="color:#fb7185">red = negative</span></span>
+          </div>
+          <table class="price-table" id="fund-table">
+            <thead>
+              <tr>
+                <th class="col-sym">Symbol</th>
+                <th style="text-align:right;color:#00e5a0;min-width:110px">LTP (₹)</th>
+                <th style="text-align:right;color:#fbbf24;min-width:90px">PE Ratio</th>
+                <th style="text-align:right;color:#a78bfa;min-width:110px">EPS (₹)</th>
+                <th style="text-align:right;color:#38bdf8;min-width:120px">Mkt Cap</th>
+                <th style="text-align:right;color:#c8d8ea;min-width:110px">52W High</th>
+                <th style="text-align:right;color:#c8d8ea;min-width:110px">52W Low</th>
+              </tr>
+            </thead>
+            <tbody id="fund-tbody">
+              ${stocks.map(s => `<tr id="frow-${s}">
+                <td class="col-sym sym-cell">
+                  <span class="sym-name">${s}</span>
+                  <a href="https://www.nseindia.com/get-quotes/equity?symbol=${s}" target="_blank" class="sym-link">NSE ↗</a>
+                </td>
+                <td colspan="6" style="text-align:right">
+                  <span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>
+                </td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>`;
 
   document.body.appendChild(modal);
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-
-  // Fetch prices for all stocks
   fetchStockPrices(stocks);
+}
+
+function switchModalTab(tab) {
+  activeModalTab = tab;
+  document.querySelectorAll('.modal-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.modal-tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('mtab-' + tab).classList.add('active');
+  document.getElementById('mpanel-' + tab).classList.add('active');
 }
 
 function toggleChgMode() {
@@ -899,22 +1032,30 @@ function toggleChgMode() {
     hdrChg.textContent = 'Chg (Close)';
     hdrPct.textContent = 'Chg% (Close)';
   }
-  // Re-render all rows with new mode
   renderModalRows(modalPriceData);
 }
 
+// PE color: <15 green (undervalued), 15-25 yellow (fair), 25-40 orange, >40 red (expensive)
+function peColor(pe) {
+  if (pe == null) return '#6a7d96';
+  if (pe < 15)  return '#00e5a0';
+  if (pe < 25)  return '#fbbf24';
+  if (pe < 40)  return '#fb923c';
+  return '#fb7185';
+}
+// EPS color: positive = green, negative = red
+function epsColor(eps) {
+  if (eps == null) return '#6a7d96';
+  return eps >= 0 ? '#a78bfa' : '#fb7185';
+}
+
 function renderModalRows(priceData) {
-  const status = marketStatus();
   Object.keys(priceData).forEach(symbol => {
-    const row = document.getElementById('row-' + symbol);
-    if (!row) return;
     const q = priceData[symbol];
     if (!q || !q.price) return;
 
     const open      = q.open      || q.price;
     const prevClose = q.prevClose || q.open || q.price;
-
-    // Choose chg source based on toggle
     const chg    = chgMode === 'open'
                    ? (q.chgFromOpen  != null ? q.chgFromOpen  : q.price - open)
                    : (q.chgFromClose != null ? q.chgFromClose : q.price - prevClose);
@@ -923,24 +1064,56 @@ function renderModalRows(priceData) {
                    : (q.chgPctFromClose != null ? q.chgPctFromClose : (prevClose > 0 ? (q.price - prevClose) / prevClose * 100 : 0));
 
     const isUp  = chg >= 0;
-    const color = isUp ? '#00e5a0' : '#fb7185';
+    const chgColor = isUp ? '#00e5a0' : '#fb7185';
     const arrow = isUp ? '▲' : '▼';
 
-    row.innerHTML = `
-      <td class="sym-cell">
-        <span class="sym-name">${symbol}</span>
-        <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
-      </td>
-      <td style="text-align:right;font-weight:700;color:#ffffff;font-size:0.85rem">₹${fmt(q.price)}</td>
-      <td style="text-align:right;font-weight:600;color:${color}">${arrow} ${fmt(Math.abs(chg))}</td>
-      <td style="text-align:right;font-weight:700;color:${color};font-size:0.82rem">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</td>
-      <td style="text-align:right;color:var(--muted);font-weight:500">₹${fmt(open)}</td>
-      <td style="text-align:right;color:var(--muted);font-weight:500">₹${fmt(prevClose)}</td>
-      <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.high)}</td>
-      <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.low)}</td>
-      <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.high52)}</td>
-      <td style="text-align:right;color:#ffffff;font-weight:500">₹${fmt(q.low52)}</td>
-      <td style="text-align:right;color:#ffffff;font-weight:500">${fmtCap(q.marketCap)}</td>`;
+    // Day high/low: high = green, low = red
+    // 52W: compare price to 52w high/low — near high = green tint, near low = red tint
+    const dayHighColor  = '#00e5a0';
+    const dayLowColor   = '#fb7185';
+    const w52HighColor  = '#00e5a0';
+    const w52LowColor   = '#fb7185';
+
+    // ── PRICE ROW ──
+    const priceRow = document.getElementById('row-' + symbol);
+    if (priceRow) {
+      priceRow.innerHTML = `
+        <td class="col-sym sym-cell">
+          <span class="sym-name">${symbol}</span>
+          <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
+        </td>
+        <td style="text-align:right;font-weight:800;color:#ffffff;font-size:1.12rem">₹${fmt(q.price)}</td>
+        <td style="text-align:right;font-weight:700;color:${chgColor};font-size:1rem">${arrow} ${fmt(Math.abs(chg))}</td>
+        <td style="text-align:right;font-weight:800;color:${chgColor};font-size:1.08rem">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</td>
+        <td style="text-align:right;color:#8dafc8;font-weight:500;font-size:0.97rem">₹${fmt(open)}</td>
+        <td style="text-align:right;color:#8dafc8;font-weight:500;font-size:0.97rem">₹${fmt(prevClose)}</td>
+        <td style="text-align:right;font-weight:700;color:${dayHighColor};font-size:0.97rem">₹${fmt(q.high)}</td>
+        <td style="text-align:right;font-weight:700;color:${dayLowColor};font-size:0.97rem">₹${fmt(q.low)}</td>
+        <td style="text-align:right;font-weight:700;color:${w52HighColor};font-size:0.97rem">₹${fmt(q.high52)}</td>
+        <td style="text-align:right;font-weight:700;color:${w52LowColor};font-size:0.97rem">₹${fmt(q.low52)}</td>`;
+    }
+
+    // ── FUNDAMENTALS ROW ──
+    const fundRow = document.getElementById('frow-' + symbol);
+    if (fundRow) {
+      const pc = peColor(q.pe);
+      const ec = epsColor(q.eps);
+      fundRow.innerHTML = `
+        <td class="col-sym sym-cell">
+          <span class="sym-name">${symbol}</span>
+          <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
+        </td>
+        <td style="text-align:right;font-weight:800;color:#ffffff;font-size:1.05rem">₹${fmt(q.price)}</td>
+        <td style="text-align:right;font-weight:800;color:${pc};font-size:1.05rem">
+          ${q.pe != null ? Number(q.pe).toFixed(1) : '<span style="color:#2a3550">—</span>'}
+        </td>
+        <td style="text-align:right;font-weight:800;color:${ec};font-size:1.05rem">
+          ${q.eps != null ? '₹' + Number(q.eps).toFixed(2) : '<span style="color:#2a3550">—</span>'}
+        </td>
+        <td style="text-align:right;font-weight:700;color:#38bdf8;font-size:1rem">${fmtCap(q.marketCap)}</td>
+        <td style="text-align:right;font-weight:700;color:#00e5a0;font-size:0.97rem">₹${fmt(q.high52)}</td>
+        <td style="text-align:right;font-weight:700;color:#fb7185;font-size:0.97rem">₹${fmt(q.low52)}</td>`;
+    }
   });
 }
 
@@ -983,15 +1156,17 @@ async function fetchStockPrices(stocks) {
       if (q && q.price) {
         modalPriceData[symbol] = q;
       } else {
-        // Show no-data row
-        const row = document.getElementById('row-' + symbol);
-        if (row) row.innerHTML = `
-          <td class="sym-cell"><span class="sym-name">${symbol}</span>
+        const noDataHtml = `
+          <td class="col-sym sym-cell"><span class="sym-name">${symbol}</span>
             <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
           </td>
-          <td colspan="10" style="text-align:center;color:var(--muted);font-size:0.68rem">
-            No data ${status.open ? '' : '(market closed)'}
+          <td colspan="9" style="text-align:center;color:var(--muted);font-size:0.75rem">
+            No data ${status.open ? '' : '· market closed'}
           </td>`;
+        const priceRow = document.getElementById('row-' + symbol);
+        if (priceRow) priceRow.innerHTML = noDataHtml;
+        const fundRow = document.getElementById('frow-' + symbol);
+        if (fundRow) fundRow.innerHTML = noDataHtml.replace('colspan="9"','colspan="6"');
       }
     });
 
@@ -1001,10 +1176,12 @@ async function fetchStockPrices(stocks) {
   } catch(e) {
     console.error('Price fetch error:', e);
     stocks.forEach(s => {
-      const row = document.getElementById('row-' + s);
-      if (row) row.innerHTML = `
-        <td class="sym-cell"><span class="sym-name">${s}</span></td>
-        <td colspan="10" style="text-align:center;color:var(--c-mid);font-size:0.68rem">Error: ${e.message}</td>`;
+      const errHtml = `<td class="col-sym sym-cell"><span class="sym-name">${s}</span></td>
+        <td colspan="9" style="text-align:center;color:var(--c-mid);font-size:0.75rem">Error: ${e.message}</td>`;
+      const priceRow = document.getElementById('row-' + s);
+      if (priceRow) priceRow.innerHTML = errHtml;
+      const fundRow = document.getElementById('frow-' + s);
+      if (fundRow) fundRow.innerHTML = errHtml.replace('colspan="9"','colspan="6"');
     });
   }
 }
