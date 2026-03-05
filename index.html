@@ -14,8 +14,20 @@
 <meta name="theme-color" content="#0a0c10">
 <meta name="description" content="Live NSE Multi-Timeframe Watchlist Dashboard">
 
-<!-- PWA Manifest -->
-<link rel="manifest" href="manifest.json">
+<!-- Inline Manifest -->
+<link rel="manifest" href="data:application/json,{
+  %22name%22:%22NSE+Watchlist%22,
+  %22short_name%22:%22NSE+Watch%22,
+  %22description%22:%22Live+NSE+Multi-Timeframe+Watchlist%22,
+  %22start_url%22:%22.%22,
+  %22display%22:%22standalone%22,
+  %22background_color%22:%22%230a0c10%22,
+  %22theme_color%22:%22%230a0c10%22,
+  %22orientation%22:%22landscape-primary%22,
+  %22icons%22:[
+    {%22src%22:%22data:image/svg+xml,%3Csvg+xmlns='http://www.w3.org/2000/svg'+viewBox='0+0+512+512'%3E%3Crect+width='512'+height='512'+rx='80'+fill='%230a0c10'/%3E%3Ctext+x='256'+y='320'+font-size='260'+text-anchor='middle'+fill='%2300e5a0'+font-family='Arial'%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any+maskable%22}
+  ]
+}">
 
 <!-- Apple Touch Icon (generated inline as SVG→Canvas) -->
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%230a0c10'/><text x='90' y='120' font-size='90' text-anchor='middle' fill='%2300e5a0'>📈</text></svg>">
@@ -295,8 +307,9 @@ main { padding: 12px; position:relative; z-index:1; }
   border-radius:10px; border:1px solid var(--border2);
   overflow:auto; height:calc(100vh - 168px);
   background:var(--surface);
+  -webkit-overflow-scrolling: touch;
 }
-table { border-collapse:collapse; white-space:nowrap; width:100%; }
+table { border-collapse:collapse; white-space:nowrap; width:max-content; min-width:100%; }
 thead tr:first-child th { position:sticky; top:0; z-index:20; }
 thead tr:nth-child(2) th { position:sticky; top:42px; z-index:19; }
 th.rn, td.rn {
@@ -318,14 +331,14 @@ th.cat-head {
   font-family:'Oxanium',sans-serif; font-size:0.92rem; font-weight:800;
   letter-spacing:0.12em; text-transform:uppercase;
   padding:12px 16px; border-right:1px solid var(--border); border-bottom:2px solid var(--border2);
-  background:var(--surface2); height:46px; width:calc((100vw - 40px) / 7); min-width:130px;
+  background:var(--surface2); height:46px; width:160px; min-width:140px;
 }
 th.cat-head.last-in-group { border-right:2px solid var(--border2); }
 th.cat-head:last-child { border-right:none; }
 td {
   padding:11px 16px; border-right:1px solid var(--border); border-bottom:1px solid var(--border);
   font-size:1.05rem; height:48px; vertical-align:middle;
-  width:calc((100vw - 40px) / 7); min-width:130px;
+  width:160px; min-width:140px;
   color:#ffffff; font-family:Calibri,sans-serif;
 }
 td.last-in-group { border-right:2px solid var(--border2); }
@@ -896,9 +909,10 @@ body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !
   border-radius: 10px; border: 1px solid var(--border2);
   overflow: auto; background: var(--surface);
   height: calc(100vh - 168px);
+  -webkit-overflow-scrolling: touch;
 }
 .con-tbl {
-  border-collapse: collapse; white-space: nowrap; width: 100%;
+  border-collapse: collapse; white-space: nowrap; width: max-content; min-width: 100%;
 }
 .con-tbl thead tr:first-child th { position: sticky; top: 0; z-index: 20; }
 .con-tbl thead tr:nth-child(2) th { position: sticky; top: 38px; z-index: 19; }
