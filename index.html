@@ -431,7 +431,109 @@ body.mobile-view .modal-title { font-size: 1.3rem; }
 ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:6px; border:2px solid var(--surface); }
 ::-webkit-scrollbar-thumb:hover { background:var(--dim); }
 
-/* ── VIEW MODE TOGGLE ── */
+/* ══════════════════════════════════════════
+   FEATURE 1 — Health Score badge
+══════════════════════════════════════════ */
+.health-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px 3px 7px; border-radius: 20px; border: 1px solid;
+  font-family: 'Oxanium', sans-serif; font-size: 0.65rem; font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.health-badge .hb-score { font-size: 0.85rem; font-weight: 900; }
+
+/* ══════════════════════════════════════════
+   FEATURE 2 — Sort bar
+══════════════════════════════════════════ */
+.fund-sort-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 16px; border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.fund-sort-label {
+  font-family: 'Oxanium', sans-serif; font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase;
+  margin-right: 4px;
+}
+.sort-btn {
+  font-family: 'Oxanium', sans-serif; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 4px 12px; border-radius: 14px; border: 1px solid var(--border2);
+  background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s;
+}
+.sort-btn:hover { color: var(--text); border-color: var(--border2); background: rgba(255,255,255,0.04); }
+.sort-btn.active { background: rgba(0,229,160,0.13); border-color: rgba(0,229,160,0.5); color: var(--accent); }
+.sort-btn.active .sort-arrow { display: inline; }
+.sort-arrow { display: none; font-size: 0.6rem; margin-left: 3px; }
+
+/* ══════════════════════════════════════════
+   FEATURE 3 — Stagger card animation
+══════════════════════════════════════════ */
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.fund-card.animate-in {
+  animation: cardIn 0.32s ease both;
+}
+
+/* ══════════════════════════════════════════
+   FEATURE 4 — Keyboard shortcut toast
+══════════════════════════════════════════ */
+#kb-toast {
+  position: fixed; bottom: 28px; right: 24px; z-index: 5000;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 12px 18px;
+  font-family: 'Oxanium', sans-serif; font-size: 0.72rem;
+  color: var(--muted); pointer-events: none;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.5);
+  max-width: 220px;
+}
+#kb-toast.show { opacity: 1; transform: translateY(0); }
+#kb-toast strong { color: var(--accent); font-size: 0.8rem; }
+
+/* ══════════════════════════════════════════
+   FEATURE 5 — Tab count badges
+══════════════════════════════════════════ */
+.tab-badge {
+  display: inline-block; font-size: 0.6rem; font-weight: 800;
+  padding: 1px 7px; border-radius: 10px; margin-left: 7px;
+  background: var(--border2); color: #c8d8ea;
+  font-family: 'Oxanium', sans-serif; letter-spacing: 0.06em;
+  vertical-align: middle; transition: background 0.2s;
+}
+.stab.active .tab-badge { background: rgba(0,229,160,0.2); color: var(--accent); }
+
+/* ══════════════════════════════════════════
+   FEATURE 6 — Modal tab memory (no CSS needed)
+══════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════
+   FEATURE 7 — Undervalued glow
+══════════════════════════════════════════ */
+.fund-card.undervalued {
+  border-color: rgba(0,229,160,0.45) !important;
+  box-shadow: 0 0 0 1px rgba(0,229,160,0.2), 0 4px 22px rgba(0,229,160,0.12) !important;
+}
+.undervalued-tag {
+  font-family: 'Oxanium', sans-serif; font-size: 0.58rem; font-weight: 800;
+  letter-spacing: 0.1em; color: var(--accent); text-transform: uppercase;
+  background: rgba(0,229,160,0.12); border: 1px solid rgba(0,229,160,0.35);
+  padding: 2px 7px; border-radius: 10px; margin-left: 6px;
+}
+
+/* ══════════════════════════════════════════
+   FEATURE 8 — 52W row tint in master table
+══════════════════════════════════════════ */
+tr.w52-high td { background: rgba(0,229,160,0.04) !important; }
+tr.w52-low  td { background: rgba(251,113,133,0.04) !important; }
+tr.w52-high td.rn { background: var(--surface2) !important; }
+tr.w52-low  td.rn { background: var(--surface2) !important; }
+tr.w52-high:hover td { background: rgba(0,229,160,0.08) !important; }
+tr.w52-low:hover  td { background: rgba(251,113,133,0.08) !important; }
+
 .view-toggle {
   display: flex; align-items: center; gap: 0;
   background: var(--surface2); border: 1px solid var(--border2);
@@ -658,8 +760,8 @@ body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !
 </header>
 
 <div class="sheet-bar" id="sheetBar">
-  <button class="stab active" data-tab="master"><span class="dot" style="background:#00e5a0"></span>Master</button>
-  <button class="stab" data-tab="consolidated"><span class="dot" style="background:#818cf8"></span>Consolidated</button>
+  <button class="stab active" data-tab="master"><span class="dot" style="background:#00e5a0"></span>Master<span class="tab-badge" id="badge-master">—</span></button>
+  <button class="stab" data-tab="consolidated"><span class="dot" style="background:#818cf8"></span>Consolidated<span class="tab-badge" id="badge-consolidated">—</span></button>
 </div>
 
 <main id="mainContent">
@@ -669,6 +771,8 @@ body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !
     <p>Fetching live data from your Google Sheet</p>
   </div>
 </main>
+
+<div id="kb-toast"></div>
 
 <script>
 // ═══════════════════════════════════════════════════════════
@@ -923,6 +1027,8 @@ function parseSheetRows(rows) {
   consolidatedTFs.forEach(tf => {
     console.log(tf.label, '→', tf.cols.map((c,i) => CATS[i].label + ':' + c.length));
   });
+  // Feature 5 — update tab badges after parse
+  updateTabBadges();
 }
 
 function getTFColor(label) {
@@ -1046,6 +1152,9 @@ function render() {
   document.querySelectorAll('.stab').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === activeTab);
   });
+
+  // Feature 5 — update badges
+  updateTabBadges();
 }
 
 function buildConsolidated(term) {
@@ -1128,6 +1237,7 @@ function buildConsolidated(term) {
 let chgMode = 'open';
 let modalPriceData = {};
 let activeModalTab = 'price';
+let lastModalTab = 'price';
 
 function openModal(tfLabel, catLabel, stocks) {
   const existing = document.getElementById('tv-modal');
@@ -1213,9 +1323,19 @@ function openModal(tfLabel, catLabel, stocks) {
           <div id="fund-rebuild-notice" style="display:none;padding:8px 20px;background:rgba(251,191,36,0.08);border-bottom:1px solid rgba(251,191,36,0.25);font-family:Oxanium,sans-serif;font-size:0.7rem;color:#fbbf24;font-weight:700;letter-spacing:0.06em">
             ⚠ &nbsp;FUNDAMENTALS SHEET IS ON OLD SCHEMA — Run <code style="background:rgba(251,191,36,0.15);padding:1px 6px;border-radius:3px;font-family:monospace">buildFundamentalsSheet()</code> in Apps Script to unlock all columns. Live scrape fallback active for this session.
           </div>
+          <div class="fund-sort-bar">
+            <span class="fund-sort-label">Sort by:</span>
+            <button class="sort-btn active" data-sort="none" onclick="sortFundCards('none',this)">Default</button>
+            <button class="sort-btn" data-sort="health" onclick="sortFundCards('health',this)">Health <span class="sort-arrow">↓</span></button>
+            <button class="sort-btn" data-sort="pe" onclick="sortFundCards('pe',this)">PE <span class="sort-arrow">↓</span></button>
+            <button class="sort-btn" data-sort="roe" onclick="sortFundCards('roe',this)">ROE <span class="sort-arrow">↓</span></button>
+            <button class="sort-btn" data-sort="roce" onclick="sortFundCards('roce',this)">ROCE <span class="sort-arrow">↓</span></button>
+            <button class="sort-btn" data-sort="de" onclick="sortFundCards('de',this)">D/E <span class="sort-arrow">↓</span></button>
+            <button class="sort-btn" data-sort="cap" onclick="sortFundCards('cap',this)">Mkt Cap <span class="sort-arrow">↓</span></button>
+          </div>
           <div class="fund-grid" id="fund-grid">
-            ${stocks.map(s => `
-              <div class="fund-card" id="fcard-${s}">
+            ${stocks.map((s, i) => `
+              <div class="fund-card" id="fcard-${s}" data-orig-idx="${i}">
                 <div class="fund-card-loading">
                   <span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>
                 </div>
@@ -1227,10 +1347,15 @@ function openModal(tfLabel, catLabel, stocks) {
 
   document.body.appendChild(modal);
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  // Feature 6 — restore last used modal tab
+  if (lastModalTab && lastModalTab !== 'price') {
+    switchModalTab(lastModalTab);
+  }
   fetchStockPrices(stocks);
 }
 
 function switchModalTab(tab) {
+  lastModalTab = tab;
   activeModalTab = tab;
   document.querySelectorAll('.modal-tab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.modal-tab-panel').forEach(p => p.classList.remove('active'));
@@ -1353,20 +1478,65 @@ function renderModalRows(priceData) {
         ? `<span class="fund-metric-value" style="color:${color}">${format(val)}</span>`
         : `<span class="fund-metric-value dim">—</span>`;
 
+      // ── FEATURE 1: Health Score (0–10) ──
+      let healthScore = 0, healthCount = 0;
+      // PE: <15→2, 15-25→1.5, 25-40→0.5, >40→0
+      if (q.pe != null) { healthScore += q.pe < 15 ? 2 : q.pe < 25 ? 1.5 : q.pe < 40 ? 0.5 : 0; healthCount++; }
+      // ROE: ≥20%→2, ≥15%→1.5, ≥10%→0.8, <10%→0
+      if (q.roe != null) { const r=q.roe*100; healthScore += r>=20?2:r>=15?1.5:r>=10?0.8:0; healthCount++; }
+      // D/E: <0.3→2, <0.5→1.5, <1→0.8, ≥1→0
+      if (q.debtToEquity != null) { const d=q.debtToEquity; healthScore += d<0.3?2:d<0.5?1.5:d<1?0.8:0; healthCount++; }
+      // NPM: ≥20%→2, ≥15%→1.5, ≥10%→0.8, <10%→0
+      if (q.netProfitMargin != null) { const n=q.netProfitMargin*100; healthScore += n>=20?2:n>=15?1.5:n>=10?0.8:0; healthCount++; }
+      // ROE bonus for high quality
+      if (q.roce != null) { const rc=q.roce*100; healthScore += rc>=20?2:rc>=15?1.2:rc>=10?0.5:0; healthCount++; }
+      // Normalise to 0–10
+      const maxPossible = healthCount > 0 ? healthCount * 2 : 1;
+      const health10 = healthCount > 0 ? Math.round((healthScore / maxPossible) * 10 * 10) / 10 : null;
+      const healthColor = health10 == null ? '#6a7d96'
+        : health10 >= 7.5 ? '#00e5a0' : health10 >= 5 ? '#fbbf24' : health10 >= 3 ? '#fb923c' : '#fb7185';
+      const healthLabel = health10 == null ? 'N/A'
+        : health10 >= 7.5 ? 'STRONG' : health10 >= 5 ? 'FAIR' : health10 >= 3 ? 'WEAK' : 'POOR';
+      const healthBadgeHtml = health10 != null
+        ? `<span class="health-badge" style="color:${healthColor};border-color:${healthColor}44;background:${healthColor}12">
+            <span class="hb-score">${health10}</span>/${healthCount>0?10:'-'} <span style="font-size:0.6rem;opacity:0.8">${healthLabel}</span>
+           </span>`
+        : '';
+
       // 52W range bar position
       const lo52 = q.low52 || 0, hi52 = q.high52 || 0;
       const pct52 = (hi52 > lo52 && q.price) ? Math.min(100, Math.max(0, ((q.price - lo52) / (hi52 - lo52)) * 100)) : 0;
       const barColor = pct52 > 70 ? '#00e5a0' : pct52 > 40 ? '#fbbf24' : '#fb7185';
 
+      // ── FEATURE 7: Undervalued detection ──
+      const isUndervalued = q.pe != null && q.roe != null && q.pe < 20 && (q.roe * 100) > 15;
+      if (isUndervalued) fcard.classList.add('undervalued');
+      else fcard.classList.remove('undervalued');
+
+      // ── FEATURE 3: Stagger animation — set delay by card position ──
+      const cards = document.querySelectorAll('#fund-grid .fund-card');
+      const cardIdx = Array.from(cards).indexOf(fcard);
+      fcard.classList.add('animate-in');
+      fcard.style.animationDelay = (cardIdx * 55) + 'ms';
+
+      // ── Sort data attributes (Feature 2) ──
+      fcard.dataset.health = health10 != null ? health10 : -1;
+      fcard.dataset.pe     = q.pe != null ? q.pe : 9999;
+      fcard.dataset.roe    = q.roe != null ? q.roe : -1;
+      fcard.dataset.roce   = q.roce != null ? q.roce : -1;
+      fcard.dataset.de     = q.debtToEquity != null ? q.debtToEquity : 9999;
+      fcard.dataset.cap    = q.marketCap != null ? q.marketCap : -1;
+
       fcard.innerHTML = `
         <div class="fund-card-hd">
           <div class="fund-card-sym-wrap">
             <span class="fund-card-sym">${symbol}</span>
+            ${isUndervalued ? '<span class="undervalued-tag">★ Value</span>' : ''}
             <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="fund-card-sym-link">NSE ↗</a>
           </div>
-          <div class="fund-card-price">
-            ₹${fmt(q.price)}
-            <small>LTP</small>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            ${healthBadgeHtml}
+            <div class="fund-card-price">₹${fmt(q.price)}<small>LTP</small></div>
           </div>
         </div>
 
@@ -1575,6 +1745,8 @@ async function fetchStockPrices(stocks) {
     });
 
     renderModalRows(modalPriceData);
+    // Feature 8 — apply 52W row tints to master table
+    apply52WTints(modalPriceData);
 
     // Hide rebuild notice if new data has advanced fields
     const sampleData = Object.values(modalPriceData)[0];
@@ -1639,6 +1811,129 @@ function showError(msg) {
         <button class="retry-btn" onclick="loadSheet()">↺ Retry</button>
       </div>
     </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 2 — Sort fund cards
+// ═══════════════════════════════════════════════════════════
+let fundSortMode = 'none';
+let fundSortDir  = {};  // key → 'asc'|'desc'
+
+function sortFundCards(mode, btn) {
+  const grid = document.getElementById('fund-grid');
+  if (!grid) return;
+
+  // Update button states
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (mode === 'none') {
+    // Restore DOM order (original order by data-original-index)
+    const cards = [...grid.querySelectorAll('.fund-card')];
+    cards.sort((a, b) => parseInt(a.dataset.origIdx||0) - parseInt(b.dataset.origIdx||0));
+    cards.forEach(c => grid.appendChild(c));
+    return;
+  }
+
+  // Toggle direction
+  fundSortDir[mode] = fundSortDir[mode] === 'desc' ? 'asc' : 'desc';
+  const dir = fundSortDir[mode];
+  btn.querySelector('.sort-arrow').textContent = dir === 'desc' ? '↓' : '↑';
+
+  const cards = [...grid.querySelectorAll('.fund-card')];
+  cards.sort((a, b) => {
+    const av = parseFloat(a.dataset[mode] ?? (mode==='de'||mode==='pe'?9999:-1));
+    const bv = parseFloat(b.dataset[mode] ?? (mode==='de'||mode==='pe'?9999:-1));
+    // For PE and D/E: lower is better → ascending default; for others: higher is better → descending default
+    return dir === 'desc' ? bv - av : av - bv;
+  });
+  cards.forEach((c, i) => { c.style.animationDelay = (i * 40) + 'ms'; grid.appendChild(c); });
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 4 — Keyboard shortcuts
+// ═══════════════════════════════════════════════════════════
+let kbToastTimer = null;
+function showKbToast(msg) {
+  const el = document.getElementById('kb-toast');
+  if (!el) return;
+  el.innerHTML = msg;
+  el.classList.add('show');
+  clearTimeout(kbToastTimer);
+  kbToastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+document.addEventListener('keydown', e => {
+  // Don't fire when typing in search
+  if (e.target.tagName === 'INPUT') return;
+
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('tv-modal');
+    if (modal) { modal.remove(); showKbToast('<strong>ESC</strong> — Modal closed'); }
+    return;
+  }
+  if (e.key === 'm' || e.key === 'M') {
+    activeTab = 'master'; render();
+    showKbToast('<strong>M</strong> — Master tab');
+    return;
+  }
+  if (e.key === 'c' || e.key === 'C') {
+    activeTab = 'consolidated'; render();
+    showKbToast('<strong>C</strong> — Consolidated tab');
+    return;
+  }
+  if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && activeTab === 'master' && masterTFs.length) {
+    if (e.key === 'ArrowLeft')  activeMasterTF = (activeMasterTF - 1 + masterTFs.length) % masterTFs.length;
+    if (e.key === 'ArrowRight') activeMasterTF = (activeMasterTF + 1) % masterTFs.length;
+    render();
+    showKbToast(`<strong>${e.key === 'ArrowLeft' ? '←' : '→'}</strong> — ${masterTFs[activeMasterTF].label}`);
+    return;
+  }
+  if (e.key === '/' || e.key === 'f') {
+    e.preventDefault();
+    document.getElementById('gSearch').focus();
+    showKbToast('<strong>/</strong> — Search');
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 5 — Tab count badges
+// ═══════════════════════════════════════════════════════════
+function updateTabBadges() {
+  const masterCount = masterTFs.reduce((a, tf) => a + tf.cols.reduce((b, col) => b + col.length, 0), 0);
+  const conCount    = consolidatedTFs.reduce((a, tf) => a + tf.cols.reduce((b, col) => b + col.length, 0), 0);
+  const bm = document.getElementById('badge-master');
+  const bc = document.getElementById('badge-consolidated');
+  if (bm) bm.textContent = masterCount || '—';
+  if (bc) bc.textContent = conCount    || '—';
+}
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 6 — Modal tab memory (tracked in switchModalTab above)
+// ═══════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════
+// FEATURE 8 — 52W row tinting in master table
+// ═══════════════════════════════════════════════════════════
+// Called after price data loads — tints rows based on 52W position
+function apply52WTints(priceData) {
+  if (activeTab !== 'master') return;
+  const tbody = document.querySelector('.master-wrap tbody');
+  if (!tbody) return;
+  tbody.querySelectorAll('tr').forEach(row => {
+    row.classList.remove('w52-high', 'w52-low');
+    // Find stock symbols in this row
+    row.querySelectorAll('.sp').forEach(pill => {
+      const sym = pill.textContent.trim().toUpperCase();
+      const q = priceData[sym];
+      if (!q || !q.price || !q.high52 || !q.low52) return;
+      const range = q.high52 - q.low52;
+      if (range <= 0) return;
+      const pct = (q.price - q.low52) / range;
+      if (pct >= 0.8)      row.classList.add('w52-high');
+      else if (pct <= 0.2) row.classList.add('w52-low');
+    });
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
