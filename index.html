@@ -311,41 +311,119 @@ mark { background:rgba(0,229,160,0.28); color:var(--accent); border-radius:2px; 
 .val-yellow{ color: #fbbf24 !important; font-weight: 800; }
 .val-purple{ color: #a78bfa !important; font-weight: 800; }
 
-/* fundamentals card grid */
+/* ── FUNDAMENTALS CARD GRID ── */
 .fund-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 14px; padding: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 12px; padding: 14px 16px;
 }
 .fund-card {
   background: var(--surface2); border: 1px solid var(--border2);
-  border-radius: 10px; padding: 16px 18px;
-  display: flex; flex-direction: column; gap: 10px;
+  border-radius: 12px; overflow: hidden;
+  display: flex; flex-direction: column;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.fund-card:hover { border-color: var(--dim); box-shadow: 0 4px 18px rgba(0,0,0,0.3); }
+.fund-card:hover { border-color: var(--dim); box-shadow: 0 4px 22px rgba(0,0,0,0.4); }
+
+/* Card header: symbol + price + 52W bar */
+.fund-card-hd {
+  padding: 11px 14px 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.fund-card-sym-wrap { display: flex; align-items: center; gap: 8px; }
 .fund-card-sym {
   font-weight: 800; font-size: 1.05rem; color: #ffffff;
   font-family: Calibri, sans-serif; letter-spacing: 0.03em;
-  display: flex; align-items: center; justify-content: space-between;
 }
-.fund-card-sym a {
-  font-size: 0.62rem; color: var(--muted); text-decoration: none;
-  border: 1px solid var(--border2); padding: 2px 7px; border-radius: 4px;
+.fund-card-sym a, .fund-card-sym-link {
+  font-size: 0.58rem; color: var(--muted); text-decoration: none;
+  border: 1px solid var(--border2); padding: 2px 6px; border-radius: 4px;
   font-family: 'Oxanium', sans-serif; font-weight: 600; transition: all 0.15s;
 }
-.fund-card-sym a:hover { color: var(--accent); border-color: var(--accent); }
-.fund-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.fund-card-sym a:hover, .fund-card-sym-link:hover { color: var(--accent); border-color: var(--accent); }
+.fund-card-price {
+  font-family: Calibri, sans-serif; font-size: 1.08rem; font-weight: 800;
+  color: #ffffff; text-align: right;
+}
+.fund-card-price small {
+  display: block; font-size: 0.6rem; color: var(--muted);
+  font-family: 'Oxanium', sans-serif; font-weight: 600;
+  letter-spacing: 0.08em; text-align: right; margin-top: 1px;
+}
+
+/* 52W range bar */
+.fund-52w-bar-wrap { padding: 6px 14px 8px; border-bottom: 1px solid var(--border); }
+.fund-52w-labels { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.fund-52w-labels span { font-family: Calibri, sans-serif; font-size: 0.68rem; font-weight: 700; }
+.fund-52w-track {
+  height: 5px; background: var(--border2); border-radius: 4px;
+  position: relative; overflow: hidden;
+}
+.fund-52w-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, #fb7185, #fbbf24, #00e5a0);
+  transition: width 0.6s ease;
+}
+.fund-52w-thumb {
+  position: absolute; top: 50%; transform: translate(-50%,-50%);
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #fff; border: 2px solid var(--accent);
+  box-shadow: 0 0 4px rgba(0,229,160,0.6);
+}
+
+/* Metric rows: 2 columns of key-value pairs */
+.fund-metrics-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; }
+.fund-metric-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+}
 .fund-metric {
-  display: flex; flex-direction: column; gap: 4px;
-  background: var(--surface); border-radius: 7px;
-  padding: 10px 12px; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface); border-radius: 6px;
+  padding: 6px 10px; border: 1px solid var(--border);
+  gap: 6px;
 }
 .fund-metric-label {
-  font-family: 'Oxanium', sans-serif; font-size: 0.6rem; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+  font-family: 'Oxanium', sans-serif; font-size: 0.58rem; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted);
+  white-space: nowrap;
 }
-.fund-metric-value { font-size: 1.05rem; font-weight: 800; font-family: Calibri, sans-serif; line-height: 1.2; }
+.fund-metric-value {
+  font-size: 0.92rem; font-weight: 800;
+  font-family: Calibri, sans-serif; text-align: right; white-space: nowrap;
+}
+.fund-metric-value.dim { color: var(--border2) !important; font-weight: 400; }
+
+/* Card footer: cap + EBITDA + FCF wide row */
+.fund-card-footer {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  border-top: 1px solid var(--border2);
+}
+.fund-footer-cell {
+  padding: 7px 10px; text-align: center;
+  border-right: 1px solid var(--border);
+}
+.fund-footer-cell:last-child { border-right: none; }
+.fund-footer-label {
+  font-family: 'Oxanium', sans-serif; font-size: 0.55rem; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px;
+}
+.fund-footer-value { font-size: 0.88rem; font-weight: 800; font-family: Calibri, sans-serif; }
+
+/* loading card skeleton */
+.fund-card-loading {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 140px; color: var(--muted); gap: 8px;
+  font-family: 'Oxanium', sans-serif; font-size: 0.75rem; letter-spacing: 0.08em;
+}
+
+/* compact price-table in mobile mode */
+body.mobile-view .price-table th { font-size: 0.66rem !important; padding: 8px 10px !important; min-width: unset !important; }
+body.mobile-view .price-table td { padding: 9px 10px !important; font-size: 0.88rem !important; }
+body.mobile-view .modal { max-width: 98vw; }
+body.mobile-view .modal-hd { padding: 12px 16px; }
+body.mobile-view .modal-title { font-size: 1.3rem; }
 
 /* scrollbar */
 ::-webkit-scrollbar { width:8px; height:8px; }
@@ -353,7 +431,105 @@ mark { background:rgba(0,229,160,0.28); color:var(--accent); border-radius:2px; 
 ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:6px; border:2px solid var(--surface); }
 ::-webkit-scrollbar-thumb:hover { background:var(--dim); }
 
-/* ── CONSOLIDATED CARDS ── */
+/* ── VIEW MODE TOGGLE ── */
+.view-toggle {
+  display: flex; align-items: center; gap: 0;
+  background: var(--surface2); border: 1px solid var(--border2);
+  border-radius: 8px; overflow: hidden; flex-shrink: 0;
+}
+.view-btn {
+  font-family: 'Oxanium', sans-serif; font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 7px 13px; border: none; background: transparent;
+  color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 5px;
+  transition: all 0.18s; white-space: nowrap;
+}
+.view-btn:hover { color: var(--text); }
+.view-btn.active { background: var(--accent); color: #0a0c10; }
+.view-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+.view-divider { width: 1px; height: 100%; background: var(--border2); }
+
+/* ── BODY VIEW MODE CLASSES ── */
+body.mobile-view {
+  --row-h: 36px; --cell-pad: 6px 10px; --cell-fs: 0.82rem;
+  --sp-pad: 3px 9px; --sp-fs: 0.78rem; --hdr-fs: 0.72rem;
+}
+body.desktop-view {
+  --row-h: 48px; --cell-pad: 11px 16px; --cell-fs: 1.05rem;
+  --sp-pad: 5px 14px; --sp-fs: 1.02rem; --hdr-fs: 0.92rem;
+}
+body.mobile-view td { padding: var(--cell-pad) !important; font-size: var(--cell-fs) !important; height: var(--row-h) !important; }
+body.mobile-view th.cat-head { font-size: var(--hdr-fs) !important; padding: 7px 10px !important; height: 34px !important; }
+body.mobile-view th.grp-head { font-size: 1.1rem !important; height: 34px !important; padding: 6px 10px !important; }
+body.mobile-view .sp { padding: var(--sp-pad) !important; font-size: var(--sp-fs) !important; }
+body.mobile-view .tf-pill { padding: 5px 13px !important; font-size: 0.76rem !important; }
+body.mobile-view .pill-sm { font-size: 0.68rem !important; padding: 3px 8px !important; }
+body.mobile-view .cat-row { padding: 8px 12px !important; }
+body.mobile-view .cat-row-label { font-size: 0.7rem !important; min-width: 72px !important; }
+body.mobile-view .con-tbl-wrap { font-size: 0.78rem; }
+body.mobile-view .con-tbl th { font-size: 0.65rem !important; padding: 5px 8px !important; }
+body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !important; }
+
+/* ── CONSOLIDATED TABLE LAYOUT ── */
+.con-tbl-wrap {
+  border-radius: 10px; border: 1px solid var(--border2);
+  overflow: auto; background: var(--surface);
+  height: calc(100vh - 168px);
+}
+.con-tbl {
+  border-collapse: collapse; white-space: nowrap; width: 100%;
+}
+.con-tbl thead tr:first-child th { position: sticky; top: 0; z-index: 20; }
+.con-tbl thead tr:nth-child(2) th { position: sticky; top: 38px; z-index: 19; }
+.con-tbl th {
+  font-family: 'Oxanium', sans-serif; font-size: 0.8rem; font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 9px 12px; border-right: 1px solid var(--border);
+  border-bottom: 2px solid var(--border2);
+  background: var(--surface2); color: var(--muted);
+  white-space: nowrap;
+}
+.con-tbl th.tf-col-hd {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; font-weight: 400;
+  letter-spacing: 0.16em; text-align: center;
+  border-right: 2px solid var(--border2); color: #fff;
+  padding: 8px 16px;
+}
+.con-tbl th.cat-hd { color: #c8d8ea; text-align: center; }
+.con-tbl th.row-lbl-hd {
+  position: sticky; left: 0; z-index: 22; background: var(--surface2);
+  border-right: 2px solid var(--border2); min-width: 110px;
+  color: var(--muted);
+}
+.con-tbl td {
+  padding: 9px 12px; border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border); vertical-align: middle;
+  font-size: 0.92rem;
+}
+.con-tbl td.row-lbl {
+  position: sticky; left: 0; z-index: 10; background: var(--surface2);
+  border-right: 2px solid var(--border2);
+  font-family: 'Oxanium', sans-serif; font-size: 0.75rem; font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.con-tbl td.tf-sep { border-right: 2px solid var(--border2); }
+.con-tbl tr:hover td { background: rgba(255,255,255,0.035); }
+.con-tbl tr:hover td.row-lbl { background: var(--surface2); }
+.con-tbl tr:last-child td { border-bottom: none; }
+.con-tbl .pill-wrap { display: flex; flex-wrap: wrap; gap: 4px; max-width: 200px; }
+.con-tbl .pill-xs {
+  font-size: 0.74rem; padding: 3px 9px; border-radius: 4px;
+  border: 1px solid; font-weight: 700; cursor: pointer;
+  font-family: Calibri, sans-serif; white-space: nowrap;
+  transition: opacity 0.15s, transform 0.12s;
+}
+.con-tbl .pill-xs:hover { opacity: 0.8; transform: scale(1.08); }
+.con-tbl .empty-cell { color: var(--border2); font-size: 0.75rem; text-align: center; }
+.con-tbl .clickable-cell { cursor: pointer; }
+.con-tbl .clickable-cell:hover { background: rgba(255,255,255,0.05) !important; }
+
+/* keep old card styles for reference — hidden when table mode active */
+/* ── CONSOLIDATED CARDS (legacy) ── */
 .con-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
@@ -462,6 +638,18 @@ mark { background:rgba(0,229,160,0.28); color:var(--accent); border-radius:2px; 
     </svg>
     Refresh
   </button>
+  <div class="hdr-div"></div>
+  <div class="view-toggle" title="Switch view density">
+    <button class="view-btn active" id="vbtn-desktop" onclick="setViewMode('desktop')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      Desktop
+    </button>
+    <div class="view-divider"></div>
+    <button class="view-btn" id="vbtn-mobile" onclick="setViewMode('mobile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+      Mobile
+    </button>
+  </div>
   <div class="hdr-div"></div>
   <div class="search-wrap">
     <span class="si">⌕</span>
@@ -845,11 +1033,13 @@ function render() {
     mc.innerHTML = buildTable(masterTFs, term);
   } else {
     mc.innerHTML = buildConsolidated(term);
-    // Attach click handlers to category rows
-    mc.querySelectorAll('.cat-row').forEach(row => {
-      row.addEventListener('click', () => {
-        openModal(row.dataset.tf, row.dataset.cat, JSON.parse(row.dataset.stocks));
-      });
+    // Attach click via event delegation — avoids JSON-in-onclick-attribute issues
+    mc.addEventListener('click', e => {
+      const cell = e.target.closest('.clickable-cell');
+      if (!cell) return;
+      const key = cell.dataset.storeKey;
+      const entry = window._conClickStore && window._conClickStore[key];
+      if (entry) openModal(entry.tfLabel, entry.catLabel, entry.stocks);
     });
   }
 
@@ -861,42 +1051,77 @@ function render() {
 function buildConsolidated(term) {
   if (!consolidatedTFs.length) return '<div style="padding:60px;text-align:center;color:var(--muted)">No consolidated timeframes found</div>';
 
-  const cards = consolidatedTFs.map(tf => {
-    const catRows = CATS.map((cat, ci) => {
-      let stocks = tf.cols[ci] || [];
-      if (term) stocks = stocks.filter(s => s.toLowerCase().includes(term));
-      if (!stocks.length && term) return '';
+  // Safe click store — avoids JSON-in-HTML-attribute quoting issues
+  window._conClickStore = {};
+  let storeIdx = 0;
 
-      const pills = stocks.map(s => {
-        const lbl = term ? s.replace(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), m => `<mark>${m}</mark>`) : s;
-        return `<span class="pill-sm" style="color:${cat.color};border-color:${cat.color}33;background:${cat.color}10">${lbl}</span>`;
-      }).join('');
+  function registerClick(tfLabel, catLabel, stocks) {
+    const key = 'c' + (storeIdx++);
+    window._conClickStore[key] = { tfLabel, catLabel, stocks };
+    return key;
+  }
 
-      const stocksJson = JSON.stringify(stocks).replace(/'/g, "\'");
-
-      return `<div class="cat-row"
-        data-tf="${tf.label}"
-        data-cat="${cat.label}"
-        data-stocks='${JSON.stringify(stocks)}'>
-        <div class="cat-row-label" style="color:${cat.color}">${cat.label}</div>
-        <div class="cat-row-pills">${pills || '<span style="color:var(--muted);font-size:0.72rem;font-style:italic">—</span>'}</div>
-        <div class="cat-row-count">${stocks.length}</div>
-        <div class="cat-row-arrow">›</div>
-      </div>`;
-    }).join('');
-
+  // Header cells: one per timeframe
+  const tfHeaderCells = consolidatedTFs.map((tf, tfi) => {
     const totalStocks = tf.cols.reduce((a, c) => a + c.length, 0);
-
-    return `<div class="con-card">
-      <div class="con-card-hd">
-        <div class="con-card-title" style="color:${tf.color}">${tf.label}</div>
-        <span style="font-size:0.76rem;color:#c8d8e8;background:var(--border2);padding:4px 14px;border-radius:20px;font-family:Oxanium,sans-serif;font-weight:700;letter-spacing:0.06em">${totalStocks} stocks</span>
-      </div>
-      <div class="con-card-body">${catRows}</div>
-    </div>`;
+    const isLast = tfi === consolidatedTFs.length - 1;
+    return `<th class="tf-col-hd${isLast ? '' : ' tf-sep'}" style="color:${tf.color};border-top:3px solid ${tf.color}">
+      ${tf.label}
+      <span style="font-size:0.65rem;font-family:Calibri,sans-serif;font-weight:400;opacity:0.7;margin-left:8px">${totalStocks} stocks</span>
+    </th>`;
   }).join('');
 
-  return `<div class="con-grid">${cards}</div>`;
+  // Body rows: one per category
+  const bodyRows = CATS.map((cat, ci) => {
+    const cells = consolidatedTFs.map((tf, tfi) => {
+      let stocks = tf.cols[ci] || [];
+      if (term) stocks = stocks.filter(s => s.toLowerCase().includes(term));
+      const isLast = tfi === consolidatedTFs.length - 1;
+
+      if (!stocks.length) {
+        return `<td class="con-cell${isLast ? '' : ' tf-sep'}" style="text-align:center">
+          <span class="empty-cell">—</span>
+        </td>`;
+      }
+
+      const cellKey = registerClick(tf.label, cat.label, stocks);
+
+      const pills = stocks.map(s => {
+        const lbl = term
+          ? s.replace(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), m => `<mark>${m}</mark>`)
+          : s;
+        return `<span class="pill-xs"
+          style="color:${cat.color};border-color:${cat.color}33;background:${cat.color}0f"
+          title="${s} · ${cat.label} · ${tf.label}">${lbl}</span>`;
+      }).join('');
+
+      return `<td class="con-cell${isLast ? '' : ' tf-sep'} clickable-cell"
+        data-store-key="${cellKey}"
+        title="Click to open ${cat.label} · ${tf.label}">
+        <div class="pill-wrap">${pills}</div>
+      </td>`;
+    }).join('');
+
+    return `<tr>
+      <td class="row-lbl" style="color:${cat.color}">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${cat.color};margin-right:7px;vertical-align:middle;flex-shrink:0"></span>${cat.label}
+      </td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  return `
+    <div class="con-tbl-wrap">
+      <table class="con-tbl">
+        <thead>
+          <tr>
+            <th class="row-lbl-hd" style="top:0;z-index:23">Category</th>
+            ${tfHeaderCells}
+          </tr>
+        </thead>
+        <tbody>${bodyRows}</tbody>
+      </table>
+    </div>`;
 }
 
 // ── MODAL with live stock data via Yahoo Finance ──
@@ -973,7 +1198,7 @@ function openModal(tfLabel, catLabel, stocks) {
 
         <!-- FUNDAMENTALS TAB -->
         <div class="modal-tab-panel" id="mpanel-fund">
-          <div style="padding:8px 20px 6px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-family:Oxanium,sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:0.07em;color:var(--muted);border-bottom:1px solid var(--border)">
+          <div style="padding:7px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;color:var(--muted);border-bottom:1px solid var(--border)">
             <span style="color:#a0b4c8">PE:</span>
             <span style="color:#00e5a0">●&lt;15</span><span style="color:#fbbf24">●15–25</span><span style="color:#fb923c">●25–40</span><span style="color:#fb7185">●&gt;40</span>
             <span style="color:#6a7d96">|</span>
@@ -983,44 +1208,19 @@ function openModal(tfLabel, catLabel, stocks) {
             <span style="color:#6a7d96">|</span>
             <span style="color:#a78bfa">EPS/NPM: purple=+ve</span><span style="color:#fb7185">red=−ve</span>
             <span style="color:#6a7d96">|</span>
-            <span style="color:#f59e0b">Beta: ●&lt;0.8 low</span><span style="color:#fbbf24">●0.8–1.2</span><span style="color:#fb7185">●&gt;1.2 high</span>
+            <span style="color:#f59e0b">Beta: ●&lt;0.8</span><span style="color:#fbbf24">●0.8–1.2</span><span style="color:#fb7185">●&gt;1.2</span>
           </div>
           <div id="fund-rebuild-notice" style="display:none;padding:8px 20px;background:rgba(251,191,36,0.08);border-bottom:1px solid rgba(251,191,36,0.25);font-family:Oxanium,sans-serif;font-size:0.7rem;color:#fbbf24;font-weight:700;letter-spacing:0.06em">
             ⚠ &nbsp;FUNDAMENTALS SHEET IS ON OLD SCHEMA — Run <code style="background:rgba(251,191,36,0.15);padding:1px 6px;border-radius:3px;font-family:monospace">buildFundamentalsSheet()</code> in Apps Script to unlock all columns. Live scrape fallback active for this session.
           </div>
-          <table class="price-table" id="fund-table">
-            <thead>
-              <tr>
-                <th class="col-sym">Symbol</th>
-                <th style="text-align:right;color:#00e5a0;min-width:100px">LTP (₹)</th>
-                <th style="text-align:right;color:#fbbf24;min-width:72px" class="fund-col">PE</th>
-                <th style="text-align:right;color:#a78bfa;min-width:95px" class="fund-col">EPS (₹)</th>
-                <th style="text-align:right;color:#34d399;min-width:80px" class="fund-col">ROE</th>
-                <th style="text-align:right;color:#2dd4bf;min-width:80px" class="fund-col">ROCE</th>
-                <th style="text-align:right;color:#fb7185;min-width:75px" class="fund-col">D/E</th>
-                <th style="text-align:right;color:#e879f9;min-width:78px" class="fund-col">P/B</th>
-                <th style="text-align:right;color:#00e5a0;min-width:80px" class="fund-col">Div Yld</th>
-                <th style="text-align:right;color:#a78bfa;min-width:78px" class="fund-col">NPM</th>
-                <th style="text-align:right;color:#f59e0b;min-width:68px" class="fund-col">Beta</th>
-                <th style="text-align:right;color:#38bdf8;min-width:105px" class="fund-col">Mkt Cap</th>
-                <th style="text-align:right;color:#fb923c;min-width:100px" class="fund-col">EBITDA</th>
-                <th style="text-align:right;color:#22d3ee;min-width:100px" class="fund-col">Free CF</th>
-                <th style="text-align:right;color:#94a3b8;min-width:95px">52W High</th>
-                <th style="text-align:right;color:#94a3b8;min-width:95px">52W Low</th>
-              </tr>
-            </thead>
-            <tbody id="fund-tbody">
-              ${stocks.map(s => `<tr id="frow-${s}">
-                <td class="col-sym sym-cell">
-                  <span class="sym-name">${s}</span>
-                  <a href="https://www.nseindia.com/get-quotes/equity?symbol=${s}" target="_blank" class="sym-link">NSE ↗</a>
-                </td>
-                <td colspan="15" style="text-align:center">
+          <div class="fund-grid" id="fund-grid">
+            ${stocks.map(s => `
+              <div class="fund-card" id="fcard-${s}">
+                <div class="fund-card-loading">
                   <span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>
-                </td>
-              </tr>`).join('')}
-            </tbody>
-          </table>
+                </div>
+              </div>`).join('')}
+          </div>
         </div>
       </div>
     </div>`;
@@ -1136,71 +1336,119 @@ function renderModalRows(priceData) {
         <td style="text-align:right;font-weight:700;color:${w52LowColor};font-size:0.97rem">₹${fmt(q.low52)}</td>`;
     }
 
-    // ── FUNDAMENTALS ROW ──
-    const fundRow = document.getElementById('frow-' + symbol);
-    if (fundRow) {
-      const pc = peColor(q.pe);
-      const ec = epsColor(q.eps);
+    // ── FUNDAMENTALS CARD ──
+    const fcard = document.getElementById('fcard-' + symbol);
+    if (fcard) {
+      const pc   = peColor(q.pe);
+      const ec   = epsColor(q.eps);
       const roeC = roeColor(q.roe);
+      const roceC= roeColor(q.roce);
       const deC  = deColor(q.debtToEquity);
-
-      const roceC = roeColor(q.roce);
-
-      // Helper: format % metric
-      const fmtPct = (v, c) => v != null
-        ? `<span style="color:${c};font-weight:800">${(v*100).toFixed(1)}%</span>`
-        : `<span style="color:#2a3550">—</span>`;
-
-      const roeStr  = fmtPct(q.roe,  roeC);
-      const roceStr = fmtPct(q.roce, roceC);
-
-      // NPM color: >15% green, 10-15% yellow, <10% red
-      const npmC   = q.netProfitMargin != null
+      const npmC = q.netProfitMargin != null
         ? (q.netProfitMargin >= 0.15 ? '#a78bfa' : q.netProfitMargin >= 0.10 ? '#fbbf24' : '#fb7185')
-        : '#2a3550';
-      const npmStr = fmtPct(q.netProfitMargin, npmC);
+        : null;
+      const betaC = q.beta != null ? (q.beta < 0.8 ? '#38bdf8' : q.beta < 1.2 ? '#fbbf24' : '#fb7185') : null;
 
-      const deStr  = q.debtToEquity != null
-        ? `<span style="color:${deC};font-weight:800">${Number(q.debtToEquity).toFixed(2)}</span>`
-        : `<span style="color:#2a3550">—</span>`;
+      const v = (val, color, format) => val != null
+        ? `<span class="fund-metric-value" style="color:${color}">${format(val)}</span>`
+        : `<span class="fund-metric-value dim">—</span>`;
 
-      const pbStr  = q.priceToBook != null
-        ? `<span style="color:#e879f9;font-weight:800">${Number(q.priceToBook).toFixed(2)}x</span>`
-        : `<span style="color:#2a3550">—</span>`;
+      // 52W range bar position
+      const lo52 = q.low52 || 0, hi52 = q.high52 || 0;
+      const pct52 = (hi52 > lo52 && q.price) ? Math.min(100, Math.max(0, ((q.price - lo52) / (hi52 - lo52)) * 100)) : 0;
+      const barColor = pct52 > 70 ? '#00e5a0' : pct52 > 40 ? '#fbbf24' : '#fb7185';
 
-      const divStr = q.dividendYield != null
-        ? `<span style="color:#00e5a0;font-weight:800">${(q.dividendYield*100).toFixed(2)}%</span>`
-        : `<span style="color:#2a3550">—</span>`;
+      fcard.innerHTML = `
+        <div class="fund-card-hd">
+          <div class="fund-card-sym-wrap">
+            <span class="fund-card-sym">${symbol}</span>
+            <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="fund-card-sym-link">NSE ↗</a>
+          </div>
+          <div class="fund-card-price">
+            ₹${fmt(q.price)}
+            <small>LTP</small>
+          </div>
+        </div>
 
-      const betaC  = q.beta != null ? (q.beta < 0.8 ? '#38bdf8' : q.beta < 1.2 ? '#fbbf24' : '#fb7185') : '#2a3550';
-      const betaStr= q.beta != null
-        ? `<span style="color:${betaC};font-weight:800">${Number(q.beta).toFixed(2)}</span>`
-        : `<span style="color:#2a3550">—</span>`;
+        <div class="fund-52w-bar-wrap">
+          <div class="fund-52w-labels">
+            <span style="color:#fb7185">₹${fmt(lo52)}</span>
+            <span style="color:#8a9ab0;font-size:0.6rem;font-family:Oxanium,sans-serif;font-weight:600;letter-spacing:0.08em">52W RANGE · ${pct52.toFixed(0)}%</span>
+            <span style="color:#00e5a0">₹${fmt(hi52)}</span>
+          </div>
+          <div class="fund-52w-track">
+            <div class="fund-52w-fill" style="width:${pct52}%;background:${barColor}"></div>
+            <div class="fund-52w-thumb" style="left:${pct52}%;border-color:${barColor}"></div>
+          </div>
+        </div>
 
-      fundRow.innerHTML = `
-        <td class="col-sym sym-cell">
-          <span class="sym-name">${symbol}</span>
-          <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
-        </td>
-        <td style="text-align:right;font-weight:800;color:#ffffff;font-size:1.05rem">₹${fmt(q.price)}</td>
-        <td class="fund-col" style="text-align:right">
-          ${q.pe != null ? `<span style="color:${pc};font-weight:800">${Number(q.pe).toFixed(1)}</span>` : '<span style="color:#2a3550">—</span>'}
-        </td>
-        <td class="fund-col" style="text-align:right">
-          ${q.eps != null ? `<span style="color:${ec};font-weight:800">₹${Number(q.eps).toFixed(2)}</span>` : '<span style="color:#2a3550">—</span>'}
-        </td>
-        <td class="fund-col" style="text-align:right">${roeStr}</td>
-        <td class="fund-col" style="text-align:right">${roceStr}</td>
-        <td class="fund-col" style="text-align:right">${deStr}</td>
-        <td class="fund-col" style="text-align:right">${pbStr}</td>
-        <td class="fund-col" style="text-align:right">${divStr}</td>
-        <td class="fund-col" style="text-align:right">${npmStr}</td>
-        <td class="fund-col" style="text-align:right">${betaStr}</td>
-        <td class="fund-col" style="text-align:right;font-weight:700;color:#38bdf8">${fmtCap(q.marketCap)}</td>
-        <td class="fund-col" style="text-align:right;font-weight:700;color:#fb923c">${fmtCap(q.ebitda)}</td>
-        <td class="fund-col" style="text-align:right;font-weight:700;color:#22d3ee">${fmtCap(q.freeCashFlow)}</td>
-        <td style="text-align:right;font-weight:700;color:#00e5a0">₹${fmt(q.high52)}</td>
-        <td style="text-align:right;font-weight:700;color:#fb7185">₹${fmt(q.low52)}</td>`;
+        <div class="fund-metrics-body">
+          <div class="fund-metric-row">
+            <div class="fund-metric">
+              <span class="fund-metric-label" style="color:#fbbf24">PE</span>
+              ${v(q.pe, pc, x => Number(x).toFixed(1))}
+            </div>
+            <div class="fund-metric">
+              <span class="fund-metric-label" style="color:#a78bfa">EPS</span>
+              ${v(q.eps, ec, x => '₹'+Number(x).toFixed(1))}
+            </div>
+          </div>
+          <div class="fund-metric-row">
+            <div class="fund-metric">
+              <span class="fund-metric-label" style="color:#34d399">ROE</span>
+              ${v(q.roe, roeC, x => (x*100).toFixed(1)+'%')}
+            </div>
+            <div class="fund-metric">
+              <span class="fund-metric-label" style="color:#2dd4bf">ROCE</span>
+              ${v(q.roce, roceC, x => (x*100).toFixed(1)+'%')}
+            </div>
+          </div>
+          <div class="fund-metric-row">
+            <div class="fund-metric">
+              <span class="fund-metric-label" style="color:#fb7185">D/E</span>
+              ${v(q.debtToEquity, deC, x => Number(x).toFixed(2))}
+            </div>
+            <div class="fund-metric">
+              <span class="fund-metric-label" style="color:#e879f9">P/B</span>
+              ${v(q.priceToBook, '#e879f9', x => Number(x).toFixed(2)+'x')}
+            </div>
+          </div>
+          <div class="fund-metric-row">
+            <div class="fund-metric">
+              <span class="fund-metric-label" style="color:#a78bfa">NPM</span>
+              ${v(q.netProfitMargin, npmC || '#6a7d96', x => (x*100).toFixed(1)+'%')}
+            </div>
+            <div class="fund-metric">
+              <span class="fund-metric-label" style="color:#00e5a0">Div Yld</span>
+              ${v(q.dividendYield, '#00e5a0', x => (x*100).toFixed(2)+'%')}
+            </div>
+          </div>
+          <div class="fund-metric-row">
+            <div class="fund-metric">
+              <span class="fund-metric-label" style="color:#f59e0b">Beta</span>
+              ${v(q.beta, betaC || '#6a7d96', x => Number(x).toFixed(2))}
+            </div>
+            <div class="fund-metric">
+              <span class="fund-metric-label" style="color:#94a3b8">Risk</span>
+              <span class="fund-metric-value" style="color:${betaC||'#6a7d96'}">${q.beta == null ? '—' : q.beta < 0.8 ? 'LOW' : q.beta < 1.2 ? 'MID' : 'HIGH'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fund-card-footer">
+          <div class="fund-footer-cell">
+            <div class="fund-footer-label" style="color:#38bdf8">Mkt Cap</div>
+            <div class="fund-footer-value" style="color:#38bdf8">${fmtCap(q.marketCap)}</div>
+          </div>
+          <div class="fund-footer-cell">
+            <div class="fund-footer-label" style="color:#fb923c">EBITDA</div>
+            <div class="fund-footer-value" style="color:#fb923c">${fmtCap(q.ebitda)}</div>
+          </div>
+          <div class="fund-footer-cell">
+            <div class="fund-footer-label" style="color:#22d3ee">Free CF</div>
+            <div class="fund-footer-value" style="color:#22d3ee">${fmtCap(q.freeCashFlow)}</div>
+          </div>
+        </div>`;
     }
   });
 }
@@ -1392,6 +1640,31 @@ function showError(msg) {
       </div>
     </div>`;
 }
+
+// ═══════════════════════════════════════════════════════════
+// VIEW MODE — Desktop / Mobile density toggle
+// ═══════════════════════════════════════════════════════════
+let currentViewMode = 'desktop';
+
+function setViewMode(mode) {
+  currentViewMode = mode;
+  document.body.classList.remove('desktop-view', 'mobile-view');
+  document.body.classList.add(mode + '-view');
+  document.getElementById('vbtn-desktop').classList.toggle('active', mode === 'desktop');
+  document.getElementById('vbtn-mobile').classList.toggle('active', mode === 'mobile');
+  // Save preference
+  try { localStorage.setItem('nse-view-mode', mode); } catch(e) {}
+}
+
+// Restore saved preference
+(function() {
+  try {
+    const saved = localStorage.getItem('nse-view-mode') || 'desktop';
+    setViewMode(saved);
+  } catch(e) {
+    setViewMode('desktop');
+  }
+})();
 
 // ═══════════════════════════════════════════════════════════
 // EVENTS
