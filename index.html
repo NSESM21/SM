@@ -194,8 +194,8 @@ body.light-theme .col-collapse-all:hover { border-color: var(--accent); color: v
 /* kb toast */
 body.light-theme #kb-toast { background: #1a2030; color: #fff; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 15px; }
-body { background: var(--bg); color: var(--text); font-family: Calibri, 'Segoe UI', sans-serif; min-height: 100vh; }
+html { font-size: 15px; overflow-x: hidden; }
+body { background: var(--bg); color: var(--text); font-family: Calibri, 'Segoe UI', sans-serif; min-height: 100vh; overflow-x: hidden; }
 body::before {
   content: '';
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -308,6 +308,7 @@ main { padding: 12px; position:relative; z-index:1; }
   overflow:auto; height:calc(100vh - 168px);
   background:var(--surface);
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
 }
 table { border-collapse:collapse; white-space:nowrap; width:max-content; min-width:100%; }
 thead tr:first-child th { position:sticky; top:0; z-index:20; }
@@ -331,14 +332,14 @@ th.cat-head {
   font-family:'Oxanium',sans-serif; font-size:0.92rem; font-weight:800;
   letter-spacing:0.12em; text-transform:uppercase;
   padding:12px 16px; border-right:1px solid var(--border); border-bottom:2px solid var(--border2);
-  background:var(--surface2); height:46px; width:160px; min-width:140px;
+  background:var(--surface2); height:46px; width:160px; min-width:150px;
 }
 th.cat-head.last-in-group { border-right:2px solid var(--border2); }
 th.cat-head:last-child { border-right:none; }
 td {
   padding:11px 16px; border-right:1px solid var(--border); border-bottom:1px solid var(--border);
   font-size:1.05rem; height:48px; vertical-align:middle;
-  width:160px; min-width:140px;
+  width:160px; min-width:150px;
   color:#ffffff; font-family:Calibri,sans-serif;
 }
 td.last-in-group { border-right:2px solid var(--border2); }
@@ -616,6 +617,30 @@ body.mobile-view .modal-title { font-size: 1.3rem; }
   /* Larger touch targets for export/theme buttons */
   .export-btn, .theme-btn, .refresh-btn { padding: 10px 14px !important; }
   .sort-btn { padding: 8px 14px !important; font-size: 0.78rem !important; min-height: 40px; }
+  /* ── CRITICAL: Full-width scroll fix on mobile ── */
+  main { padding: 6px !important; }
+  .master-wrap {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    border-radius: 6px !important;
+    overflow-x: scroll !important;
+    overflow-y: auto !important;
+  }
+  .master-wrap table {
+    width: max-content !important;
+    min-width: 900px !important;
+  }
+  .con-tbl-wrap {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    border-radius: 6px !important;
+    overflow-x: scroll !important;
+    overflow-y: auto !important;
+  }
+  .con-tbl {
+    width: max-content !important;
+    min-width: 900px !important;
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -910,6 +935,7 @@ body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !
   overflow: auto; background: var(--surface);
   height: calc(100vh - 168px);
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
 }
 .con-tbl {
   border-collapse: collapse; white-space: nowrap; width: max-content; min-width: 100%;
