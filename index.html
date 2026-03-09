@@ -1180,6 +1180,36 @@ body.light-theme .sector-pill.active { color:#fff; }
 ══════════════════════════════════════════ */
 
 /* ══════════════════════════════════════════
+   CORPORATE ACTIONS — Events Timeline CSS
+══════════════════════════════════════════ */
+.ca-filter-bar {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 18px;
+}
+.ca-filter-btn {
+  font-family: 'Oxanium', sans-serif; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.06em; padding: 5px 12px; border-radius: 20px;
+  border: 1px solid var(--border2); background: var(--surface2);
+  color: var(--muted); cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 4px;
+}
+.ca-filter-btn:hover { color: var(--text); border-color: var(--ca-color, var(--accent)); }
+.ca-filter-btn.active {
+  background: rgba(255,255,255,0.08);
+  color: var(--ca-color, var(--accent));
+  border-color: var(--ca-color, var(--accent));
+}
+.ca-count {
+  font-size: 0.6rem; background: rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 1px 5px; margin-left: 2px;
+}
+.ca-type-tag {
+  font-family: 'Oxanium', sans-serif; font-size: 0.65rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 4px; white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+/* ══════════════════════════════════════════
    FEATURE 7 — Undervalued glow
 ══════════════════════════════════════════ */
 .fund-card.undervalued {
@@ -1529,7 +1559,7 @@ body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !
 <div class="sheet-bar" id="sheetBar">
   <button class="stab active" data-tab="master"><span class="dot" style="background:#00e5a0"></span>Master<span class="tab-badge" id="badge-master">—</span></button>
   <button class="stab" data-tab="consolidated"><span class="dot" style="background:#818cf8"></span>Consolidated<span class="tab-badge" id="badge-consolidated">—</span></button>
-  <button class="stab" data-tab="earnings"><span class="dot" style="background:#f59e0b"></span>Earnings<span class="tab-badge" id="badge-earnings">—</span></button>
+  <button class="stab" data-tab="earnings"><span class="dot" style="background:#f59e0b"></span>Corp Actions<span class="tab-badge" id="badge-earnings">—</span></button>
   <button class="stab" data-tab="heatmap"><span class="dot" style="background:#f472b6"></span>Heatmap<span class="tab-badge" id="badge-heatmap">—</span></button>
   <button class="stab" data-tab="compare"><span class="dot" style="background:#818cf8"></span>Compare<span class="tab-badge" id="badge-compare">—</span></button>
 </div>
@@ -1557,7 +1587,7 @@ body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !
       <div class="kb-section-title">Navigation</div>
       <div class="kb-row"><span class="kb-key">M</span><span class="kb-desc">Master tab</span></div>
       <div class="kb-row"><span class="kb-key">C</span><span class="kb-desc">Consolidated tab</span></div>
-      <div class="kb-row"><span class="kb-key">E</span><span class="kb-desc">Earnings tab</span></div>
+      <div class="kb-row"><span class="kb-key">E</span><span class="kb-desc">Corp Actions tab</span></div>
       <div class="kb-row"><span class="kb-key">H</span><span class="kb-desc">Heatmap tab</span></div>
       <div class="kb-row"><span class="kb-key">X</span><span class="kb-desc">Compare tab</span></div>
     </div>
@@ -1649,7 +1679,149 @@ let searchTerm = '';
 let fundSector   = {};   // sym → sector string
 let fundIndustry = {};   // sym → industry string
 let fundEarnings = {};   // sym → earningsDate string
+let corpActions  = [];   // [{symbol, type, details, exDate, recordDate}]
 let activeSector = 'ALL';
+
+// ── Corp actions helpers ──────────────────────────────────────────────────
+function _caStatus(msg) {
+  const el = document.getElementById('ca-status-msg');
+  if (el) el.textContent = msg;
+}
+
+function _caDateFmt(d) {
+  const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d.getDate()} ${MN[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function _caParseItems(items, sym) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const lb = new Date(today - 30*86400000);
+  const la = new Date(today.getTime() + 365*86400000);
+  const out = [];
+  (Array.isArray(items) ? items : []).forEach(item => {
+    const dateStr = item.exDate || item.ex_date || item.date || item.effectiveDate || '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime()) || d < lb || d > la) return;
+    const raw = String(item.type || item.purpose || item.action || '').trim();
+    const pu = raw.toUpperCase();
+    let type = '';
+    if (/DIVIDEND|DIV\b/.test(pu))          type = 'Dividend';
+    else if (/BONUS/.test(pu))              type = 'Bonus';
+    else if (/SPLIT|SUBDIVISION/.test(pu))  type = 'Split';
+    else if (/RIGHTS/.test(pu))             type = 'Rights';
+    else if (/BUYBACK/.test(pu))            type = 'Buyback';
+    else return;
+    const rd = item.recordDate || item.rec_date ? new Date(item.recordDate || item.rec_date) : null;
+    const amt = item.amount ? ` Rs ${item.amount}` : '';
+    const rat = item.ratio  ? ` ${item.ratio}` : '';
+    out.push({
+      symbol: sym, type,
+      details: (type + amt + rat).substring(0,80) || raw.substring(0,80),
+      exDate:     _caDateFmt(d),
+      recordDate: (rd && !isNaN(rd)) ? _caDateFmt(rd) : ''
+    });
+  });
+  return out;
+}
+
+// ── Probe one URL, return parsed items or [] ──────────────────────────────
+async function _caFetch(url, sym, box) {
+  try {
+    if (box) box.innerHTML += `  GET ${url}\n`;
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(t);
+    if (box) box.innerHTML += `  → ${res.status}\n`;
+    if (!res.ok) return [];
+    const json = await res.json();
+    if (box) box.innerHTML += `  raw: ${JSON.stringify(json).substring(0,200)}\n`;
+    return _caParseItems(json?.data || json, sym);
+  } catch(e) {
+    if (box) box.innerHTML += `  err: ${e.message}\n`;
+    return [];
+  }
+}
+
+// ── Test sources button ───────────────────────────────────────────────────
+async function testCorpActionSources() {
+  const box = document.getElementById('ca-test-results');
+  if (!box) return;
+  box.style.display = 'block';
+  box.innerHTML = 'Testing sources from browser for HDFCBANK...\n\n';
+
+  const sym = 'HDFCBANK';
+  const urls = [
+    `https://api.tickertape.in/search/v3/query/global?text=${sym}&type=stock`,
+    `https://api.tickertape.in/stocks/corporate-actions?sid=HDFCB`,
+    `https://trendlyne.com/web-serial-data/corp-action/quarterly/${sym}/`,
+    `https://api.moneycontrol.com/mcapi/v1/corp-actions/list?scId=HDF01&deviceType=W`,
+    `https://priceapi.moneycontrol.com/pricefeed/notations/get-corporate-actions?scSymbol=HDFCBANK&exchSym=NSE`,
+  ];
+
+  for (const url of urls) {
+    await _caFetch(url, sym, box);
+    box.innerHTML += '\n';
+  }
+  box.innerHTML += 'Done.';
+}
+
+// ── Fetch all corp actions — tries Tickertape → Trendlyne ────────────────
+async function testAndFetchCorpActions() {
+  _caStatus('Fetching...');
+  const allSyms = [...new Set(
+    [...masterTFs, ...consolidatedTFs].flatMap(tf => tf.cols.flat()).map(s => s.toUpperCase())
+  )].filter(s => !/^(NIFTY|SENSEX|GOLD|NIFTY)/.test(s));
+
+  const results = [];
+  let done = 0;
+  for (const sym of allSyms) {
+    // Tickertape: first resolve slug then fetch
+    let actions = [];
+    const search = await _caFetch(
+      `https://api.tickertape.in/search/v3/query/global?text=${encodeURIComponent(sym)}&type=stock`, sym);
+    // If Tickertape worked parse differently — handled inside _caParseItems
+    if (!actions.length) {
+      actions = await _caFetch(
+        `https://trendlyne.com/web-serial-data/corp-action/quarterly/${encodeURIComponent(sym)}/`, sym);
+    }
+    results.push(...actions);
+    done++;
+    if (done % 10 === 0) _caStatus(`${done}/${allSyms.length} done...`);
+    await new Promise(r => setTimeout(r, 150));
+  }
+
+  if (results.length) {
+    corpActions = results;
+    _caStatus(`✅ ${results.length} corp actions loaded`);
+    // Save to sheet
+    fetch(`${APPS_SCRIPT_URL}?action=savecorpactions`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({actions: results})
+    }).catch(() => {});
+    if (activeTab === 'earnings') render();
+  } else {
+    _caStatus('❌ No data from any source — use 🧪 Test Sources to see raw responses');
+  }
+}
+
+// ── Load from sheet on startup ────────────────────────────────────────────
+async function fetchCorpActionsData() {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 15000);
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=corpactions`, { signal: ctrl.signal, redirect: 'follow' });
+    clearTimeout(t);
+    if (!res.ok) return;
+    const json = await res.json();
+    if (json.data && Array.isArray(json.data) && json.data.length) {
+      corpActions = json.data;
+      updateTabBadges();
+      if (activeTab === 'earnings') render();
+    }
+  } catch(e) { /* silent */ }
+}
 
 // ── Parse earnings date string → days until (null if unparseable) ────────
 function daysUntilEarnings(dateStr) {
@@ -1664,15 +1836,20 @@ function daysUntilEarnings(dateStr) {
   } catch(e) { return null; }
 }
 
-// ── Returns badge HTML for a stock pill based on earnings proximity ──────
+// ── Returns badge HTML for a stock pill based on upcoming corp actions ──────
 function getEarnBadge(sym) {
-  const d = fundEarnings[sym.toUpperCase()];
-  if (!d) return '';
-  const days = daysUntilEarnings(d);
-  if (days === null || days < 0 || days > 14) return '';
-  if (days === 0) return '<sup class="earn-badge today" title="Earnings TODAY">!</sup>';
-  if (days <= 7)  return '<sup class="earn-badge soon"  title="Earnings in ' + days + ' days">🔔</sup>';
-  return '<sup class="earn-badge soon" title="Earnings in ' + days + ' days · ' + d + '" style="font-size:7px">' + days + 'd</sup>';
+  const symUp = sym.toUpperCase();
+  const ca = corpActions.find(a => {
+    if ((a.symbol||'').toUpperCase() !== symUp) return false;
+    const days = daysUntilEarnings(a.exDate);
+    return days !== null && days >= 0 && days <= 14;
+  });
+  if (!ca) return '';
+  const days = daysUntilEarnings(ca.exDate);
+  const label = (ca.type||'Corp Action');
+  if (days === 0) return '<sup class="earn-badge today" title="' + label + ' TODAY">!</sup>';
+  if (days <= 7)  return '<sup class="earn-badge soon"  title="' + label + ' in ' + days + ' days">🔔</sup>';
+  return '<sup class="earn-badge soon" title="' + label + ' in ' + days + ' days · ' + ca.exDate + '" style="font-size:7px">' + days + 'd</sup>';
 }
 
 // ── Populate sector filter bar pills from current fundSector data ────────
@@ -1715,28 +1892,63 @@ function setSectorFilter(sector, btn) {
   render();
 }
 
-// ── Earnings tab panel ───────────────────────────────────────────────────
+// ── Corporate action type config ─────────────────────────────────────────
+const CA_CONFIG = {
+  'Earnings':  { icon:'🔔', color:'#f59e0b', bg:'rgba(245,158,11,0.15)'  },
+  'Dividend':  { icon:'💰', color:'#34d399', bg:'rgba(52,211,153,0.15)'  },
+  'Bonus':     { icon:'🎁', color:'#a78bfa', bg:'rgba(167,139,250,0.15)' },
+  'Split':     { icon:'✂️', color:'#60a5fa', bg:'rgba(96,165,250,0.15)'  },
+  'Rights':    { icon:'📋', color:'#fb923c', bg:'rgba(251,146,60,0.15)'  },
+  'Buyback':   { icon:'🔄', color:'#f472b6', bg:'rgba(244,114,182,0.15)' }
+};
+
+// active filter for events tab
+let eventsFilter = 'All';
+
+// ── Earnings tab panel — unified events timeline ─────────────────────────
 function buildEarningsPanel() {
-  // Collect all stocks with known earnings dates
   const allSyms = [...new Set(
     [...masterTFs, ...consolidatedTFs].flatMap(tf => tf.cols.flat()).map(s => s.toUpperCase())
   )];
 
-  const rows = [];
-  allSyms.forEach(sym => {
-    const d = fundEarnings[sym];
-    if (!d) return;
-    const days = daysUntilEarnings(d);
+  // ── Build events list — from CORP_ACTIONS sheet only ──
+  const events = [];
+
+  corpActions.forEach(ca => {
+    const sym = (ca.symbol||'').toUpperCase();
+    const days = daysUntilEarnings(ca.exDate);
     if (days === null) return;
-    rows.push({ sym, date: d, days, sector: fundSector[sym] || '', industry: fundIndustry[sym] || '' });
+    const inWatchlist = allSyms.includes(sym);
+    events.push({ sym, type: ca.type||'Dividend', details: ca.details||'', date: ca.exDate,
+                  recordDate: ca.recordDate||'', days,
+                  sector: fundSector[sym]||'', industry: fundIndustry[sym]||'',
+                  inWatchlist });
   });
 
-  // Sort by days ascending
-  rows.sort((a, b) => a.days - b.days);
+  // Sort by days
+  events.sort((a,b) => a.days - b.days);
+  const upcoming = events.filter(r => r.days >= 0);
+  const past     = events.filter(r => r.days < 0).sort((a,b) => b.days - a.days).slice(0, 30);
 
-  // Split: past / upcoming
-  const upcoming = rows.filter(r => r.days >= 0);
-  const past     = rows.filter(r => r.days < 0).sort((a,b) => b.days - a.days).slice(0, 20);
+  // Filter counts for tabs
+  const filterTypes = ['All','Dividend','Bonus','Split','Rights','Buyback'];
+  const counts = {};
+  filterTypes.forEach(t => {
+    counts[t] = t === 'All' ? upcoming.length : upcoming.filter(e => e.type === t).length;
+  });
+
+  // Update tab badge
+  const upcomingCount = upcoming.length;
+  const thisWeekCount = upcoming.filter(e => e.days >= 0 && e.days <= 7).length;
+  const badge = document.getElementById('badge-earnings');
+  if (badge) {
+    badge.textContent = upcomingCount || '—';
+    if (thisWeekCount > 0) {
+      badge.style.background = 'rgba(245,158,11,0.25)';
+      badge.style.color = '#f59e0b';
+      badge.title = thisWeekCount + ' corp actions this week!';
+    }
+  }
 
   function chip(days) {
     if (days === 0) return '<span class="earn-days-chip today">TODAY</span>';
@@ -1749,57 +1961,71 @@ function buildEarningsPanel() {
     if (days <= 7)  return 'earn-soon';
     return '';
   }
+  function typeTag(type) {
+    const cfg = CA_CONFIG[type] || { icon:'📌', color:'#94a3b8', bg:'rgba(148,163,184,0.15)' };
+    return `<span class="ca-type-tag" style="background:${cfg.bg};color:${cfg.color}">${cfg.icon} ${type}</span>`;
+  }
+
+  const filtered = eventsFilter === 'All' ? upcoming : upcoming.filter(e => e.type === eventsFilter);
 
   function buildRows(arr) {
-    if (!arr.length) return '<tr><td colspan="4" class="earn-none">No results found</td></tr>';
+    if (!arr.length) return '<tr><td colspan="5" class="earn-none">No events found</td></tr>';
     return arr.map(r => `
-      <tr class="${rowCls(r.days)}">
-        <td><span class="earn-sym">${r.sym}</span></td>
-        <td><span class="earn-sector">${r.sector || '—'}</span>${r.industry ? `<br><span class="earn-sector" style="opacity:0.6">${r.industry}</span>` : ''}</td>
-        <td>${r.date}</td>
+      <tr class="${rowCls(r.days)}" style="${r.inWatchlist===false ? 'opacity:0.55' : ''}">
+        <td><span class="earn-sym">${r.sym}</span>${r.inWatchlist===false ? '<span style="font-size:9px;color:var(--muted);margin-left:4px">NSE</span>' : ''}<br><span class="earn-sector" style="opacity:0.6;font-size:10px">${r.sector||'—'}</span></td>
+        <td>${typeTag(r.type)}</td>
+        <td style="font-size:12px">${r.details ? `<span title="${r.details}">${r.details.substring(0,40)}${r.details.length>40?'…':''}</span>` : '—'}</td>
+        <td style="font-size:12px">${r.date}${r.recordDate ? `<br><span style="opacity:0.5;font-size:10px">Rec: ${r.recordDate}</span>` : ''}</td>
         <td>${chip(r.days)}</td>
       </tr>`).join('');
   }
 
-  const upcomingCount = upcoming.length;
-  const thisWeekCount = Object.values(fundEarnings).filter(d => {
-    const days = daysUntilEarnings(d); return days != null && days >= 0 && days <= 7;
-  }).length;
-  const badge = document.getElementById('badge-earnings');
-  if (badge) {
-    badge.textContent = upcomingCount || '—';
-    if (thisWeekCount > 0) {
-      badge.style.background = 'rgba(245,158,11,0.25)';
-      badge.style.color = '#f59e0b';
-      badge.title = thisWeekCount + ' stocks reporting this week!';
-    }
-  }
+  const filterBtns = filterTypes.map(t => `
+    <button class="ca-filter-btn${eventsFilter===t?' active':''}" onclick="setEventsFilter('${t}')" 
+            style="${CA_CONFIG[t] ? `--ca-color:${CA_CONFIG[t].color}` : ''}">
+      ${CA_CONFIG[t]?CA_CONFIG[t].icon:''} ${t} ${counts[t]>0?`<span class="ca-count">${counts[t]}</span>`:''}
+    </button>`).join('');
+
+  const pastFiltered = eventsFilter === 'All' ? past : past.filter(e => e.type === eventsFilter);
 
   return `
     <div class="earnings-panel">
-      <h3>📅 Upcoming Earnings — ${upcomingCount} stocks</h3>
+      <div class="ca-filter-bar">${filterBtns}</div>
+      <h3>📋 Corporate Actions — ${filtered.length} ${eventsFilter !== 'All' ? eventsFilter + ' ' : ''}upcoming</h3>
       <table class="earn-tbl">
         <thead><tr>
-          <th>Symbol</th><th>Sector / Industry</th><th>Earnings Date</th><th>Timeline</th>
+          <th>Symbol</th><th>Type</th><th>Details</th><th>Ex-Date</th><th>Timeline</th>
         </tr></thead>
-        <tbody>${buildRows(upcoming)}</tbody>
+        <tbody>${buildRows(filtered)}</tbody>
       </table>
-      ${past.length ? `
-      <h3 style="margin-top:28px;color:var(--muted)">Recent Results (last 20)</h3>
+      ${pastFiltered.length ? `
+      <h3 style="margin-top:28px;color:var(--muted)">Recent Corporate Actions (last 30 days)</h3>
       <table class="earn-tbl">
-        <thead><tr>
-          <th>Symbol</th><th>Sector / Industry</th><th>Date</th><th>Days ago</th>
-        </tr></thead>
-        <tbody>${past.map(r => `
+        <thead><tr><th>Symbol</th><th>Type</th><th>Details</th><th>Date</th><th>Days ago</th></tr></thead>
+        <tbody>${pastFiltered.map(r => `
           <tr>
             <td><span class="earn-sym">${r.sym}</span></td>
-            <td><span class="earn-sector">${r.sector||'—'}</span></td>
-            <td>${r.date}</td>
+            <td>${typeTag(r.type)}</td>
+            <td style="font-size:12px">${(r.details||'—').substring(0,40)}</td>
+            <td style="font-size:12px">${r.date}</td>
             <td><span class="earn-days-chip future">${Math.abs(r.days)}d ago</span></td>
           </tr>`).join('')}
         </tbody>
       </table>` : ''}
+      <div style="margin-top:16px;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:11px;color:var(--muted)">
+        ${corpActions.length > 0
+          ? '✅ ' + corpActions.length + ' actions loaded from CORP_ACTIONS sheet · Update the sheet from NSE to refresh'
+          : '⚠️ No data — paste NSE corporate actions into the CORP_ACTIONS sheet in Google Sheets'}
+      </div>
     </div>`;
+}
+
+function setEventsFilter(type) {
+  eventsFilter = type;
+  const mc = document.getElementById('tab-earnings') || document.querySelector('.tab-panel.active');
+  const panel = document.querySelector('.earnings-panel');
+  if (panel) panel.outerHTML = buildEarningsPanel();
+  else render();
 }
 
 // ── renderEarningsTab: called after fundamentals sync ────────────────────
@@ -1880,6 +2106,9 @@ async function loadSheet() {
         }).catch(e => console.warn('[AutoSync] Background sync failed:', e.message));
       }
     }, 2000); // 2s delay so initial render completes first
+
+    // ── Fetch corporate actions in background ──
+    setTimeout(() => fetchCorpActionsData(), 3500);
 
   } catch(e) {
     console.error('Fetch failed:', e);
@@ -2122,7 +2351,8 @@ function buildTable(tfs, term) {
           : stock;
         const earnBadge = getEarnBadge(stock);
         const sec = fundSector[stock.toUpperCase()] || '';
-        const tip = stock + (sec ? ' · ' + sec : '') + (fundEarnings[stock.toUpperCase()] ? ' · Earnings: ' + fundEarnings[stock.toUpperCase()] : '');
+        const symCa = corpActions.find(a => (a.symbol||'').toUpperCase() === stock.toUpperCase() && daysUntilEarnings(a.exDate) !== null && daysUntilEarnings(a.exDate) >= 0);
+        const tip = stock + (sec ? ' · ' + sec : '') + (symCa ? ' · ' + (symCa.type||'Corp Action') + ': ' + symCa.exDate : '');
         const secTag = sec ? `<span class="sp-sector">${sec}</span>` : '';
         cells += `<td><span class="sp ${cat.cls}${match?' hl':''}" title="${tip}">${label}${earnBadge}${secTag}</span></td>`;
       } else {
@@ -2872,7 +3102,7 @@ document.addEventListener('keydown', e => {
     showKbToast('<strong>C</strong> — Consolidated tab');
     return;
   }
-  if (e.key==='e'||e.key==='E') { activeTab='earnings'; render(); showKbToast('<strong>E</strong> — Earnings tab'); return; }
+  if (e.key==='e'||e.key==='E') { activeTab='earnings'; render(); showKbToast('<strong>E</strong> — Corp Actions tab'); return; }
   if (e.key==='h'||e.key==='H') { activeTab='heatmap';  render(); showKbToast('<strong>H</strong> — Heatmap tab'); return; }
   if (e.key==='x'||e.key==='X') { activeTab='compare';  render(); showKbToast('<strong>X</strong> — Compare tab'); return; }
   if (e.key==='?') { toggleKbHelp(); return; }
@@ -2903,18 +3133,20 @@ function updateTabBadges() {
   const bx = document.getElementById('badge-compare');
 
   if (be) {
-    const thisWeekCount = Object.values(fundEarnings).filter(d => {
-      const days = daysUntilEarnings(d); return days != null && days >= 0 && days <= 7;
+    const thisWeekCount = corpActions.filter(ca => {
+      const days = daysUntilEarnings(ca.exDate); return days != null && days >= 0 && days <= 7;
     }).length;
-    const upcomingCount = Object.values(fundEarnings).filter(d => {
-      const days = daysUntilEarnings(d);
-      return days !== null && days >= 0 && days <= 30;
+    const upcomingCount = corpActions.filter(ca => {
+      const days = daysUntilEarnings(ca.exDate); return days !== null && days >= 0;
     }).length;
     be.textContent = upcomingCount || '—';
     if (thisWeekCount > 0) {
       be.style.background = 'rgba(245,158,11,0.25)';
       be.style.color = '#f59e0b';
-      be.title = thisWeekCount + ' stocks reporting this week!';
+      be.title = thisWeekCount + ' corp actions this week!';
+    } else {
+      be.style.background = '';
+      be.style.color = '';
     }
   }
   if (bm) bm.textContent = masterCount || '—';
@@ -4041,7 +4273,13 @@ function buildHeatmap() {
     const cache = window._hmPriceCache[sym] || {};
     const pct   = cache.pct   != null ? cache.pct   : null;
     const price = cache.price != null ? cache.price : null;
-    const hasEarn = !!(fundEarnings[sym.toUpperCase()]);
+    const symUp = sym.toUpperCase();
+    const caMatch = corpActions.find(ca => {
+      if ((ca.symbol||'').toUpperCase() !== symUp) return false;
+      const days = daysUntilEarnings(ca.exDate);
+      return days !== null && days >= 0;
+    });
+    const hasEarn = !!caMatch;
 
     let bg = '#1a1f2e', tc = '#4a5a75';
     if (pct != null) {
@@ -4060,7 +4298,8 @@ function buildHeatmap() {
     const mc  = window._hmMcCache[sym]  || 0;
 
     const earnAttr = hasEarn ? ' earn-glow' : '';
-    const earnSpan  = hasEarn ? '<span class="hm-earn" title="' + (fundEarnings[sym.toUpperCase()]||'') + '">\uD83D\uDD14</span>' : '';
+    const caTitle  = caMatch ? (caMatch.type||'Corp Action') + (caMatch.exDate ? ' · Ex: ' + caMatch.exDate : '') : '';
+    const earnSpan = hasEarn ? '<span class="hm-earn" title="' + caTitle + '">\uD83D\uDD14</span>' : '';
     const loadingClass = pct == null ? ' loading' : '';
     return '<div class="hm-cell' + earnAttr + loadingClass + '" style="background:' + bg + '" onclick="hmCellClick(\'' + sym + '\')" data-sym="' + sym + '" data-pct="' + (pct||0) + '" data-mc="' + mc + '" data-pe="' + pe + '" data-wb="' + wb + '">'
       + earnSpan
