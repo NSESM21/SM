@@ -3816,7 +3816,10 @@ document.addEventListener('keydown', e => {
 // FEATURE 5 — Tab count badges
 // ═══════════════════════════════════════════════════════════
 function updateTabBadges() {
-  const masterCount = masterTFs.reduce((a, tf) => a + tf.cols.reduce((b, col) => b + col.length, 0), 0);
+  // Unique symbols across all master TFs (same stock in multiple TFs counts once)
+  const masterSet = new Set();
+  masterTFs.forEach(tf => tf.cols.forEach(col => col.forEach(s => s && masterSet.add(s.toUpperCase()))));
+  const masterCount = masterSet.size;
   const conCount    = consolidatedTFs.reduce((a, tf) => a + tf.cols.reduce((b, col) => b + col.length, 0), 0);
   const bm = document.getElementById('badge-master');
   const bc = document.getElementById('badge-consolidated');
@@ -3958,21 +3961,11 @@ function mobRender() {
   });
 }
 
-function mobBuildMaster(term) {
-  if (!masterTFs.length) return '<div style="padding:40px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif">No timeframes loaded</div>';
-  if (mobMasterTFIdx >= masterTFs.length) mobMasterTFIdx = 0;
-  const tf = masterTFs[mobMasterTFIdx];
-
-  const tfBar = masterTFs.map((t, i) => `
-    <button class="mob-tf-btn ${i === mobMasterTFIdx ? 'active' : ''}"
-      style="${i === mobMasterTFIdx ? 'color:'+t.color+';border-bottom-color:'+t.color : ''}"
-      onclick="mobMasterTFIdx=${i};render()">${t.label}</button>`).join('');
-
+function mobBuildCatList(tf, term) {
   const cats = CATS.map((cat, ci) => {
     let stocks = tf.cols[ci] || [];
     if (term) stocks = stocks.filter(s => s.toLowerCase().includes(term));
     if (!stocks.length) return '';
-
     const chips = stocks.map(s => {
       const pd = modalPriceData[s.toUpperCase()] || {};
       const price = pd.price ? pd.price.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
@@ -3989,7 +3982,6 @@ function mobBuildMaster(term) {
         </div>` : ''}
       </div>`;
     }).join('');
-
     return `<div class="mob-cat-card">
       <div class="mob-cat-hd">
         <div class="mob-cat-hd-left">
@@ -4002,10 +3994,49 @@ function mobBuildMaster(term) {
       <div class="mob-cat-body">${chips}</div>
     </div>`;
   }).filter(Boolean).join('');
+  return cats || '<div style="padding:30px;text-align:center;color:var(--muted)">No stocks match</div>';
+}
+
+// Switch TF pill without full re-render — only replaces cat list + updates pill active states
+function mobSwitchMasterTF(idx) {
+  mobMasterTFIdx = idx;
+  const term = searchTerm.toLowerCase();
+  // Update pill active states (fast DOM patch — no innerHTML rebuild)
+  document.querySelectorAll('.mob-tf-btn').forEach((btn, i) => {
+    const tf = masterTFs[i];
+    const active = i === idx;
+    btn.className = 'mob-tf-btn' + (active ? ' active' : '');
+    btn.style.color = active ? tf.color : '';
+    btn.style.borderBottomColor = active ? tf.color : '';
+  });
+  // Replace only the cat list
+  const catList = document.querySelector('.mob-cat-list');
+  if (catList) {
+    catList.innerHTML = mobBuildCatList(masterTFs[idx], term);
+    // Re-attach event listeners for new chips
+    catList.querySelectorAll('.mob-cat-hd').forEach(hd =>
+      hd.addEventListener('click', () => hd.closest('.mob-cat-card').classList.toggle('collapsed')));
+    catList.querySelectorAll('.mob-stock-chip').forEach(chip =>
+      chip.addEventListener('click', () => {
+        const { sym, tf, cat } = chip.dataset;
+        if (sym && tf && cat) openModal(tf, cat, [sym]);
+      }));
+  }
+}
+
+function mobBuildMaster(term) {
+  if (!masterTFs.length) return '<div style="padding:40px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif">No timeframes loaded</div>';
+  if (mobMasterTFIdx >= masterTFs.length) mobMasterTFIdx = 0;
+  const tf = masterTFs[mobMasterTFIdx];
+
+  const tfBar = masterTFs.map((t, i) => `
+    <button class="mob-tf-btn ${i === mobMasterTFIdx ? 'active' : ''}"
+      style="${i === mobMasterTFIdx ? 'color:'+t.color+';border-bottom-color:'+t.color : ''}"
+      onclick="mobSwitchMasterTF(${i})">${t.label}</button>`).join('');
 
   return `
     <div class="mob-tf-bar">${tfBar}</div>
-    <div class="mob-cat-list">${cats || '<div style="padding:30px;text-align:center;color:var(--muted)">No stocks match</div>'}</div>`;
+    <div class="mob-cat-list">${mobBuildCatList(tf, term)}</div>`;
 }
 
 function mobBuildConsol(term) {
@@ -4597,6 +4628,7 @@ const SWIPE_MAX_TIME   = 400; // ms
 const SWIPE_MAX_VERT   = 80;  // px — cancel if too vertical
 
 document.getElementById('mainContent').addEventListener('touchstart', e => {
+  if (document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view')) return;
   if (activeTab !== 'master') return;
   const t = e.touches[0];
   swipeStartX    = t.clientX;
@@ -4606,6 +4638,7 @@ document.getElementById('mainContent').addEventListener('touchstart', e => {
 }, { passive: true });
 
 document.getElementById('mainContent').addEventListener('touchmove', e => {
+  if (document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view')) return;
   if (!swipeActive || activeTab !== 'master') return;
   const dx = Math.abs(e.touches[0].clientX - swipeStartX);
   const dy = Math.abs(e.touches[0].clientY - swipeStartY);
@@ -4614,6 +4647,7 @@ document.getElementById('mainContent').addEventListener('touchmove', e => {
 }, { passive: true });
 
 document.getElementById('mainContent').addEventListener('touchend', e => {
+  if (document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view')) return;
   if (!swipeActive || activeTab !== 'master' || !masterTFs.length) return;
   swipeActive = false;
 
