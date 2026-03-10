@@ -55,15 +55,15 @@
 
 /* ── LIGHT THEME ── */
 body.light-theme {
-  --bg: #faf7f2;
-  --surface: #fffefb;
-  --surface2: #f5f0e8;
-  --border: #e8ddd0;
-  --border2: #d8cfc0;
-  --accent: #00967a;
-  --text: #2c1f14;
-  --muted: #7a6a58;
-  --dim: #c8bfb0;
+  --bg: #f0f2f5;
+  --surface: #ffffff;
+  --surface2: #f5f7fa;
+  --border: #dde2ec;
+  --border2: #c8d0e0;
+  --accent: #00b37a;
+  --text: #0d1117;
+  --muted: #5a6a80;
+  --dim: #c0cad8;
   --c-mid: #e53950;
 }
 body.light-theme::before {
@@ -124,11 +124,9 @@ body.light-theme .fund-card-price { color: #0d1117 !important; }
 body.light-theme .fund-card-price small { color: #4a5a70; }
 body.light-theme .fund-metric-value { color: #0d1117; }
 body.light-theme .fund-footer-value { color: #0d1117; }
-body.light-theme .fund-footer-label { color: #2c1f14 !important; }
 body.light-theme .fund-metrics-body { background: #f8f9fb; }
 body.light-theme .fund-metric { background: #edf0f5; border-color: #dde2ec; }
 body.light-theme .fund-metric-value.dim { color: #c0cad8 !important; }
-body.light-theme .fund-metric-label { color: #2c1f14 !important; }
 body.light-theme .fund-52w-track { background: #dde2ec; }
 body.light-theme .fund-52w-thumb { background: #ffffff; }
 body.light-theme .fund-52w-bar-wrap { border-color: #dde2ec; }
@@ -193,57 +191,6 @@ body.light-theme .export-opt + .export-opt { border-color: #dde2ec; }
 /* Collapse button */
 body.light-theme .col-collapse-all { border-color: #c8d0e0; color: #4a5a70; }
 body.light-theme .col-collapse-all:hover { border-color: var(--accent); color: var(--accent); }
-
-/* ── KEYBOARD SHORTCUT HELP OVERLAY ── */
-#kb-help-overlay {
-  display: none; position: fixed; inset: 0; z-index: 9999;
-  background: rgba(0,0,0,0.72); backdrop-filter: blur(6px);
-  align-items: center; justify-content: center;
-}
-#kb-help-overlay.show { display: flex; }
-#kb-help-panel {
-  background: var(--surface); border: 1px solid var(--border2);
-  border-radius: 16px; padding: 28px 32px; min-width: 360px; max-width: 480px;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
-  font-family: 'Oxanium', sans-serif;
-}
-#kb-help-panel h3 {
-  font-size: 0.78rem; font-weight: 800; letter-spacing: 0.16em;
-  color: var(--accent); text-transform: uppercase; margin-bottom: 20px;
-  display: flex; align-items: center; justify-content: space-between;
-}
-#kb-help-panel h3 span { color: var(--muted); font-size: 0.62rem; cursor: pointer; }
-#kb-help-panel h3 span:hover { color: #fb7185; }
-.kb-section { margin-bottom: 18px; }
-.kb-section-title {
-  font-size: 0.58rem; font-weight: 800; letter-spacing: 0.14em;
-  color: var(--muted); text-transform: uppercase; margin-bottom: 10px;
-  border-bottom: 1px solid var(--border); padding-bottom: 5px;
-}
-.kb-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
-}
-.kb-row:last-child { border-bottom: none; }
-.kb-key {
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--surface2); border: 1px solid var(--border2);
-  border-radius: 6px; padding: 3px 9px; font-size: 0.72rem; font-weight: 800;
-  color: var(--accent); letter-spacing: 0.06em; min-width: 32px;
-  box-shadow: 0 2px 0 var(--border2); font-family: Calibri, monospace;
-}
-.kb-desc {
-  font-size: 0.7rem; color: #c8d8ea; font-family: Calibri, sans-serif;
-  font-weight: 600; letter-spacing: 0.02em;
-}
-.kb-hint {
-  margin-top: 16px; font-size: 0.6rem; color: var(--muted);
-  text-align: center; letter-spacing: 0.08em;
-}
-body.light-theme #kb-help-panel { background: #fff; }
-body.light-theme .kb-key { background: #f0ebe0; border-color: #d0c8b8; color: var(--accent); box-shadow: 0 2px 0 #d0c8b8; }
-body.light-theme .kb-desc { color: #3a4a60; }
-
 /* kb toast */
 body.light-theme #kb-toast { background: #1a2030; color: #fff; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -262,39 +209,20 @@ header {
   position: sticky; top: 0; z-index: 300;
   background: rgba(10,12,16,0.98); backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border2);
-  padding: 0 10px 0 10px; height: 52px;
-  display: flex; align-items: center; gap: 6px;
+  padding: 0 28px; height: 62px;
+  display: flex; align-items: center; gap: 20px;
 }
-/* Window controls */
-.win-controls { display:flex; align-items:center; gap:6px; flex-shrink:0; }
-.wc { width:13px; height:13px; border-radius:50%; display:inline-block; cursor:pointer; transition: filter 0.15s; flex-shrink:0; }
-.wc:hover { filter: brightness(1.3) scale(1.15); }
-.wc-close { background:#ff5f57; }
-.wc-min   { background:#febc2e; }
-.wc-max   { background:#28c840; }
-/* Live clock */
-.live-clock { font-family:'Oxanium',monospace; font-size:0.65rem; font-weight:700; color:var(--accent); letter-spacing:0.03em; margin-left:2px; }
-/* Compact countdown */
-.refresh-countdown { display:flex; align-items:center; gap:3px; font-family:'Oxanium',sans-serif; font-size:0.64rem; font-weight:700; color:var(--muted); letter-spacing:0.04em; background:var(--surface2); border:1px solid var(--border); padding:3px 7px; border-radius:5px; white-space:nowrap; }
-.refresh-countdown svg { opacity:0.6; flex-shrink:0; }
-#countdownDisplay { min-width:28px; text-align:center; }
-/* Icon-only buttons */
-.icon-btn { background:transparent; border:1px solid rgba(255,255,255,0.18); color:#d0dce8; width:28px; height:28px; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0; }
-.icon-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(0,229,160,0.07); }
-.icon-btn.spinning svg { animation: spin 1s linear infinite; }
-.theme-icon-btn { font-size:0.95rem; border-color:transparent; }
-.theme-icon-btn:hover { background:rgba(255,255,255,0.08); border-color:transparent; }
-.logo { font-family:'Bebas Neue',sans-serif; font-weight:400; font-size:1.7rem; letter-spacing:0.06em; color:var(--accent); }
+.logo { font-family:'Bebas Neue',sans-serif; font-weight:400; font-size:2rem; letter-spacing:0.08em; color:var(--accent); }
 .logo span { color:#ffffff; }
 .hdr-div { width:1px; height:30px; background:var(--border2); }
-.hdr-sub { display: none; }
+.hdr-sub { font-size:0.82rem; color:#aabcd0; letter-spacing:0.14em; text-transform:uppercase; font-family:'Oxanium',sans-serif; font-weight:600; }
 
 /* live badge */
 .live-badge {
-  display:flex; align-items:center; gap:5px;
-  font-size:0.68rem; color:#ffffff; letter-spacing:0.1em; text-transform:uppercase;
+  display:flex; align-items:center; gap:6px;
+  font-size:0.75rem; color:#ffffff; letter-spacing:0.1em; text-transform:uppercase;
   background:rgba(0,229,160,0.13); border:1px solid rgba(0,229,160,0.4);
-  padding:4px 10px; border-radius:20px; font-family:'Oxanium',sans-serif; font-weight:700;
+  padding:6px 16px; border-radius:20px; font-family:'Oxanium',sans-serif; font-weight:700;
 }
 .live-dot {
   width:8px; height:8px; border-radius:50%; background:var(--accent);
@@ -306,14 +234,14 @@ header {
 }
 .last-updated { font-size:0.72rem; color:#aabcd0; margin-left:4px; font-family:Calibri,sans-serif; }
 
-.search-wrap { margin-left:auto; position:relative; flex-shrink:0; max-width:160px; }
+.search-wrap { margin-left:auto; position:relative; }
 #gSearch {
   background:var(--surface2); border:1px solid var(--border2); color:#ffffff;
   font-family:Calibri,sans-serif; font-size:0.97rem;
-  padding:6px 12px 6px 30px; border-radius:7px; width:160px; outline:none;
+  padding:8px 15px 8px 36px; border-radius:7px; width:220px; outline:none;
   transition: border-color 0.2s, width 0.3s, box-shadow 0.2s;
 }
-#gSearch:focus { border-color:var(--accent); width:220px; box-shadow:0 0 0 3px rgba(0,229,160,0.12); }
+#gSearch:focus { border-color:var(--accent); width:300px; box-shadow:0 0 0 3px rgba(0,229,160,0.12); }
 #gSearch::placeholder { color:var(--muted); }
 .si { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:0.95rem; }
 
@@ -330,24 +258,24 @@ header {
 
 /* ── SHEET TAB BAR ── */
 .sheet-bar {
-  position: sticky; top: 52px; z-index: 200;
+  position: sticky; top: 62px; z-index: 200;
   background: var(--surface);
   border-bottom: 2px solid var(--border2);
-  display: flex; padding: 0 10px;
+  display: flex; padding: 0 24px;
   overflow-x: auto; scrollbar-width: none;
 }
 .sheet-bar::-webkit-scrollbar { display: none; }
 .stab {
-  font-family:'Oxanium',sans-serif; font-size:0.72rem; font-weight:700;
-  letter-spacing:0.08em; text-transform:uppercase;
-  padding:10px 14px; border:none; background:transparent;
+  font-family:'Oxanium',sans-serif; font-size:0.84rem; font-weight:700;
+  letter-spacing:0.14em; text-transform:uppercase;
+  padding:14px 28px; border:none; background:transparent;
   color:var(--muted); cursor:pointer; white-space:nowrap;
   border-bottom:3px solid transparent; margin-bottom:-2px;
   transition:all 0.2s;
 }
 .stab:hover { color:var(--text); background:rgba(255,255,255,0.03); }
 .stab.active { color:var(--text); border-bottom-color:var(--accent); }
-.stab .dot { width:7px; height:7px; border-radius:50%; display:inline-block; margin-right:5px; vertical-align:middle; }
+.stab .dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:8px; vertical-align:middle; }
 
 /* ── LOADING / ERROR ── */
 .state-screen {
@@ -420,11 +348,9 @@ tr:last-child td { border-bottom:none; }
 tr:hover td { background:rgba(255,255,255,0.035); }
 tr:hover td.rn { background:var(--surface2); }
 .sp {
-  display:inline-flex; flex-direction:column; align-items:flex-start;
-  padding:5px 14px; border-radius:5px;
+  display:inline-block; padding:5px 14px; border-radius:5px;
   font-size:1.02rem; font-weight:700; letter-spacing:0.03em; border:1px solid;
   font-family:Calibri,sans-serif; transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
-  vertical-align:middle;
 }
 .sp:hover { opacity:0.9; transform:scale(1.05); cursor:default; box-shadow:0 2px 8px rgba(0,0,0,0.4); }
 .sp.acc  { color:#00e5a0; border-color:rgba(0,229,160,0.45);  background:rgba(0,229,160,0.12); }
@@ -435,12 +361,6 @@ tr:hover td.rn { background:var(--surface2); }
 .sp.idx  { color:#f472b6; border-color:rgba(244,114,182,0.45);background:rgba(244,114,182,0.12); }
 .sp.trd  { color:#22d3ee; border-color:rgba(34,211,238,0.45); background:rgba(34,211,238,0.12); }
 .sp.hl   { box-shadow:0 0 0 2px currentColor; font-weight:800; }
-.sp-sector {
-  display:block; font-size:0.52rem; font-weight:700; letter-spacing:0.08em;
-  text-transform:uppercase; opacity:0.7; margin-top:2px;
-  font-family:'Oxanium',sans-serif; line-height:1;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100px;
-}
 mark { background:rgba(0,229,160,0.28); color:var(--accent); border-radius:2px; padding:0 2px; }
 
 /* ── TF PILL SELECTOR BAR ── */
@@ -537,16 +457,16 @@ mark { background:rgba(0,229,160,0.28); color:var(--accent); border-radius:2px; 
 /* ── FUNDAMENTALS CARD GRID ── */
 .fund-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(390px, 1fr));
-  gap: 16px; padding: 14px 18px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 14px; padding: 12px 16px;
 }
 .fund-card {
   background: var(--surface2); border: 1px solid var(--border2);
-  border-radius: 14px; overflow: hidden;
+  border-radius: 12px; overflow: hidden;
   display: flex; flex-direction: column;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.fund-card:hover { border-color: var(--accent); box-shadow: 0 6px 28px rgba(0,229,160,0.1); transform: translateY(-1px); }
+.fund-card:hover { border-color: var(--dim); box-shadow: 0 4px 22px rgba(0,0,0,0.4); }
 
 /* Card header: symbol + price + 52W bar */
 .fund-card-hd {
@@ -597,23 +517,23 @@ mark { background:rgba(0,229,160,0.28); color:var(--accent); border-radius:2px; 
 }
 
 /* Metric rows: 2 columns of key-value pairs */
-.fund-metrics-body { padding: 10px 13px; display: flex; flex-direction: column; gap: 5px; }
+.fund-metrics-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
 .fund-metric-row {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
 }
 .fund-metric {
   display: flex; align-items: center; justify-content: space-between;
-  background: var(--surface); border-radius: 8px;
-  padding: 9px 14px; border: 1px solid var(--border);
+  background: var(--surface); border-radius: 6px;
+  padding: 7px 12px; border: 1px solid var(--border);
   gap: 6px;
 }
 .fund-metric-label {
-  font-family: 'Oxanium', sans-serif; font-size: 0.68rem; font-weight: 700;
-  letter-spacing: 0.09em; text-transform: uppercase; color: #ffffff;
+  font-family: 'Oxanium', sans-serif; font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted);
   white-space: nowrap;
 }
 .fund-metric-value {
-  font-size: 1.12rem; font-weight: 800;
+  font-size: 1.05rem; font-weight: 800;
   font-family: Calibri, sans-serif; text-align: right; white-space: nowrap;
 }
 .fund-metric-value.dim { color: var(--border2) !important; font-weight: 400; }
@@ -630,7 +550,7 @@ mark { background:rgba(0,229,160,0.28); color:var(--accent); border-radius:2px; 
 .fund-footer-cell:last-child { border-right: none; }
 .fund-footer-label {
   font-family: 'Oxanium', sans-serif; font-size: 0.62rem; font-weight: 700;
-  letter-spacing: 0.09em; text-transform: uppercase; color: #ffffff; margin-bottom: 3px;
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px;
 }
 .fund-footer-value { font-size: 1.0rem; font-weight: 800; font-family: Calibri, sans-serif; }
 
@@ -935,279 +855,17 @@ body.light-theme .modal-overlay.bottom-sheet .modal::before {
    FEATURE 5 — Tab count badges
 ══════════════════════════════════════════ */
 .tab-badge {
-  display: inline-block; font-size: 0.55rem; font-weight: 800;
-  padding: 1px 5px; border-radius: 8px; margin-left: 4px;
+  display: inline-block; font-size: 0.6rem; font-weight: 800;
+  padding: 1px 7px; border-radius: 10px; margin-left: 7px;
   background: var(--border2); color: #c8d8ea;
-  font-family: 'Oxanium', sans-serif; letter-spacing: 0.04em;
+  font-family: 'Oxanium', sans-serif; letter-spacing: 0.06em;
   vertical-align: middle; transition: background 0.2s;
 }
 .stab.active .tab-badge { background: rgba(0,229,160,0.2); color: var(--accent); }
 
-/* ── MARKET TICKER ── */
-.mkt-ticker-strip {
-  display:flex; align-items:center; gap:8px;
-  margin-left:4px; padding:0 8px;
-  border:1px solid rgba(255,255,255,0.1); border-radius:16px;
-  background:rgba(255,255,255,0.04); height:28px; align-self:center;
-  flex-shrink:0; overflow:hidden; white-space:nowrap; min-width:0;
-}
-.mkt-ticker-item { display:flex; align-items:center; gap:6px; }
-.mkt-tick-label { font-family:'Oxanium',sans-serif; font-size:0.58rem; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--muted); }
-.mkt-tick-value { font-family:'Oxanium',sans-serif; font-size:0.74rem; font-weight:800; color:#fff; }
-.mkt-tick-chg   { font-size:0.68rem; font-weight:700; border-radius:4px; padding:1px 5px; }
-.mkt-tick-chg.up   { color:#00e5a0; background:rgba(0,229,160,0.12); }
-.mkt-tick-chg.down { color:#fb7185; background:rgba(251,113,133,0.12); }
-.mkt-tick-chg.flat { color:#fbbf24; background:rgba(251,191,36,0.12); }
-.mkt-ticker-sep  { width:1px; height:14px; background:rgba(255,255,255,0.12); flex-shrink:0; }
-.mkt-tick-time   { font-family:'Oxanium',sans-serif; font-size:0.6rem; color:var(--muted); }
-body.light-theme .mkt-ticker-strip { background:rgba(0,0,0,0.04); border-color:#c8d0e0; }
-body.light-theme .mkt-tick-label   { color:#5a6a80; }
-body.light-theme .mkt-tick-value   { color:#0d1117; }
-body.light-theme .mkt-ticker-sep   { background:#c8d0e0; }
-body.light-theme .mkt-tick-chg.up   { color:#005c3e; background:rgba(0,140,100,0.12); }
-body.light-theme .mkt-tick-chg.down { color:#b01830; background:rgba(176,24,48,0.1); }
-
-
-/* ── WARREN BUFFETT SCORE BADGE ── */
-.warren-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px 4px 8px; border-radius: 20px; border: 1px solid;
-  font-family: 'Oxanium', sans-serif; font-size: 0.62rem; font-weight: 800;
-  letter-spacing: 0.06em;
-}
-.warren-badge .wb-score { font-size: 1.05rem; font-weight: 900; font-family: Calibri, sans-serif; margin-right: 2px; }
-.warren-icon { font-size: 0.75rem; }
-.wb-pill { font-size: 0.56rem; opacity: 0.8; }
-
-
-/* ══════════════════════════════════════════
-   HEATMAP
-══════════════════════════════════════════ */
-.heatmap-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 3px; padding: 14px 18px;
-}
-.hm-cell {
-  border-radius: 8px; padding: 10px 12px;
-  display: flex; flex-direction: column;
-  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
-  position: relative; overflow: hidden; min-height: 68px;
-}
-.hm-cell:hover { transform: scale(1.05); box-shadow: 0 4px 18px rgba(0,0,0,0.5); z-index: 2; }
-.hm-sym   { font-family: Calibri, sans-serif; font-size: 0.8rem; font-weight: 800; color: rgba(255,255,255,0.85); }
-.hm-pct   { font-family: Calibri, sans-serif; font-size: 1.22rem; font-weight: 800; margin-top: 3px; }
-.hm-price { font-family: Calibri, sans-serif; font-size: 0.68rem; opacity: 0.75; margin-top: 1px; }
-.hm-earn  { position: absolute; top: 4px; right: 5px; font-size: 0.58rem; background: rgba(255,255,255,0.18); border-radius: 4px; padding: 1px 4px; }
-.hm-sector-bar {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  padding: 10px 18px; border-bottom: 1px solid var(--border2);
-  background: var(--surface);
-}
-.hm-sec-btn {
-  font-family: Oxanium, sans-serif; font-size: 0.68rem; font-weight: 700;
-  letter-spacing: 0.07em; padding: 5px 13px; border-radius: 20px;
-  border: 1px solid var(--border2); background: transparent; color: var(--muted);
-  cursor: pointer; transition: all 0.18s;
-}
-.hm-sec-btn:hover, .hm-sec-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
-.hm-sort-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 18px; background: var(--surface2); border-bottom: 1px solid var(--border);
-}
-.hm-sort-label { font-family: Oxanium, sans-serif; font-size: 0.7rem; font-weight: 700; color: var(--muted); letter-spacing: 0.08em; }
-.hm-sort-btn {
-  font-family: Oxanium, sans-serif; font-size: 0.68rem; font-weight: 700;
-  letter-spacing: 0.07em; padding: 4px 12px; border-radius: 5px;
-  border: 1px solid var(--border2); background: transparent; color: var(--muted);
-  cursor: pointer; transition: all 0.15s;
-}
-.hm-sort-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
-.hm-no-data {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 200px; color: var(--muted); font-family: Oxanium, sans-serif;
-  font-size: 0.85rem; letter-spacing: 0.1em; text-align: center; padding: 20px;
-}
-.earn-glow { box-shadow: 0 0 0 2px #f59e0b, 0 0 12px rgba(245,158,11,0.35) !important; }
-
-/* Heatmap shimmer loading */
-@keyframes hmShimmer {
-  0%   { background-position: -400px 0; }
-  100% { background-position:  400px 0; }
-}
-.hm-cell.loading {
-  background: linear-gradient(90deg,#1a1f2e 25%,#232a3a 50%,#1a1f2e 75%) !important;
-  background-size: 800px 100% !important;
-  animation: hmShimmer 1.5s infinite;
-}
-.hm-cell.loading .hm-pct  { color: transparent !important; }
-.hm-cell.loading .hm-price { color: transparent !important; }
-
-/* Progress bar */
-#hmProgress {
-  height: 2px; background: rgba(0,229,160,0.15); position: relative; overflow: hidden;
-  transition: opacity 0.4s;
-}
-#hmProgressBar {
-  height: 100%; background: var(--accent);
-  transition: width 0.3s ease; width: 0%;
-}
-#hmStatusLine {
-  font-family: Oxanium, sans-serif; font-size: 0.62rem; color: var(--muted);
-  padding: 4px 18px; letter-spacing: 0.07em;
-}
-
-/* ══════════════════════════════════════════
-   COMPARE
-══════════════════════════════════════════ */
-.compare-panel { padding: 16px 18px; }
-.compare-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
-.compare-toolbar-label { font-family: Oxanium, sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.09em; color: var(--muted); }
-.compare-sym-input {
-  font-family: Calibri, sans-serif; font-size: 0.94rem; font-weight: 700;
-  background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
-  padding: 7px 14px; border-radius: 7px; width: 130px; outline: none;
-  transition: border-color 0.2s; text-transform: uppercase;
-}
-.compare-sym-input:focus { border-color: var(--accent); }
-.compare-add-btn {
-  font-family: Oxanium, sans-serif; font-size: 0.72rem; font-weight: 700;
-  letter-spacing: 0.09em; padding: 7px 16px; border-radius: 7px;
-  border: 1px solid var(--accent); background: rgba(0,229,160,0.12); color: var(--accent);
-  cursor: pointer; transition: all 0.18s;
-}
-.compare-add-btn:hover { background: var(--accent); color: #000; }
-.compare-clear-btn {
-  font-family: Oxanium, sans-serif; font-size: 0.72rem; font-weight: 700;
-  padding: 7px 14px; border-radius: 7px; border: 1px solid var(--border2);
-  background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s;
-}
-.compare-clear-btn:hover { border-color: #fb7185; color: #fb7185; }
-.compare-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border2); }
-.compare-tbl { width: 100%; border-collapse: collapse; font-family: Calibri, sans-serif; }
-.compare-tbl th {
-  font-family: Oxanium, sans-serif; font-size: 0.72rem; font-weight: 800;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  padding: 12px 16px; background: var(--surface2);
-  border-bottom: 2px solid var(--border2); color: var(--muted);
-  text-align: center; white-space: nowrap; min-width: 160px;
-}
-.compare-tbl th.sym-th { text-align: left; color: var(--text); font-size: 0.8rem; }
-.compare-tbl th.row-metric { min-width: 170px; text-align: left; }
-.compare-tbl td {
-  padding: 11px 16px; border-bottom: 1px solid var(--border);
-  text-align: center; font-size: 1.0rem; font-weight: 700; vertical-align: middle;
-}
-.compare-tbl td.row-metric {
-  text-align: left; font-family: Oxanium, sans-serif; font-size: 0.7rem;
-  font-weight: 800; letter-spacing: 0.09em; color: var(--muted);
-  background: var(--surface2); white-space: nowrap;
-}
-.compare-tbl tr:last-child td { border-bottom: none; }
-.compare-tbl tr:hover td { background: rgba(255,255,255,0.03); }
-.compare-tbl tr:hover td.row-metric { background: var(--surface2); }
-.compare-best  { color: #00e5a0 !important; font-weight: 800 !important; }
-.compare-worst { color: #fb7185 !important; }
-.compare-placeholder {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; min-height: 250px; gap: 12px; color: var(--muted);
-}
-.compare-placeholder-icon { font-size: 2.5rem; opacity: 0.5; }
-.compare-placeholder-text { font-family: Oxanium, sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; }
-.compare-rem-btn { font-size: 0.65rem; margin-left: 7px; cursor: pointer; opacity: 0.55; color: #fb7185; border: none; background: none; }
-.compare-rem-btn:hover { opacity: 1; }
-.cmp-tag {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: rgba(129,140,248,0.12); border: 1px solid rgba(129,140,248,0.3);
-  color: #818cf8; padding: 4px 10px; border-radius: 20px;
-  font-family: Calibri, sans-serif; font-size: 0.82rem; font-weight: 700;
-}
-/* Light theme overrides */
-body.light-theme .hm-sec-btn { background: #f0ebe0; border-color: #d8cfc0; color: #7a6a58; }
-body.light-theme .hm-sec-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-body.light-theme .compare-tbl th { background: #f0ebe0; }
-body.light-theme .compare-tbl td.row-metric { background: #f0ebe0; }
-body.light-theme .compare-sym-input { background: #f0ebe0; border-color: #d8cfc0; color: #2c1f14; }
-
-/* ── SECTOR & EARNINGS TAGS ── */
-
-/* Sector filter bar — full width row */
-.sector-filter-bar {
-  display: flex;
-  flex-wrap: wrap; align-items: center; gap: 7px;
-  padding: 8px 16px;
-  background: var(--surface2);
-  border-bottom: 1px solid var(--border);
-}
-.sector-filter-bar.hidden { display: none !important; }
-.sector-filter-label {
-  font-family:'Oxanium',sans-serif; font-size:0.7rem; font-weight:700;
-  letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
-  margin-right:4px;
-}
-.sector-pill {
-  font-family:'Oxanium',sans-serif; font-size:0.72rem; font-weight:700;
-  letter-spacing:0.06em; padding:4px 13px; border-radius:20px;
-  border:1px solid var(--border2); background:transparent;
-  color:var(--muted); cursor:pointer; transition:all 0.18s;
-}
-.sector-pill:hover { color:var(--text); border-color:var(--dim); }
-.sector-pill.active { color:#fff; background:var(--accent); border-color:var(--accent); }
-body.light-theme .sector-pill { color:#4a5a70; border-color:#c8d0e0; }
-body.light-theme .sector-pill.active { color:#fff; }
-.earn-date-tag {
-  font-family:'Oxanium',sans-serif; font-size:0.62rem; font-weight:700;
-  background:rgba(245,158,11,0.15); color:#f59e0b; border-radius:4px;
-  padding:1px 7px; letter-spacing:0.04em; margin-left:4px; display:inline-block;
-}
-.fund-sector-row {
-  display:flex; flex-wrap:wrap; gap:5px;
-  padding:8px 14px 10px; border-top:1px solid var(--border);
-}
-.fund-sector-tag {
-  font-family:'Oxanium',sans-serif; font-size:0.65rem; font-weight:700;
-  background:rgba(56,189,248,0.12); color:#38bdf8;
-  border-radius:4px; padding:2px 8px; letter-spacing:0.05em;
-}
-.fund-industry-tag {
-  font-family:'Oxanium',sans-serif; font-size:0.65rem; font-weight:600;
-  background:rgba(167,139,250,0.12); color:#a78bfa;
-  border-radius:4px; padding:2px 8px; letter-spacing:0.05em;
-}
-
 /* ══════════════════════════════════════════
    FEATURE 6 — Modal tab memory (no CSS needed)
 ══════════════════════════════════════════ */
-
-/* ══════════════════════════════════════════
-   CORPORATE ACTIONS — Events Timeline CSS
-══════════════════════════════════════════ */
-.ca-filter-bar {
-  display: flex; flex-wrap: wrap; gap: 6px;
-  margin-bottom: 18px;
-}
-.ca-filter-btn {
-  font-family: 'Oxanium', sans-serif; font-size: 0.68rem; font-weight: 700;
-  letter-spacing: 0.06em; padding: 5px 12px; border-radius: 20px;
-  border: 1px solid var(--border2); background: var(--surface2);
-  color: var(--muted); cursor: pointer; transition: all 0.15s;
-  display: flex; align-items: center; gap: 4px;
-}
-.ca-filter-btn:hover { color: var(--text); border-color: var(--ca-color, var(--accent)); }
-.ca-filter-btn.active {
-  background: rgba(255,255,255,0.08);
-  color: var(--ca-color, var(--accent));
-  border-color: var(--ca-color, var(--accent));
-}
-.ca-count {
-  font-size: 0.6rem; background: rgba(255,255,255,0.1);
-  border-radius: 10px; padding: 1px 5px; margin-left: 2px;
-}
-.ca-type-tag {
-  font-family: 'Oxanium', sans-serif; font-size: 0.65rem; font-weight: 700;
-  padding: 2px 8px; border-radius: 4px; white-space: nowrap;
-  letter-spacing: 0.04em;
-}
 
 /* ══════════════════════════════════════════
    FEATURE 7 — Undervalued glow
@@ -1484,38 +1142,37 @@ body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !
 <body>
 
 <header>
-  <div class="win-controls">
-    <span class="wc wc-close" onclick="window.close()" title="Close"></span>
-    <span class="wc wc-min" onclick="window.resizeTo(window.outerWidth,1)" title="Minimize"></span>
-    <span class="wc wc-max" onclick="document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()" title="Maximize"></span>
-  </div>
-  <div class="hdr-div"></div>
   <div class="logo">NEW<span>NSE</span></div>
+  <div class="hdr-div"></div>
+  <div class="hdr-sub">Multi-Timeframe Watchlist</div>
   <div class="live-badge">
     <span class="live-dot"></span>LIVE
-    <span class="live-clock" id="liveClock">--:--:-- --</span>
+    <span class="last-updated" id="lastUpdated"></span>
   </div>
-  <div class="refresh-countdown" id="refreshCountdown" title="Next auto-refresh">
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-    <span id="countdownDisplay">5:00</span>
-  </div>
-  <button class="icon-btn" id="refreshBtn" onclick="loadSheet()" title="Refresh data">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+  <button class="refresh-btn" id="refreshBtn" onclick="loadSheet()">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
     </svg>
+    Refresh
   </button>
+  <div class="hdr-div"></div>
   <div class="view-toggle" title="Switch view density">
-    <button class="view-btn active" id="vbtn-desktop" onclick="setViewMode('desktop')" title="Desktop view">
+    <button class="view-btn active" id="vbtn-desktop" onclick="setViewMode('desktop')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      Desktop
     </button>
     <div class="view-divider"></div>
-    <button class="view-btn" id="vbtn-mobile" onclick="setViewMode('mobile')" title="Mobile view">
+    <button class="view-btn" id="vbtn-mobile" onclick="setViewMode('mobile')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+      Mobile
     </button>
   </div>
+  <div class="hdr-div"></div>
+  <!-- EXPORT BUTTON -->
   <div style="position:relative" id="exportWrap">
-    <button class="icon-btn" onclick="toggleExportMenu(event)" id="exportBtn" title="Export data">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <button class="export-btn" onclick="toggleExportMenu(event)" id="exportBtn">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
     </button>
     <div class="export-dropdown" id="exportDropdown">
       <button class="export-opt" onclick="exportCSV()">
@@ -1528,45 +1185,21 @@ body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !
       </button>
     </div>
   </div>
-  <button class="icon-btn theme-icon-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle dark/light theme">
+  <!-- THEME TOGGLE -->
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle dark/light theme">
     <span id="themeIcon">☀️</span>
+    <span id="themeLabel">Light</span>
   </button>
+  <div class="hdr-div"></div>
   <div class="search-wrap">
     <span class="si">⌕</span>
     <input type="text" id="gSearch" placeholder="Search stock...">
-  </div>
-  <div class="mkt-ticker-strip">
-    <div class="mkt-ticker-item">
-      <span class="mkt-tick-label">NIFTY 50</span>
-      <span class="mkt-tick-value" id="tick-nifty-val">—</span>
-      <span class="mkt-tick-chg" id="tick-nifty-chg">—</span>
-    </div>
-    <div class="mkt-ticker-sep"></div>
-    <div class="mkt-ticker-item">
-      <span class="mkt-tick-label">BANK NIFTY</span>
-      <span class="mkt-tick-value" id="tick-banknifty-val">—</span>
-      <span class="mkt-tick-chg" id="tick-banknifty-chg">—</span>
-    </div>
-    <div class="mkt-ticker-sep"></div>
-    <div class="mkt-ticker-item">
-      <span class="mkt-tick-label">INDIA VIX</span>
-      <span class="mkt-tick-value" id="tick-vix-val">—</span>
-      <span class="mkt-tick-chg" id="tick-vix-chg">—</span>
-    </div>
   </div>
 </header>
 
 <div class="sheet-bar" id="sheetBar">
   <button class="stab active" data-tab="master"><span class="dot" style="background:#00e5a0"></span>Master<span class="tab-badge" id="badge-master">—</span></button>
   <button class="stab" data-tab="consolidated"><span class="dot" style="background:#818cf8"></span>Consolidated<span class="tab-badge" id="badge-consolidated">—</span></button>
-  <button class="stab" data-tab="earnings"><span class="dot" style="background:#f59e0b"></span>Corp Actions<span class="tab-badge" id="badge-earnings">—</span></button>
-  <button class="stab" data-tab="heatmap"><span class="dot" style="background:#f472b6"></span>Heatmap<span class="tab-badge" id="badge-heatmap">—</span></button>
-  <button class="stab" data-tab="compare"><span class="dot" style="background:#818cf8"></span>Compare<span class="tab-badge" id="badge-compare">—</span></button>
-</div>
-
-<div class="sector-filter-bar hidden" id="sectorFilterBar">
-  <span class="sector-filter-label">Sector</span>
-  <button class="sector-pill active" data-sector="ALL" onclick="setSectorFilter('ALL',this)">All</button>
 </div>
 
 <main id="mainContent">
@@ -1578,37 +1211,6 @@ body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !
 </main>
 
 <div id="kb-toast"></div>
-
-<div id="kb-help-overlay" onclick="if(event.target===this)toggleKbHelp()">
-  <div id="kb-help-panel">
-    <h3>⌨ Keyboard Shortcuts <span onclick="toggleKbHelp()">✕ close</span></h3>
-
-    <div class="kb-section">
-      <div class="kb-section-title">Navigation</div>
-      <div class="kb-row"><span class="kb-key">M</span><span class="kb-desc">Master tab</span></div>
-      <div class="kb-row"><span class="kb-key">C</span><span class="kb-desc">Consolidated tab</span></div>
-      <div class="kb-row"><span class="kb-key">E</span><span class="kb-desc">Corp Actions tab</span></div>
-      <div class="kb-row"><span class="kb-key">H</span><span class="kb-desc">Heatmap tab</span></div>
-      <div class="kb-row"><span class="kb-key">X</span><span class="kb-desc">Compare tab</span></div>
-    </div>
-
-    <div class="kb-section">
-      <div class="kb-section-title">Master Table</div>
-      <div class="kb-row"><span class="kb-key">←</span><span class="kb-desc">Previous timeframe</span></div>
-      <div class="kb-row"><span class="kb-key">→</span><span class="kb-desc">Next timeframe</span></div>
-    </div>
-
-    <div class="kb-section">
-      <div class="kb-section-title">General</div>
-      <div class="kb-row"><span class="kb-key">/</span><span class="kb-desc">Focus search</span></div>
-      <div class="kb-row"><span class="kb-key">ESC</span><span class="kb-desc">Close modal / search</span></div>
-      <div class="kb-row"><span class="kb-key">?</span><span class="kb-desc">Toggle this help</span></div>
-    </div>
-
-    <div class="kb-hint">Press <strong style="color:var(--accent)">?</strong> anytime to show/hide this panel · Click outside to close</div>
-  </div>
-</div>
-
 
 <script>
 // ═══════════════════════════════════════════════════════════
@@ -1673,374 +1275,6 @@ let activeTab = 'master';
 let activeMasterTF = 0; // index of currently selected master TF
 let searchTerm = '';
 
-// ═══════════════════════════════════════════════════════════
-// SECTOR & EARNINGS — global state
-// ═══════════════════════════════════════════════════════════
-let fundSector   = {};   // sym → sector string
-let fundIndustry = {};   // sym → industry string
-let fundEarnings = {};   // sym → earningsDate string
-let corpActions  = [];   // [{symbol, type, details, exDate, recordDate}]
-let activeSector = 'ALL';
-
-// ── Corp actions helpers ──────────────────────────────────────────────────
-function _caStatus(msg) {
-  const el = document.getElementById('ca-status-msg');
-  if (el) el.textContent = msg;
-}
-
-function _caDateFmt(d) {
-  const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${d.getDate()} ${MN[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function _caParseItems(items, sym) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const lb = new Date(today - 30*86400000);
-  const la = new Date(today.getTime() + 365*86400000);
-  const out = [];
-  (Array.isArray(items) ? items : []).forEach(item => {
-    const dateStr = item.exDate || item.ex_date || item.date || item.effectiveDate || '';
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime()) || d < lb || d > la) return;
-    const raw = String(item.type || item.purpose || item.action || '').trim();
-    const pu = raw.toUpperCase();
-    let type = '';
-    if (/DIVIDEND|DIV\b/.test(pu))          type = 'Dividend';
-    else if (/BONUS/.test(pu))              type = 'Bonus';
-    else if (/SPLIT|SUBDIVISION/.test(pu))  type = 'Split';
-    else if (/RIGHTS/.test(pu))             type = 'Rights';
-    else if (/BUYBACK/.test(pu))            type = 'Buyback';
-    else return;
-    const rd = item.recordDate || item.rec_date ? new Date(item.recordDate || item.rec_date) : null;
-    const amt = item.amount ? ` Rs ${item.amount}` : '';
-    const rat = item.ratio  ? ` ${item.ratio}` : '';
-    out.push({
-      symbol: sym, type,
-      details: (type + amt + rat).substring(0,80) || raw.substring(0,80),
-      exDate:     _caDateFmt(d),
-      recordDate: (rd && !isNaN(rd)) ? _caDateFmt(rd) : ''
-    });
-  });
-  return out;
-}
-
-// ── Probe one URL, return parsed items or [] ──────────────────────────────
-async function _caFetch(url, sym, box) {
-  try {
-    if (box) box.innerHTML += `  GET ${url}\n`;
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 8000);
-    const res = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(t);
-    if (box) box.innerHTML += `  → ${res.status}\n`;
-    if (!res.ok) return [];
-    const json = await res.json();
-    if (box) box.innerHTML += `  raw: ${JSON.stringify(json).substring(0,200)}\n`;
-    return _caParseItems(json?.data || json, sym);
-  } catch(e) {
-    if (box) box.innerHTML += `  err: ${e.message}\n`;
-    return [];
-  }
-}
-
-// ── Test sources button ───────────────────────────────────────────────────
-async function testCorpActionSources() {
-  const box = document.getElementById('ca-test-results');
-  if (!box) return;
-  box.style.display = 'block';
-  box.innerHTML = 'Testing sources from browser for HDFCBANK...\n\n';
-
-  const sym = 'HDFCBANK';
-  const urls = [
-    `https://api.tickertape.in/search/v3/query/global?text=${sym}&type=stock`,
-    `https://api.tickertape.in/stocks/corporate-actions?sid=HDFCB`,
-    `https://trendlyne.com/web-serial-data/corp-action/quarterly/${sym}/`,
-    `https://api.moneycontrol.com/mcapi/v1/corp-actions/list?scId=HDF01&deviceType=W`,
-    `https://priceapi.moneycontrol.com/pricefeed/notations/get-corporate-actions?scSymbol=HDFCBANK&exchSym=NSE`,
-  ];
-
-  for (const url of urls) {
-    await _caFetch(url, sym, box);
-    box.innerHTML += '\n';
-  }
-  box.innerHTML += 'Done.';
-}
-
-// ── Fetch all corp actions — tries Tickertape → Trendlyne ────────────────
-async function testAndFetchCorpActions() {
-  _caStatus('Fetching...');
-  const allSyms = [...new Set(
-    [...masterTFs, ...consolidatedTFs].flatMap(tf => tf.cols.flat()).map(s => s.toUpperCase())
-  )].filter(s => !/^(NIFTY|SENSEX|GOLD|NIFTY)/.test(s));
-
-  const results = [];
-  let done = 0;
-  for (const sym of allSyms) {
-    // Tickertape: first resolve slug then fetch
-    let actions = [];
-    const search = await _caFetch(
-      `https://api.tickertape.in/search/v3/query/global?text=${encodeURIComponent(sym)}&type=stock`, sym);
-    // If Tickertape worked parse differently — handled inside _caParseItems
-    if (!actions.length) {
-      actions = await _caFetch(
-        `https://trendlyne.com/web-serial-data/corp-action/quarterly/${encodeURIComponent(sym)}/`, sym);
-    }
-    results.push(...actions);
-    done++;
-    if (done % 10 === 0) _caStatus(`${done}/${allSyms.length} done...`);
-    await new Promise(r => setTimeout(r, 150));
-  }
-
-  if (results.length) {
-    corpActions = results;
-    _caStatus(`✅ ${results.length} corp actions loaded`);
-    // Save to sheet
-    fetch(`${APPS_SCRIPT_URL}?action=savecorpactions`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({actions: results})
-    }).catch(() => {});
-    if (activeTab === 'earnings') render();
-  } else {
-    _caStatus('❌ No data from any source — use 🧪 Test Sources to see raw responses');
-  }
-}
-
-// ── Load from sheet on startup ────────────────────────────────────────────
-async function fetchCorpActionsData() {
-  try {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 15000);
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=corpactions`, { signal: ctrl.signal, redirect: 'follow' });
-    clearTimeout(t);
-    if (!res.ok) return;
-    const json = await res.json();
-    if (json.data && Array.isArray(json.data) && json.data.length) {
-      corpActions = json.data;
-      updateTabBadges();
-      if (activeTab === 'earnings') render();
-    }
-  } catch(e) { /* silent */ }
-}
-
-// ── Parse earnings date string → days until (null if unparseable) ────────
-function daysUntilEarnings(dateStr) {
-  if (!dateStr || dateStr === '—' || dateStr === '') return null;
-  try {
-    // Handle formats: "Jan 15, 2025", "15 Jan 2025", "2025-01-15"
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return null;
-    const today = new Date();
-    today.setHours(0,0,0,0); d.setHours(0,0,0,0);
-    return Math.round((d - today) / 86400000);
-  } catch(e) { return null; }
-}
-
-// ── Returns badge HTML for a stock pill based on upcoming corp actions ──────
-function getEarnBadge(sym) {
-  const symUp = sym.toUpperCase();
-  const ca = corpActions.find(a => {
-    if ((a.symbol||'').toUpperCase() !== symUp) return false;
-    const days = daysUntilEarnings(a.exDate);
-    return days !== null && days >= 0 && days <= 14;
-  });
-  if (!ca) return '';
-  const days = daysUntilEarnings(ca.exDate);
-  const label = (ca.type||'Corp Action');
-  if (days === 0) return '<sup class="earn-badge today" title="' + label + ' TODAY">!</sup>';
-  if (days <= 7)  return '<sup class="earn-badge soon"  title="' + label + ' in ' + days + ' days">🔔</sup>';
-  return '<sup class="earn-badge soon" title="' + label + ' in ' + days + ' days · ' + ca.exDate + '" style="font-size:7px">' + days + 'd</sup>';
-}
-
-// ── Populate sector filter bar pills from current fundSector data ────────
-function populateSectorFilter() {
-  const bar = document.getElementById('sectorFilterBar');
-  if (!bar) return;
-  // Collect all unique sectors from stocks visible in current view
-  const sectors = new Set();
-  const allSyms = [...masterTFs, ...consolidatedTFs]
-    .flatMap(tf => tf.cols.flat())
-    .map(s => s.toUpperCase());
-  allSyms.forEach(s => { if (fundSector[s]) sectors.add(fundSector[s]); });
-  if (!sectors.size) { bar.classList.add('hidden'); return; }
-  bar.classList.remove('hidden');
-
-  // Rebuild pills (keep All button, replace rest)
-  const existing = [...bar.querySelectorAll('.sector-pill[data-sector]')];
-  const existingSectors = new Set(existing.filter(b => b.dataset.sector !== 'ALL').map(b => b.dataset.sector));
-
-  // Remove stale
-  existing.forEach(b => { if (b.dataset.sector !== 'ALL' && !sectors.has(b.dataset.sector)) b.remove(); });
-  // Add new
-  sectors.forEach(sec => {
-    if (existingSectors.has(sec)) return;
-    const btn = document.createElement('button');
-    btn.className = 'sector-pill' + (activeSector === sec ? ' active' : '');
-    btn.dataset.sector = sec;
-    btn.textContent = sec;
-    btn.onclick = () => setSectorFilter(sec, btn);
-    bar.appendChild(btn);
-  });
-  // Update ALL active state
-  bar.querySelector('[data-sector="ALL"]').classList.toggle('active', activeSector === 'ALL');
-}
-
-function setSectorFilter(sector, btn) {
-  activeSector = sector;
-  document.querySelectorAll('.sector-pill').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  render();
-}
-
-// ── Corporate action type config ─────────────────────────────────────────
-const CA_CONFIG = {
-  'Earnings':  { icon:'🔔', color:'#f59e0b', bg:'rgba(245,158,11,0.15)'  },
-  'Dividend':  { icon:'💰', color:'#34d399', bg:'rgba(52,211,153,0.15)'  },
-  'Bonus':     { icon:'🎁', color:'#a78bfa', bg:'rgba(167,139,250,0.15)' },
-  'Split':     { icon:'✂️', color:'#60a5fa', bg:'rgba(96,165,250,0.15)'  },
-  'Rights':    { icon:'📋', color:'#fb923c', bg:'rgba(251,146,60,0.15)'  },
-  'Buyback':   { icon:'🔄', color:'#f472b6', bg:'rgba(244,114,182,0.15)' }
-};
-
-// active filter for events tab
-let eventsFilter = 'All';
-
-// ── Earnings tab panel — unified events timeline ─────────────────────────
-function buildEarningsPanel() {
-  const allSyms = [...new Set(
-    [...masterTFs, ...consolidatedTFs].flatMap(tf => tf.cols.flat()).map(s => s.toUpperCase())
-  )];
-
-  // ── Build events list — from CORP_ACTIONS sheet only ──
-  const events = [];
-
-  corpActions.forEach(ca => {
-    const sym = (ca.symbol||'').toUpperCase();
-    const days = daysUntilEarnings(ca.exDate);
-    if (days === null) return;
-    const inWatchlist = allSyms.includes(sym);
-    events.push({ sym, type: ca.type||'Dividend', details: ca.details||'', date: ca.exDate,
-                  recordDate: ca.recordDate||'', days,
-                  sector: fundSector[sym]||'', industry: fundIndustry[sym]||'',
-                  inWatchlist });
-  });
-
-  // Sort by days
-  events.sort((a,b) => a.days - b.days);
-  const upcoming = events.filter(r => r.days >= 0);
-  const past     = events.filter(r => r.days < 0).sort((a,b) => b.days - a.days).slice(0, 30);
-
-  // Filter counts for tabs
-  const filterTypes = ['All','Dividend','Bonus','Split','Rights','Buyback'];
-  const counts = {};
-  filterTypes.forEach(t => {
-    counts[t] = t === 'All' ? upcoming.length : upcoming.filter(e => e.type === t).length;
-  });
-
-  // Update tab badge
-  const upcomingCount = upcoming.length;
-  const thisWeekCount = upcoming.filter(e => e.days >= 0 && e.days <= 7).length;
-  const badge = document.getElementById('badge-earnings');
-  if (badge) {
-    badge.textContent = upcomingCount || '—';
-    if (thisWeekCount > 0) {
-      badge.style.background = 'rgba(245,158,11,0.25)';
-      badge.style.color = '#f59e0b';
-      badge.title = thisWeekCount + ' corp actions this week!';
-    }
-  }
-
-  function chip(days) {
-    if (days === 0) return '<span class="earn-days-chip today">TODAY</span>';
-    if (days <= 7)  return `<span class="earn-days-chip soon">In ${days}d</span>`;
-    if (days <= 30) return `<span class="earn-days-chip week">In ${days}d</span>`;
-    return `<span class="earn-days-chip future">In ${days}d</span>`;
-  }
-  function rowCls(days) {
-    if (days === 0) return 'earn-today';
-    if (days <= 7)  return 'earn-soon';
-    return '';
-  }
-  function typeTag(type) {
-    const cfg = CA_CONFIG[type] || { icon:'📌', color:'#94a3b8', bg:'rgba(148,163,184,0.15)' };
-    return `<span class="ca-type-tag" style="background:${cfg.bg};color:${cfg.color}">${cfg.icon} ${type}</span>`;
-  }
-
-  const filtered = eventsFilter === 'All' ? upcoming : upcoming.filter(e => e.type === eventsFilter);
-
-  function buildRows(arr) {
-    if (!arr.length) return '<tr><td colspan="5" class="earn-none">No events found</td></tr>';
-    return arr.map(r => `
-      <tr class="${rowCls(r.days)}" style="${r.inWatchlist===false ? 'opacity:0.55' : ''}">
-        <td><span class="earn-sym">${r.sym}</span>${r.inWatchlist===false ? '<span style="font-size:9px;color:var(--muted);margin-left:4px">NSE</span>' : ''}<br><span class="earn-sector" style="opacity:0.6;font-size:10px">${r.sector||'—'}</span></td>
-        <td>${typeTag(r.type)}</td>
-        <td style="font-size:12px">${r.details ? `<span title="${r.details}">${r.details.substring(0,40)}${r.details.length>40?'…':''}</span>` : '—'}</td>
-        <td style="font-size:12px">${r.date}${r.recordDate ? `<br><span style="opacity:0.5;font-size:10px">Rec: ${r.recordDate}</span>` : ''}</td>
-        <td>${chip(r.days)}</td>
-      </tr>`).join('');
-  }
-
-  const filterBtns = filterTypes.map(t => `
-    <button class="ca-filter-btn${eventsFilter===t?' active':''}" onclick="setEventsFilter('${t}')" 
-            style="${CA_CONFIG[t] ? `--ca-color:${CA_CONFIG[t].color}` : ''}">
-      ${CA_CONFIG[t]?CA_CONFIG[t].icon:''} ${t} ${counts[t]>0?`<span class="ca-count">${counts[t]}</span>`:''}
-    </button>`).join('');
-
-  const pastFiltered = eventsFilter === 'All' ? past : past.filter(e => e.type === eventsFilter);
-
-  return `
-    <div class="earnings-panel">
-      <div class="ca-filter-bar">${filterBtns}</div>
-      <h3>📋 Corporate Actions — ${filtered.length} ${eventsFilter !== 'All' ? eventsFilter + ' ' : ''}upcoming</h3>
-      <table class="earn-tbl">
-        <thead><tr>
-          <th>Symbol</th><th>Type</th><th>Details</th><th>Ex-Date</th><th>Timeline</th>
-        </tr></thead>
-        <tbody>${buildRows(filtered)}</tbody>
-      </table>
-      ${pastFiltered.length ? `
-      <h3 style="margin-top:28px;color:var(--muted)">Recent Corporate Actions (last 30 days)</h3>
-      <table class="earn-tbl">
-        <thead><tr><th>Symbol</th><th>Type</th><th>Details</th><th>Date</th><th>Days ago</th></tr></thead>
-        <tbody>${pastFiltered.map(r => `
-          <tr>
-            <td><span class="earn-sym">${r.sym}</span></td>
-            <td>${typeTag(r.type)}</td>
-            <td style="font-size:12px">${(r.details||'—').substring(0,40)}</td>
-            <td style="font-size:12px">${r.date}</td>
-            <td><span class="earn-days-chip future">${Math.abs(r.days)}d ago</span></td>
-          </tr>`).join('')}
-        </tbody>
-      </table>` : ''}
-      <div style="margin-top:16px;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:11px;color:var(--muted)">
-        ${corpActions.length > 0
-          ? '✅ ' + corpActions.length + ' actions loaded from CORP_ACTIONS sheet · Update the sheet from NSE to refresh'
-          : '⚠️ No data — paste NSE corporate actions into the CORP_ACTIONS sheet in Google Sheets'}
-      </div>
-    </div>`;
-}
-
-function setEventsFilter(type) {
-  eventsFilter = type;
-  const mc = document.getElementById('tab-earnings') || document.querySelector('.tab-panel.active');
-  const panel = document.querySelector('.earnings-panel');
-  if (panel) panel.outerHTML = buildEarningsPanel();
-  else render();
-}
-
-// ── renderEarningsTab: called after fundamentals sync ────────────────────
-function renderEarningsTab() {
-  if (activeTab === 'earnings') render();
-  updateTabBadges();
-}
-
-// ── renderSectorFilter: called after fundamentals sync ───────────────────
-function renderSectorFilter() {
-  populateSectorFilter();
-}
-
-
-
 // ── Returns a deduplicated list of ALL symbols across ALL timeframes ──────
 function getAllMasterSymbols() {
   const all = new Set();
@@ -2072,44 +1306,11 @@ async function loadSheet() {
     const data = json.data || json; // support both old and new Apps Script format
     console.log('✓ Got data:', data.length, 'rows,', data[0]?.length, 'cols');
     parseSheetRows(data);
-    // Load sector/industry/earnings from FUNDAMENTALS sheet (bundled in response)
-    if (json.sectorData && Object.keys(json.sectorData).length) {
-      Object.entries(json.sectorData).forEach(([sym, d]) => {
-        const key = sym.toUpperCase();
-        if (d.sector)       fundSector[key]   = d.sector;
-        if (d.industry)     fundIndustry[key] = d.industry;
-        if (d.earningsDate) fundEarnings[key] = d.earningsDate;
-        // Seed fundCache with sheet fundamentals so PE/MC/WB work on heatmap immediately
-        if (!fundCache[key]) fundCache[key] = {};
-        Object.assign(fundCache[key], d);
-      });
-      console.log('[Sector] Loaded', Object.keys(json.sectorData).length, 'sector entries from sheet');
-    }
-    if (json.indexData && json.indexData.length) {
-      applyTickerRows(json.indexData);
-    }
+    document.getElementById('lastUpdated').textContent =
+      '· ' + new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+    const el = document.getElementById('lastUpdated');
+    el.dataset.updated = el.textContent;
     render();
-
-    // ── Background auto-sync: add any Master symbols missing from FUNDAMENTALS ──
-    // Runs silently on page load — handles stocks added to MASTER after last build
-    setTimeout(() => {
-      const allSyms = getAllMasterSymbols();
-      // Filter out: ETFs, indices, symbols already in sectorData
-      const knownSyms = new Set(json.sectorData ? Object.keys(json.sectorData).map(s => s.toUpperCase()) : []);
-      const INDEX_LIKE = /^(NIFTY|SENSEX|INDIA_VIX|INDVIX|GOLDBEES|NIFTYBEES|BANKBEES|JUNIORBEES|LIQUIDBEES|ICICIB22|MOM100|SETFNN50)/;
-      const missingFromSheet = allSyms.filter(s => !knownSyms.has(s) && !INDEX_LIKE.test(s));
-      if (missingFromSheet.length > 0) {
-        console.log('[AutoSync] Symbols missing from FUNDAMENTALS:', missingFromSheet);
-        _syncFundamentals(missingFromSheet, true).then(() => {
-          console.log('[AutoSync] Background sync complete for', missingFromSheet.length, 'symbols');
-          render(); // re-render pills with newly loaded sector labels
-        }).catch(e => console.warn('[AutoSync] Background sync failed:', e.message));
-      }
-    }, 2000); // 2s delay so initial render completes first
-
-    // ── Fetch corporate actions in background ──
-    setTimeout(() => fetchCorpActionsData(), 3500);
-
   } catch(e) {
     console.error('Fetch failed:', e);
     showError(`
@@ -2329,32 +1530,20 @@ function buildTable(tfs, term) {
     `<th class="cat-head" style="color:${cat.color}">${cat.label}</th>`
   ).join('');
 
-  // Apply sector filter — clone cols filtering by sector if needed
-  const filteredCols = tf.cols.map(col =>
-    activeSector === 'ALL' ? col : col.filter(s => (fundSector[s.toUpperCase()] || '') === activeSector)
-  );
-  let maxRowsFiltered = 0;
-  filteredCols.forEach(col => { if (col.length > maxRowsFiltered) maxRowsFiltered = col.length; });
-
   // Pre-build ALL row strings into VS.rows[]
   VS.rows = [];
-  for (let r = 0; r < maxRowsFiltered; r++) {
+  for (let r = 0; r < maxRows; r++) {
     let rowMatch = false;
     let cells = '';
     CATS.forEach((cat, ci) => {
-      const stock = filteredCols[ci][r] || '';
+      const stock = tf.cols[ci][r] || '';
       if (stock) {
         const match = term && stock.toLowerCase().includes(term);
         if (match) rowMatch = true;
         const label = match
           ? stock.replace(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi'), m => `<mark>${m}</mark>`)
           : stock;
-        const earnBadge = getEarnBadge(stock);
-        const sec = fundSector[stock.toUpperCase()] || '';
-        const symCa = corpActions.find(a => (a.symbol||'').toUpperCase() === stock.toUpperCase() && daysUntilEarnings(a.exDate) !== null && daysUntilEarnings(a.exDate) >= 0);
-        const tip = stock + (sec ? ' · ' + sec : '') + (symCa ? ' · ' + (symCa.type||'Corp Action') + ': ' + symCa.exDate : '');
-        const secTag = sec ? `<span class="sp-sector">${sec}</span>` : '';
-        cells += `<td><span class="sp ${cat.cls}${match?' hl':''}" title="${tip}">${label}${earnBadge}${secTag}</span></td>`;
+        cells += `<td><span class="sp ${cat.cls}${match?' hl':''}">${label}</span></td>`;
       } else {
         cells += `<td></td>`;
       }
@@ -2414,26 +1603,13 @@ function render() {
   const term = searchTerm.toLowerCase();
   const mc = document.getElementById('mainContent');
 
-  const sfBar = document.getElementById('sectorFilterBar');
-
-  if (activeTab === 'earnings') {
-    mc.innerHTML = buildEarningsPanel();
-    if (sfBar) sfBar.classList.add('hidden');
-  } else if (activeTab === 'heatmap') {
-    mc.innerHTML = buildHeatmap();
-    if (sfBar) sfBar.classList.add('hidden');
-    // Badge update after render
-    updateTabBadges();
-  } else if (activeTab === 'compare') {
-    mc.innerHTML = buildComparePanel();
-    if (sfBar) sfBar.classList.add('hidden');
-  } else if (activeTab === 'master') {
+  if (activeTab === 'master') {
     mc.innerHTML = buildTable(masterTFs, term);
-    if (sfBar) { sfBar.classList.remove('hidden'); populateSectorFilter(); }
+    // Boot virtual scroll after DOM is ready
     requestAnimationFrame(() => initVirtualScroll());
   } else {
     mc.innerHTML = buildConsolidated(term);
-    if (sfBar) { sfBar.classList.remove('hidden'); populateSectorFilter(); }
+    // Attach click via event delegation — avoids JSON-in-onclick-attribute issues
     mc.addEventListener('click', e => {
       const cell = e.target.closest('.clickable-cell');
       if (!cell) return;
@@ -2479,7 +1655,6 @@ function buildConsolidated(term) {
     const isCollapsed = collapsedCats.has(cat.key);
     const cells = consolidatedTFs.map((tf, tfi) => {
       let stocks = tf.cols[ci] || [];
-      if (activeSector !== 'ALL') stocks = stocks.filter(s => (fundSector[s.toUpperCase()] || '') === activeSector);
       if (term) stocks = stocks.filter(s => s.toLowerCase().includes(term));
       const isLast = tfi === consolidatedTFs.length - 1;
 
@@ -2536,7 +1711,7 @@ function buildConsolidated(term) {
 }
 
 // ── MODAL with live stock data via Yahoo Finance ──
-let chgMode = 'close';
+let chgMode = 'open';
 let modalPriceData = {};
 let activeModalTab = 'price';
 let lastModalTab = 'price';
@@ -2555,16 +1730,16 @@ function openModal(tfLabel, catLabel, stocks) {
       <div class="modal-hd">
         <div>
           <div class="modal-title">${catLabel} <span style="color:var(--border2);font-weight:400;font-size:1rem">✦</span> <span style="color:#a0b4c8">${tfLabel}</span></div>
-          <div class="modal-sub">${stocks.length} stocks &nbsp;·&nbsp; Live data via Google Sheets</div>
+          <div class="modal-sub">${stocks.length} stocks &nbsp;·&nbsp; Live market data via Yahoo Finance</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px">
           <span style="font-size:0.76rem;color:#a0b4c8;font-family:Oxanium,sans-serif;letter-spacing:0.1em;font-weight:600">CHG FROM</span>
           <button id="toggleChgMode"
             onclick="toggleChgMode()"
             style="font-family:Oxanium,sans-serif;font-size:0.8rem;font-weight:800;letter-spacing:0.1em;
-                   padding:7px 18px;border-radius:24px;cursor:pointer;border:1px solid #38bdf8;
-                   background:rgba(56,189,248,0.12);color:#38bdf8;transition:all 0.2s">
-            PREV CLOSE
+                   padding:7px 18px;border-radius:24px;cursor:pointer;border:1px solid var(--accent);
+                   background:rgba(0,229,160,0.13);color:var(--accent);transition:all 0.2s">
+            DAY OPEN
           </button>
         </div>
         <button class="modal-close" onclick="document.getElementById('tv-modal').remove()">✕</button>
@@ -2588,8 +1763,8 @@ function openModal(tfLabel, catLabel, stocks) {
               <tr id="price-table-hdr">
                 <th class="col-sym">Symbol</th>
                 <th style="text-align:right;color:#00e5a0;min-width:110px">LTP (₹)</th>
-                <th style="text-align:right;min-width:110px" id="hdr-chg">Chg (Close)</th>
-                <th style="text-align:right;min-width:110px" id="hdr-chgpct">Chg% (Close)</th>
+                <th style="text-align:right;min-width:110px" id="hdr-chg">Chg (Open)</th>
+                <th style="text-align:right;min-width:110px" id="hdr-chgpct">Chg% (Open)</th>
                 <th style="text-align:right;color:#8dafc8;min-width:100px">Open</th>
                 <th style="text-align:right;color:#8dafc8;min-width:110px">Prev Close</th>
                 <th style="text-align:right;color:#00e5a0;min-width:105px">Day High</th>
@@ -2614,7 +1789,7 @@ function openModal(tfLabel, catLabel, stocks) {
 
         <!-- FUNDAMENTALS TAB -->
         <div class="modal-tab-panel" id="mpanel-fund">
-          <div id="fund-legend-bar" style="padding:6px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;color:var(--muted);border-bottom:1px solid var(--border);transition:all 0.4s ease;overflow:hidden">
+          <div style="padding:7px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;color:var(--muted);border-bottom:1px solid var(--border)">
             <span style="color:#a0b4c8">PE:</span>
             <span style="color:#00e5a0">●&lt;15</span><span style="color:#fbbf24">●15–25</span><span style="color:#fb923c">●25–40</span><span style="color:#fb7185">●&gt;40</span>
             <span style="color:#6a7d96">|</span>
@@ -2623,12 +1798,8 @@ function openModal(tfLabel, catLabel, stocks) {
             <span style="color:#38bdf8">D/E: ●&lt;0.5</span><span style="color:#fbbf24">●0.5–1</span><span style="color:#fb7185">●&gt;1</span>
             <span style="color:#6a7d96">|</span>
             <span style="color:#a78bfa">EPS/NPM: purple=+ve</span><span style="color:#fb7185">red=−ve</span>
-            <span style="color:#6a7d96\">|</span>
-            <span style="color:#a0b4c8;font-weight:800">WB SCORE:</span> <span style="color:#00e5a0">🟢≥75 BUY</span><span style="color:#fbbf24">🟡55–75 WATCH</span><span style="color:#fb923c">🟠35–55 AVERAGE</span><span style="color:#fb7185">🔴&lt;35 AVOID</span>
-            <span style="margin-left:auto;cursor:pointer;color:var(--muted);font-size:0.65rem;border:1px solid var(--border2);padding:2px 8px;border-radius:4px" onclick="hideLegend(true)" title="Hide legend">✕ hide</span>
-          </div>
-          <div id="fund-legend-toggle" style="display:none;padding:3px 16px;border-bottom:1px solid var(--border)">
-            <button onclick="hideLegend(false)" style="background:none;border:none;color:var(--muted);font-family:Oxanium,sans-serif;font-size:0.6rem;font-weight:700;letter-spacing:0.08em;cursor:pointer;padding:2px 0">▼ SHOW LEGEND</button>
+            <span style="color:#6a7d96">|</span>
+            <span style="color:#f59e0b">Beta: ●&lt;0.8</span><span style="color:#fbbf24">●0.8–1.2</span><span style="color:#fb7185">●&gt;1.2</span>
           </div>
           <div id="fund-rebuild-notice" style="display:none;padding:8px 20px;background:rgba(251,191,36,0.08);border-bottom:1px solid rgba(251,191,36,0.25);font-family:Oxanium,sans-serif;font-size:0.7rem;color:#fbbf24;font-weight:700;letter-spacing:0.06em">
             ⚠ &nbsp;FUNDAMENTALS SHEET IS ON OLD SCHEMA — Run <code style="background:rgba(251,191,36,0.15);padding:1px 6px;border-radius:3px;font-family:monospace">buildFundamentalsSheet()</code> in Apps Script to unlock all columns. Live scrape fallback active for this session.
@@ -2636,7 +1807,7 @@ function openModal(tfLabel, catLabel, stocks) {
           <div class="fund-sort-bar">
             <span class="fund-sort-label">Sort by:</span>
             <button class="sort-btn active" data-sort="none" onclick="sortFundCards('none',this)">Default</button>
-            <button class="sort-btn" data-sort="health" onclick="sortFundCards('health',this)">WB Score <span class="sort-arrow">↓</span></button>
+            <button class="sort-btn" data-sort="health" onclick="sortFundCards('health',this)">Health <span class="sort-arrow">↓</span></button>
             <button class="sort-btn" data-sort="pe" onclick="sortFundCards('pe',this)">PE <span class="sort-arrow">↓</span></button>
             <button class="sort-btn" data-sort="roe" onclick="sortFundCards('roe',this)">ROE <span class="sort-arrow">↓</span></button>
             <button class="sort-btn" data-sort="roce" onclick="sortFundCards('roce',this)">ROCE <span class="sort-arrow">↓</span></button>
@@ -2732,16 +1903,14 @@ function renderModalRows(priceData) {
     const q = priceData[symbol];
     if (!q || !q.price) return;
 
-    const prevClose = (q.prevClose && q.prevClose > 0) ? q.prevClose : null;
-    const open      = (q.open && q.open > 0) ? q.open : null;
-
-    const chgClose    = q.chgFromClose    != null ? q.chgFromClose    : (prevClose ? q.price - prevClose : 0);
-    const chgPctClose = q.chgPctFromClose != null ? q.chgPctFromClose : (prevClose && prevClose > 0 ? (q.price - prevClose) / prevClose * 100 : 0);
-    const chgOpen     = q.chgFromOpen     != null ? q.chgFromOpen     : (open ? q.price - open : chgClose);
-    const chgPctOpen  = q.chgPctFromOpen  != null ? q.chgPctFromOpen  : (open && open > 0 ? (q.price - open) / open * 100 : chgPctClose);
-
-    const chg    = chgMode === 'open' ? chgOpen    : chgClose;
-    const chgPct = chgMode === 'open' ? chgPctOpen : chgPctClose;
+    const open      = q.open      || q.price;
+    const prevClose = q.prevClose || q.open || q.price;
+    const chg    = chgMode === 'open'
+                   ? (q.chgFromOpen  != null ? q.chgFromOpen  : q.price - open)
+                   : (q.chgFromClose != null ? q.chgFromClose : q.price - prevClose);
+    const chgPct = chgMode === 'open'
+                   ? (q.chgPctFromOpen  != null ? q.chgPctFromOpen  : (open > 0 ? (q.price - open) / open * 100 : 0))
+                   : (q.chgPctFromClose != null ? q.chgPctFromClose : (prevClose > 0 ? (q.price - prevClose) / prevClose * 100 : 0));
 
     const isUp  = chg >= 0;
     const chgColor = isUp ? '#00e5a0' : '#fb7185';
@@ -2755,12 +1924,6 @@ function renderModalRows(priceData) {
     const w52LowColor   = '#fb7185';
 
     // ── PRICE ROW ──
-    // Sync to heatmap caches
-    if (!window._hmPriceCache) window._hmPriceCache={};
-    if (!window._hmWbCache) window._hmWbCache={};
-    if (!window._hmPeCache) window._hmPeCache={};
-    if (!window._hmMcCache) window._hmMcCache={};
-    window._hmPriceCache[symbol] = { price: q.price, pct: chgPctClose };
     const isLight = document.body.classList.contains('light-theme');
     const ltpColor   = isLight ? '#0d1117'  : '#ffffff';
     const openColor  = isLight ? '#4a6080'  : '#8dafc8';
@@ -2774,10 +1937,10 @@ function renderModalRows(priceData) {
         <td style="text-align:right;font-weight:800;color:${ltpColor};font-size:1.18rem">₹${fmt(q.price)}</td>
         <td style="text-align:right;font-weight:700;color:${chgColor};font-size:1.06rem">${arrow} ${fmt(Math.abs(chg))}</td>
         <td style="text-align:right;font-weight:800;color:${chgColor};font-size:1.12rem">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</td>
-        <td style="text-align:right;color:${openColor};font-weight:500;font-size:1rem">${open ? '₹'+fmt(open) : '<span style="color:var(--border2)">—</span>'}</td>
-        <td style="text-align:right;color:${openColor};font-weight:500;font-size:1rem">${prevClose ? '₹'+fmt(prevClose) : '<span style="color:var(--border2)">—</span>'}</td>
-        <td style="text-align:right;font-weight:700;color:${dayHighColor};font-size:1rem">${q.high && q.high > 0 ? '₹'+fmt(q.high) : '<span style="color:var(--border2)">—</span>'}</td>
-        <td style="text-align:right;font-weight:700;color:${dayLowColor};font-size:1rem">${q.low && q.low > 0 ? '₹'+fmt(q.low) : '<span style="color:var(--border2)">—</span>'}</td>
+        <td style="text-align:right;color:${openColor};font-weight:500;font-size:1rem">₹${fmt(open)}</td>
+        <td style="text-align:right;color:${openColor};font-weight:500;font-size:1rem">₹${fmt(prevClose)}</td>
+        <td style="text-align:right;font-weight:700;color:${dayHighColor};font-size:1rem">₹${fmt(q.high)}</td>
+        <td style="text-align:right;font-weight:700;color:${dayLowColor};font-size:1rem">₹${fmt(q.low)}</td>
         <td style="text-align:right;font-weight:700;color:${w52HighColor};font-size:1rem">₹${fmt(q.high52)}</td>
         <td style="text-align:right;font-weight:700;color:${w52LowColor};font-size:1rem">₹${fmt(q.low52)}</td>`;
     }
@@ -2799,52 +1962,38 @@ function renderModalRows(priceData) {
         ? `<span class="fund-metric-value" style="color:${color}">${format(val)}</span>`
         : `<span class="fund-metric-value dim">—</span>`;
 
-      // ── Sector detection ──
-      const sector = (q.sector || '').toLowerCase();
-      const industry = (q.industry || '').toLowerCase();
-      const isBank = /bank|financial service|nbfc|finance/i.test(sector) || industry.includes('bank');
-      const isCapIntensive = /utility|power|steel|metal|oil|energy|telecom|steel|metal|mining/i.test(sector);
-      const isPharma = /pharma|health|biotech/i.test(sector);
-
-      // ── WARREN BUFFETT SCORE (0–100) ──
-      let wbPts = 0;
-      const _r  = q.roe  != null ? q.roe*100  : null;
-      const _n  = q.netProfitMargin != null ? q.netProfitMargin*100 : null;
-      const _rc = q.roce != null ? q.roce*100 : null;
-      const _d  = q.debtToEquity;
-      // 1. ROE — 20pts
-      if (_r != null) { if (isBank) wbPts += _r>=15?20:_r>=12?15:_r>=9?8:_r>=6?3:0; else wbPts += _r>=20?20:_r>=15?16:_r>=10?9:_r>=6?3:0; }
-      // 2. Debt/P-B — 18pts
-      if (isBank) { if (q.priceToBook!=null) { const pb=q.priceToBook; wbPts+=pb<1?18:pb<1.5?14:pb<2.5?8:pb<4?3:0; } }
-      else if (_d!=null) { if(isCapIntensive) wbPts+=_d<.5?18:_d<1?14:_d<2?8:_d<3.5?3:0; else wbPts+=_d<.1?18:_d<.3?15:_d<.5?11:_d<1?5:_d<2?1:0; }
-      // 3. Net Profit Margin — 17pts
-      if (_n!=null) { if(isBank) wbPts+=_n>=20?17:_n>=15?13:_n>=10?7:_n>=5?2:0; else if(isCapIntensive) wbPts+=_n>=12?17:_n>=8?13:_n>=5?8:_n>=2?3:0; else if(isPharma) wbPts+=_n>=18?17:_n>=12?13:_n>=7?7:_n>=3?2:0; else wbPts+=_n>=20?17:_n>=15?14:_n>=10?9:_n>=5?3:0; }
-      // 4. ROCE — 15pts
-      if (_rc!=null) { if(isCapIntensive) wbPts+=_rc>=14?15:_rc>=10?12:_rc>=7?7:_rc>=4?2:0; else wbPts+=_rc>=22?15:_rc>=16?12:_rc>=10?7:_rc>=6?2:0; }
-      // 5. FCF — 15pts
-      if (q.freeCashFlow!=null) { if(q.revenue>0){const fcfM=q.freeCashFlow/q.revenue*100; wbPts+=fcfM>=15?15:fcfM>=10?12:fcfM>=5?7:fcfM>=0?3:0;} else wbPts+=q.freeCashFlow>0?8:0; }
-      // 6. Valuation — 15pts
-      if (!isBank && q.pe!=null) { if(isPharma) wbPts+=q.pe<18?15:q.pe<28?12:q.pe<40?6:q.pe<55?2:0; else if(isCapIntensive) wbPts+=q.pe<10?15:q.pe<15?12:q.pe<22?7:q.pe<35?2:0; else wbPts+=q.pe<15?15:q.pe<22?12:q.pe<30?7:q.pe<45?2:0; }
-      else if (isBank&&q.roa!=null) { const ra=q.roa*100; wbPts+=ra>=1.5?15:ra>=1?11:ra>=.6?6:ra>=.3?2:0; }
-
-      const wbScore = Math.min(100, Math.round(wbPts));
-      const wbColor = wbScore>=75?'#00e5a0':wbScore>=55?'#fbbf24':wbScore>=35?'#fb923c':'#fb7185';
-      const wbLabel = wbScore>=75?'BUY':wbScore>=55?'WATCH':wbScore>=35?'AVERAGE':'AVOID';
-      const wbIcon  = wbScore>=75?'🟢':wbScore>=55?'🟡':wbScore>=35?'🟠':'🔴';
-      const healthBadgeHtml = `<span class="warren-badge" style="color:${wbColor};border-color:${wbColor}44;background:${wbColor}12"><span class="warren-icon">${wbIcon}</span><span class="wb-score">${wbScore}</span><span class="wb-pill">/100 ${wbLabel}</span></span>`;
+      // ── FEATURE 1: Health Score (0–10) ──
+      let healthScore = 0, healthCount = 0;
+      // PE: <15→2, 15-25→1.5, 25-40→0.5, >40→0
+      if (q.pe != null) { healthScore += q.pe < 15 ? 2 : q.pe < 25 ? 1.5 : q.pe < 40 ? 0.5 : 0; healthCount++; }
+      // ROE: ≥20%→2, ≥15%→1.5, ≥10%→0.8, <10%→0
+      if (q.roe != null) { const r=q.roe*100; healthScore += r>=20?2:r>=15?1.5:r>=10?0.8:0; healthCount++; }
+      // D/E: <0.3→2, <0.5→1.5, <1→0.8, ≥1→0
+      if (q.debtToEquity != null) { const d=q.debtToEquity; healthScore += d<0.3?2:d<0.5?1.5:d<1?0.8:0; healthCount++; }
+      // NPM: ≥20%→2, ≥15%→1.5, ≥10%→0.8, <10%→0
+      if (q.netProfitMargin != null) { const n=q.netProfitMargin*100; healthScore += n>=20?2:n>=15?1.5:n>=10?0.8:0; healthCount++; }
+      // ROE bonus for high quality
+      if (q.roce != null) { const rc=q.roce*100; healthScore += rc>=20?2:rc>=15?1.2:rc>=10?0.5:0; healthCount++; }
+      // Normalise to 0–10
+      const maxPossible = healthCount > 0 ? healthCount * 2 : 1;
+      const health10 = healthCount > 0 ? Math.round((healthScore / maxPossible) * 10 * 10) / 10 : null;
+      const healthColor = health10 == null ? '#6a7d96'
+        : health10 >= 7.5 ? '#00e5a0' : health10 >= 5 ? '#fbbf24' : health10 >= 3 ? '#fb923c' : '#fb7185';
+      const healthLabel = health10 == null ? 'N/A'
+        : health10 >= 7.5 ? 'STRONG' : health10 >= 5 ? 'FAIR' : health10 >= 3 ? 'WEAK' : 'POOR';
+      const healthBadgeHtml = health10 != null
+        ? `<span class="health-badge" style="color:${healthColor};border-color:${healthColor}44;background:${healthColor}12">
+            <span class="hb-score">${health10}</span>/${healthCount>0?10:'-'} <span style="font-size:0.6rem;opacity:0.8">${healthLabel}</span>
+           </span>`
+        : '';
 
       // 52W range bar position
       const lo52 = q.low52 || 0, hi52 = q.high52 || 0;
       const pct52 = (hi52 > lo52 && q.price) ? Math.min(100, Math.max(0, ((q.price - lo52) / (hi52 - lo52)) * 100)) : 0;
       const barColor = pct52 > 70 ? '#00e5a0' : pct52 > 40 ? '#fbbf24' : '#fb7185';
 
-      // Store WB/PE/MC in heatmap caches
-      if (!window._hmWbCache) window._hmWbCache={};
-      if (!window._hmPeCache)  window._hmPeCache={};
-      if (!window._hmMcCache)  window._hmMcCache={};
-      window._hmWbCache[symbol]=wbScore; window._hmPeCache[symbol]=q.pe; window._hmMcCache[symbol]=q.marketCap;
       // ── FEATURE 7: Undervalued detection ──
-      const isUndervalued = wbScore >= 65;
+      const isUndervalued = q.pe != null && q.roe != null && q.pe < 20 && (q.roe * 100) > 15;
       if (isUndervalued) fcard.classList.add('undervalued');
       else fcard.classList.remove('undervalued');
 
@@ -2855,7 +2004,7 @@ function renderModalRows(priceData) {
       fcard.style.animationDelay = (cardIdx * 55) + 'ms';
 
       // ── Sort data attributes (Feature 2) ──
-      fcard.dataset.health = wbScore;
+      fcard.dataset.health = health10 != null ? health10 : -1;
       fcard.dataset.pe     = q.pe != null ? q.pe : 9999;
       fcard.dataset.roe    = q.roe != null ? q.roe : -1;
       fcard.dataset.roce   = q.roce != null ? q.roce : -1;
@@ -2867,7 +2016,6 @@ function renderModalRows(priceData) {
           <div class="fund-card-sym-wrap">
             <span class="fund-card-sym">${symbol}</span>
             ${isUndervalued ? '<span class="undervalued-tag">★ Value</span>' : ''}
-            ${q.earningsDate ? `<span class="earn-date-tag" title="Earnings: ${q.earningsDate}">🔔 ${q.earningsDate}</span>` : ''}
             <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="fund-card-sym-link">NSE ↗</a>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
@@ -2891,81 +2039,70 @@ function renderModalRows(priceData) {
         <div class="fund-metrics-body">
           <div class="fund-metric-row">
             <div class="fund-metric">
-              <span class="fund-metric-label">PE</span>
+              <span class="fund-metric-label" style="color:#fbbf24">PE</span>
               ${v(q.pe, pc, x => Number(x).toFixed(1))}
             </div>
             <div class="fund-metric">
-              <span class="fund-metric-label">EPS</span>
+              <span class="fund-metric-label" style="color:#a78bfa">EPS</span>
               ${v(q.eps, ec, x => '₹'+Number(x).toFixed(1))}
             </div>
           </div>
           <div class="fund-metric-row">
             <div class="fund-metric">
-              <span class="fund-metric-label">ROE</span>
+              <span class="fund-metric-label" style="color:#34d399">ROE</span>
               ${v(q.roe, roeC, x => (x*100).toFixed(1)+'%')}
             </div>
             <div class="fund-metric">
-              <span class="fund-metric-label">ROCE</span>
+              <span class="fund-metric-label" style="color:#2dd4bf">ROCE</span>
               ${v(q.roce, roceC, x => (x*100).toFixed(1)+'%')}
             </div>
           </div>
           <div class="fund-metric-row">
             <div class="fund-metric">
-              <span class="fund-metric-label">D/E</span>
+              <span class="fund-metric-label" style="color:#fb7185">D/E</span>
               ${v(q.debtToEquity, deC, x => Number(x).toFixed(2))}
             </div>
             <div class="fund-metric">
-              <span class="fund-metric-label">P/B</span>
+              <span class="fund-metric-label" style="color:#e879f9">P/B</span>
               ${v(q.priceToBook, '#e879f9', x => Number(x).toFixed(2)+'x')}
             </div>
           </div>
           <div class="fund-metric-row">
             <div class="fund-metric">
-              <span class="fund-metric-label">NPM</span>
+              <span class="fund-metric-label" style="color:#a78bfa">NPM</span>
               ${v(q.netProfitMargin, npmC || '#6a7d96', x => (x*100).toFixed(1)+'%')}
             </div>
             <div class="fund-metric">
-              <span class="fund-metric-label">Div Yld</span>
+              <span class="fund-metric-label" style="color:#00e5a0">Div Yld</span>
               ${v(q.dividendYield, '#00e5a0', x => (x*100).toFixed(2)+'%')}
             </div>
           </div>
           <div class="fund-metric-row">
             <div class="fund-metric">
-              <span class="fund-metric-label">ERN YLD</span>
-              ${v(q.pe, q.pe < 15 ? '#00e5a0' : q.pe < 25 ? '#fbbf24' : '#fb7185', x => (100/x).toFixed(1)+'%')}
+              <span class="fund-metric-label" style="color:#f59e0b">Beta</span>
+              ${v(q.beta, betaC || '#6a7d96', x => Number(x).toFixed(2))}
             </div>
             <div class="fund-metric">
-              <span class="fund-metric-label">REVENUE</span>
-              ${v(q.revenue, '#94a3b8', x => fmtCap(x))}
+              <span class="fund-metric-label" style="color:#94a3b8">Risk</span>
+              <span class="fund-metric-value" style="color:${betaC||'#6a7d96'}">${q.beta == null ? '—' : q.beta < 0.8 ? 'LOW' : q.beta < 1.2 ? 'MID' : 'HIGH'}</span>
             </div>
           </div>
         </div>
 
         <div class="fund-card-footer">
           <div class="fund-footer-cell">
-            <div class="fund-footer-label">Mkt Cap</div>
+            <div class="fund-footer-label" style="color:#38bdf8">Mkt Cap</div>
             <div class="fund-footer-value" style="color:#38bdf8">${fmtCap(q.marketCap)}</div>
           </div>
           <div class="fund-footer-cell">
-            <div class="fund-footer-label">EBITDA</div>
+            <div class="fund-footer-label" style="color:#fb923c">EBITDA</div>
             <div class="fund-footer-value" style="color:#fb923c">${fmtCap(q.ebitda)}</div>
           </div>
           <div class="fund-footer-cell">
-            <div class="fund-footer-label">Free CF</div>
+            <div class="fund-footer-label" style="color:#22d3ee">Free CF</div>
             <div class="fund-footer-value" style="color:#22d3ee">${fmtCap(q.freeCashFlow)}</div>
           </div>
-        </div>
-        ${(() => {
-          const sec = q.sector || fundSector[symbol.toUpperCase()] || '';
-          const ind = q.industry || fundIndustry[symbol.toUpperCase()] || '';
-          const ed  = q.earningsDate || fundEarnings[symbol.toUpperCase()] || '';
-          return (sec||ind||ed) ? `
-        <div class="fund-sector-row">
-          ${sec ? `<span class="fund-sector-tag">🏭 ${sec}</span>` : ''}
-          ${ind ? `<span class="fund-industry-tag">${ind}</span>` : ''}
-          ${ed  ? `<span class="earn-date-tag">🔔 ${ed}</span>` : ''}
-        </div>` : '';
-        })()}`;
+        </div>`;
     }
   });
 }
@@ -3067,13 +2204,6 @@ function sortFundCards(mode, btn) {
 // FEATURE 4 — Keyboard shortcuts
 // ═══════════════════════════════════════════════════════════
 let kbToastTimer = null;
-
-function toggleKbHelp() {
-  const el = document.getElementById('kb-help-overlay');
-  if (!el) return;
-  el.classList.toggle('show');
-}
-
 function showKbToast(msg) {
   const el = document.getElementById('kb-toast');
   if (!el) return;
@@ -3102,10 +2232,6 @@ document.addEventListener('keydown', e => {
     showKbToast('<strong>C</strong> — Consolidated tab');
     return;
   }
-  if (e.key==='e'||e.key==='E') { activeTab='earnings'; render(); showKbToast('<strong>E</strong> — Corp Actions tab'); return; }
-  if (e.key==='h'||e.key==='H') { activeTab='heatmap';  render(); showKbToast('<strong>H</strong> — Heatmap tab'); return; }
-  if (e.key==='x'||e.key==='X') { activeTab='compare';  render(); showKbToast('<strong>X</strong> — Compare tab'); return; }
-  if (e.key==='?') { toggleKbHelp(); return; }
   if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && activeTab === 'master' && masterTFs.length) {
     if (e.key === 'ArrowLeft')  activeMasterTF = (activeMasterTF - 1 + masterTFs.length) % masterTFs.length;
     if (e.key === 'ArrowRight') activeMasterTF = (activeMasterTF + 1) % masterTFs.length;
@@ -3128,39 +2254,8 @@ function updateTabBadges() {
   const conCount    = consolidatedTFs.reduce((a, tf) => a + tf.cols.reduce((b, col) => b + col.length, 0), 0);
   const bm = document.getElementById('badge-master');
   const bc = document.getElementById('badge-consolidated');
-  const be = document.getElementById('badge-earnings');
-  const bh = document.getElementById('badge-heatmap');
-  const bx = document.getElementById('badge-compare');
-
-  if (be) {
-    const thisWeekCount = corpActions.filter(ca => {
-      const days = daysUntilEarnings(ca.exDate); return days != null && days >= 0 && days <= 7;
-    }).length;
-    const upcomingCount = corpActions.filter(ca => {
-      const days = daysUntilEarnings(ca.exDate); return days !== null && days >= 0;
-    }).length;
-    be.textContent = upcomingCount || '—';
-    if (thisWeekCount > 0) {
-      be.style.background = 'rgba(245,158,11,0.25)';
-      be.style.color = '#f59e0b';
-      be.title = thisWeekCount + ' corp actions this week!';
-    } else {
-      be.style.background = '';
-      be.style.color = '';
-    }
-  }
   if (bm) bm.textContent = masterCount || '—';
   if (bc) bc.textContent = conCount    || '—';
-
-  // Heatmap badge — total unique symbols across all TFs
-  if (bh) {
-    const hmSet = new Set();
-    masterTFs.forEach(tf => tf.cols.forEach(col => col.forEach(s => hmSet.add(s))));
-    consolidatedTFs.forEach(tf => tf.cols.forEach(col => col.forEach(s => hmSet.add(s))));
-    bh.textContent = hmSet.size > 0 ? hmSet.size : '—';
-  }
-  // Compare badge — number of stocks being compared
-  if (bx) bx.textContent = compareSyms && compareSyms.length > 0 ? compareSyms.length : '—';
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -3367,7 +2462,7 @@ function progressDone() {
 // PERF 3 — Batch Fetch with Progress
 // Replaces the single monolithic fetch with batched chunks
 // ═══════════════════════════════════════════════════════════
-const BATCH_SIZE = 68;  // single call — all stocks at once from sheet
+const BATCH_SIZE = 5;   // stocks per price request
 
 async function fetchStockPricesBatched(stocks) {
   const status = marketStatus();
@@ -3396,75 +2491,63 @@ async function fetchStockPricesBatched(stocks) {
     if (sub) sub.innerHTML += '&nbsp; &nbsp;<span style="color:var(--accent);font-family:Oxanium,sans-serif;font-size:0.65rem;font-weight:800;letter-spacing:0.08em">⚡ INSTANT</span>';
     progressDone();
 
-    return;  // sheet always up to date — no background sync needed
+    // Still sync fundamentals in background (silently)
+    _syncFundamentals(stocks, true);
+    return;
   }
 
+  console.log('[Cache] MISS — fetching', stocks.length, 'stocks in batches of', BATCH_SIZE);
 
+  // ── Step 1: Fundamentals sync (background, non-blocking) ──
+  progressShow('Syncing…');
+  _syncFundamentals(stocks, false);
 
-  // ⚡ FAST PATH: single call reads all data from sheet (no live scraping)
-  console.log('[Fast] Sheet read for', stocks.length, 'stocks');
-  progressShow('Loading…');
-
-  const batches = [stocks]; // all symbols in one call
+  // ── Step 2: Batch price fetch ──────────────────────────────
+  const batches   = [];
+  for (let i = 0; i < stocks.length; i += BATCH_SIZE) {
+    batches.push(stocks.slice(i, i + BATCH_SIZE));
+  }
 
   let done = 0;
   const allPriceData = {};
-  const missingSymbols = []; // symbols not yet in FUNDAMENTALS sheet
 
   for (const batch of batches) {
     try {
       const url = `${APPS_SCRIPT_URL}?action=prices&symbols=${batch.join(',')}`;
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 8000); // sheet read is fast — 8s is generous
+      const timer = setTimeout(() => ctrl.abort(), 15000);
       const res  = await fetch(url, { signal: ctrl.signal, redirect: 'follow' });
       clearTimeout(timer);
 
       if (res.ok) {
         const json = await res.json();
         const batchData = json.data || {};
-      // Store sector/industry/earningsDate from fundamentals
-      Object.entries(batchData).forEach(([sym, fd]) => {
-        if (!fd) return;
-        if (fd.sector)       fundSector[sym.toUpperCase()]   = fd.sector;
-        if (fd.industry)     fundIndustry[sym.toUpperCase()] = fd.industry;
-        if (fd.earningsDate) fundEarnings[sym.toUpperCase()] = fd.earningsDate;
-      });
-      renderSectorFilter();
-      renderEarningsTab();
 
         batch.forEach(symbol => {
           const q = batchData[symbol];
           if (q && q.price) {
             const cached = fundCache[symbol.toUpperCase()] || {};
-            // Live intraday values — NEVER overwrite from cache (open/high/low change each tick)
             const fundFields = ['eps','pe','priceToBook','beta','dividendYield','roe','roa','roce',
               'debtToEquity','revenue','netIncome','netProfitMargin','ebitda','operExpense',
               'totalAssets','totalLiab','totalEquity','cashFromOps','freeCashFlow',
-              'marketCap','high52','low52','sharesOutstand',
-              'sector','industry','earningsDate'];
+              'marketCap','high52','low52','sharesOutstand'];
             const merged = Object.assign({}, q);
             fundFields.forEach(k => { if (cached[k] != null) merged[k] = cached[k]; });
-            // Also pull from fundSector/fundEarnings maps (populated from sheet on load)
-            const symKey = symbol.toUpperCase();
-            if (!merged.sector       && fundSector[symKey])   merged.sector       = fundSector[symKey];
-            if (!merged.industry     && fundIndustry[symKey]) merged.industry     = fundIndustry[symKey];
-            if (!merged.earningsDate && fundEarnings[symKey]) merged.earningsDate = fundEarnings[symKey];
             modalPriceData[symbol] = merged;
             allPriceData[symbol]   = merged;
 
             // Render this row immediately — don't wait for all batches
             renderModalRows({ [symbol]: merged });
           } else {
-            // Symbol not in FUNDAMENTALS sheet — mark for auto-sync
-            const priceRow = document.getElementById('row-' + symbol);
-            if (priceRow) priceRow.innerHTML = `
+            const noDataHtml = `
               <td class="col-sym sym-cell"><span class="sym-name">${symbol}</span>
                 <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
               </td>
-              <td colspan="9" style="text-align:center;color:#fbbf24;font-size:0.75rem;font-family:Oxanium,sans-serif;font-weight:700;letter-spacing:0.05em">
-                ⟳ Adding to sheet…
+              <td colspan="9" style="text-align:center;color:var(--muted);font-size:0.75rem">
+                No data ${status.open ? '' : '· market closed'}
               </td>`;
-            missingSymbols.push(symbol);
+            const priceRow = document.getElementById('row-' + symbol);
+            if (priceRow) priceRow.innerHTML = noDataHtml;
           }
         });
       }
@@ -3480,86 +2563,11 @@ async function fetchStockPricesBatched(stocks) {
 
     done += batch.length;
     const pct = Math.round((done / stocks.length) * 100);
-    progressSet(100, `⚡ ${done} stocks loaded`);
+    progressSet(pct, `${done}/${stocks.length}`);
   }
 
   progressDone();
   apply52WTints(modalPriceData);
-
-  // ── Auto-sync missing symbols (not yet in FUNDAMENTALS sheet) ──────────
-  // This handles stocks added to MASTER after the last buildFundamentals run
-  if (missingSymbols.length > 0) {
-    console.log('[AutoSync] Missing from sheet:', missingSymbols);
-    const syncStatusEl = document.getElementById('fund-sync-status');
-    if (syncStatusEl) {
-      syncStatusEl.style.display = 'block';
-      syncStatusEl.innerHTML = `<span style="color:#fbbf24">⟳ Adding ${missingSymbols.length} new stock${missingSymbols.length>1?'s':''} to sheet (GOOGLEFINANCE formulas)…</span>`;
-    }
-    try {
-      const allSymbols = getAllMasterSymbols();
-      const syncUrl = `${APPS_SCRIPT_URL}?action=syncfundamentals`
-                    + `&symbols=${missingSymbols.join(',')}`
-                    + `&nodelete=1`;
-                    // No masterSymbols needed — nodelete=1 skips row pruning (safe for intraday adds)
-      const sCtrl  = new AbortController();
-      const sTimer = setTimeout(() => sCtrl.abort(), 30000);
-      const sRes   = await fetch(syncUrl, { signal: sCtrl.signal, redirect: 'follow' });
-      clearTimeout(sTimer);
-      if (sRes.ok) {
-        const sJson = await sRes.json();
-        if (sJson.data) Object.assign(fundCache, sJson.data);
-        if (syncStatusEl) syncStatusEl.innerHTML = `<span style="color:#00e5a0">✓ Added ${missingSymbols.length} stock${missingSymbols.length>1?'s':''} — fetching prices…</span>`;
-        // Re-fetch prices for just the missing symbols
-        const reUrl = `${APPS_SCRIPT_URL}?action=prices&symbols=${missingSymbols.join(',')}`;
-        const reCtrl = new AbortController();
-        const reTimer = setTimeout(() => reCtrl.abort(), 15000);
-        const reRes  = await fetch(reUrl, { signal: reCtrl.signal, redirect: 'follow' });
-        clearTimeout(reTimer);
-        if (reRes.ok) {
-          const reJson = await reRes.json();
-          const reData = reJson.data || {};
-          missingSymbols.forEach(symbol => {
-            const q = reData[symbol];
-            const priceRow = document.getElementById('row-' + symbol);
-            if (q && q.price) {
-              const cached = fundCache[symbol.toUpperCase()] || {};
-              const merged = Object.assign({}, q);
-              ['eps','pe','priceToBook','beta','dividendYield','roe','roa','roce',
-               'debtToEquity','revenue','netIncome','netProfitMargin','ebitda','operExpense',
-               'totalAssets','totalLiab','totalEquity','cashFromOps','freeCashFlow',
-               'marketCap','high52','low52','sharesOutstand','sector','industry','earningsDate'
-              ].forEach(k => { if (cached[k] != null) merged[k] = cached[k]; });
-              modalPriceData[symbol] = merged;
-              renderModalRows({ [symbol]: merged });
-            } else if (priceRow) {
-              // Formulas need a moment to calculate — show helpful message
-              priceRow.innerHTML = `
-                <td class="col-sym sym-cell"><span class="sym-name">${symbol}</span>
-                  <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
-                </td>
-                <td colspan="9" style="text-align:center;color:#fbbf24;font-size:0.75rem;font-family:Oxanium,sans-serif">
-                  ⚠ Added to sheet — reload in ~1 min for GOOGLEFINANCE to populate
-                </td>`;
-            }
-          });
-          apply52WTints(modalPriceData);
-        }
-        if (syncStatusEl) setTimeout(() => { syncStatusEl.style.display = 'none'; }, 4000);
-      }
-    } catch(syncErr) {
-      console.warn('[AutoSync] failed:', syncErr.message);
-      missingSymbols.forEach(symbol => {
-        const priceRow = document.getElementById('row-' + symbol);
-        if (priceRow) priceRow.innerHTML = `
-          <td class="col-sym sym-cell"><span class="sym-name">${symbol}</span>
-            <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
-          </td>
-          <td colspan="9" style="text-align:center;color:var(--muted);font-size:0.75rem">
-            Not in sheet — run Sync Fundamentals
-          </td>`;
-      });
-    }
-  }
 
   // Check rebuild notice
   const sampleData = Object.values(modalPriceData)[0];
@@ -3584,8 +2592,7 @@ async function _syncFundamentals(stocks, silent) {
   try {
     const syncUrl = `${APPS_SCRIPT_URL}?action=syncfundamentals`
                   + `&symbols=${stocks.join(',')}`
-                  + (silent ? '&nodelete=1' : `&masterSymbols=${allSymbols.join(',')}`);
-                  // silent=background auto-sync: skip row pruning to avoid race conditions
+                  + `&masterSymbols=${allSymbols.join(',')}`;
 
     if (!silent && syncStatusEl) {
       syncStatusEl.style.display = 'block';
@@ -3599,20 +2606,7 @@ async function _syncFundamentals(stocks, silent) {
 
     if (sRes.ok) {
       const sJson = await sRes.json();
-      if (sJson.data) {
-        Object.assign(fundCache, sJson.data);
-        // Populate sector/earnings maps from fundCache
-        Object.entries(sJson.data).forEach(([sym, fd]) => {
-          if (!fd) return;
-          const key = sym.toUpperCase();
-          if (fd.sector)       fundSector[key]   = fd.sector;
-          if (fd.industry)     fundIndustry[key] = fd.industry;
-          if (fd.earningsDate) fundEarnings[key] = fd.earningsDate;
-        });
-        renderSectorFilter();
-        renderEarningsTab();
-        render(); // re-render pills with sector labels
-      }
+      if (sJson.data) Object.assign(fundCache, sJson.data);
 
       if (!silent && syncStatusEl) {
         const parts = [];
@@ -3794,38 +2788,6 @@ loadSheet();
 // ═══════════════════════════════════════════════════════════
 // AUTO REFRESH — every 5 minutes
 // ═══════════════════════════════════════════════════════════
-// LIVE CLOCK
-function updateLiveClock() {
-  const el = document.getElementById('liveClock');
-  if (!el) return;
-  const now = new Date();
-  let h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  el.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')} ${ampm}`;
-}
-setInterval(updateLiveClock, 1000);
-updateLiveClock();
-
-// LEGEND AUTO-HIDE after 60 seconds
-let legendHideTimer = null;
-function hideLegend(hide) {
-  const bar = document.getElementById('fund-legend-bar');
-  const tog = document.getElementById('fund-legend-toggle');
-  if (!bar || !tog) return;
-  if (hide) {
-    bar.style.maxHeight = '0'; bar.style.padding = '0 16px'; bar.style.opacity = '0';
-    tog.style.display = 'block';
-    clearTimeout(legendHideTimer);
-  } else {
-    bar.style.maxHeight = '60px'; bar.style.padding = '6px 16px'; bar.style.opacity = '1';
-    tog.style.display = 'none';
-    legendHideTimer = setTimeout(() => hideLegend(true), 60000);
-  }
-}
-// Start auto-hide timer on page load
-setTimeout(() => hideLegend(true), 60000);
-
 const AUTO_REFRESH_MINS = 5;
 let autoRefreshTimer = null;
 let countdownTimer = null;
@@ -3836,20 +2798,24 @@ function startAutoRefresh() {
   clearInterval(countdownTimer);
   secondsLeft = AUTO_REFRESH_MINS * 60;
   updateCountdown();
+
   countdownTimer = setInterval(() => {
     secondsLeft--;
     updateCountdown();
-    if (secondsLeft <= 0) { secondsLeft = AUTO_REFRESH_MINS * 60; loadSheet(); }
+    if (secondsLeft <= 0) {
+      secondsLeft = AUTO_REFRESH_MINS * 60;
+      loadSheet();
+    }
   }, 1000);
 }
 
 function updateCountdown() {
-  const el = document.getElementById('countdownDisplay');
+  const el = document.getElementById('lastUpdated');
   if (!el) return;
-  const m = Math.floor(secondsLeft / 60), s = secondsLeft % 60;
-  el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
-  const wrap = document.getElementById('refreshCountdown');
-  if (wrap) wrap.style.color = secondsLeft < 30 ? '#fb7185' : '';
+  const m = Math.floor(secondsLeft / 60);
+  const s = secondsLeft % 60;
+  const timeStr = el.dataset.updated || '';
+  el.textContent = `${timeStr}  ·  next refresh ${m}:${s.toString().padStart(2,'0')}`;
 }
 
 // Restart countdown after each manual or auto load
@@ -3866,9 +2832,9 @@ document.getElementById('refreshBtn').onclick = () => _patchedLoad();
 // Start on init
 setTimeout(() => {
   startAutoRefresh();
-  updateTabBadges();
-  if (activeTab==='earnings') render(); // Refresh earnings if active
   // Store updated time for countdown display
+  const el = document.getElementById('lastUpdated');
+  if (el) el.dataset.updated = el.textContent;
 }, 1500);
 
 // ═══════════════════════════════════════════════════════════
@@ -3956,16 +2922,25 @@ const isStandalone = window.navigator.standalone;
 // ═══════════════════════════════════════════════════════════
 function toggleTheme() {
   const isLight = document.body.classList.toggle('light-theme');
-  const icon = document.getElementById('themeIcon');
-  if (icon) icon.textContent = isLight ? '🌙' : '☀️';
+  const icon  = document.getElementById('themeIcon');
+  const label = document.getElementById('themeLabel');
+  if (isLight) {
+    icon.textContent  = '🌙';
+    label.textContent = 'Dark';
+  } else {
+    icon.textContent  = '☀️';
+    label.textContent = 'Light';
+  }
   try { localStorage.setItem('nse-theme', isLight ? 'light' : 'dark'); } catch(e) {}
 }
 (function() {
   try {
     if (localStorage.getItem('nse-theme') === 'light') {
       document.body.classList.add('light-theme');
-      const icon = document.getElementById('themeIcon');
-      if (icon) icon.textContent = '🌙';
+      const icon  = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (icon)  icon.textContent  = '🌙';
+      if (label) label.textContent = 'Dark';
     }
   } catch(e) {}
 })();
@@ -4033,13 +3008,6 @@ function exportSnapshot() {
   try {
     // Create a link to trigger browser print to PDF as an alternative
     // Main approach: serialize visible table to a standalone HTML and open as image
-    // Sync to heatmap caches
-    if (!window._hmPriceCache) window._hmPriceCache={};
-    if (!window._hmWbCache) window._hmWbCache={};
-    if (!window._hmPeCache) window._hmPeCache={};
-    if (!window._hmMcCache) window._hmMcCache={};
-    const _expPct = q.chgPctFromClose != null ? q.chgPctFromClose : (q.prevClose && q.prevClose > 0 && q.prevClose !== q.price ? (q.price - q.prevClose) / q.prevClose * 100 : 0);
-    window._hmPriceCache[symbol] = { price: q.price, pct: _expPct };
     const isLight = document.body.classList.contains('light-theme');
     const tfLabel = activeTab === 'master' && masterTFs.length ? masterTFs[activeMasterTF].label : 'Consolidated';
     const htmlStr = `<!DOCTYPE html>
@@ -4149,527 +3117,6 @@ if (isIOS && !isStandalone) {
     document.body.appendChild(banner);
   }, 3000);
 }
-
-// ═══════════════════════════════════════════════════════════
-// MARKET TICKER — reads INDICES sheet via Apps Script
-// Sheet: A=Label | B=%change | C=LTP
-//   Row 2: INDIA VIX  | Row 3: NIFTY 50  | Row 7: NIFTY BANK
-const TICKER_SLOTS = [
-  { key:'nifty',     row:3, ltpCol:2, pctCol:1, val:'tick-nifty-val',     chg:'tick-nifty-chg'     },
-  { key:'banknifty', row:7, ltpCol:2, pctCol:1, val:'tick-banknifty-val', chg:'tick-banknifty-chg' },
-  { key:'vix',       row:2, ltpCol:2, pctCol:1, val:'tick-vix-val',       chg:'tick-vix-chg'       }
-];
-
-function applyTickerRows(rows) {
-  TICKER_SLOTS.forEach(function(slot) {
-    var row = rows[slot.row - 1];
-    if (!row) return;
-    var ltp = row[slot.ltpCol];
-    var pct = row[slot.pctCol];
-
-    var vEl = document.getElementById(slot.val);
-    var cEl = document.getElementById(slot.chg);
-    if (!vEl || !cEl) return;
-
-    var ltpNum = parseFloat(String(ltp).replace(/,/g, ''));
-    vEl.textContent = isNaN(ltpNum) ? '—' : ltpNum.toLocaleString('en-IN', { minimumFractionDigits:2, maximumFractionDigits:2 });
-
-    var p = parseFloat(String(pct).replace(/[%,]/g, ''));
-    if (isNaN(p)) { cEl.textContent = '—'; cEl.className = 'mkt-tick-chg flat'; }
-    else {
-      cEl.textContent = (p >= 0 ? '+' : '') + p.toFixed(2) + '%';
-      cEl.className = 'mkt-tick-chg ' + (p > 0.001 ? 'up' : p < -0.001 ? 'down' : 'flat');
-    }
-  });
-  var timeEl = document.getElementById('tick-time');
-  if (timeEl) timeEl.textContent = new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-}
-
-// ═══════════════════════════════════════════════════════════
-// HEATMAP — Moneycontrol-style colour-coded grid
-// Prices fetched via APPS_SCRIPT_URL (no CORS issue)
-// ═══════════════════════════════════════════════════════════
-let hmSector = 'ALL';
-let hmSort   = 'pct';
-window._hmPriceCache = {};
-window._hmWbCache = {};
-window._hmPeCache  = {};
-window._hmMcCache  = {};
-
-// Symbols to exclude from heatmap (indices, ETFs — not tradeable stocks)
-const HM_EXCLUDE = new Set([
-  'NIFTY_50','NIFTY50','NIFTY_IT','NIFTYIT','NIFTY_FMCG','NIFTYFMCG',
-  'NIFTY_BANK','NIFTYBANK','INDIA_VIX','INDVIX',
-  'GOLDBEES','NIFTYBEES','BANKBEES','JUNIORBEES','LIQUIDBEES',
-  'ICICIB22','MOM100','SETFNN50'
-]);
-
-// Compute WB score from a fundamentals object (same formula as modal)
-function _calcWbForHm(q) {
-  if (!q) return 0;
-  const sec = (q.sector || '').toLowerCase();
-  const isBank = /bank|financial service|nbfc|finance/i.test(sec);
-  const isCap  = /utility|power|steel|metal|oil|energy|telecom/i.test(sec);
-  const isPhrm = /pharma|health|biotech/i.test(sec);
-  let p = 0;
-  const r  = q.roe  != null ? q.roe  * 100 : null;
-  const n  = q.netProfitMargin != null ? q.netProfitMargin * 100 : null;
-  const rc = q.roce != null ? q.roce * 100 : null;
-  const d  = q.debtToEquity;
-  if (r  != null) { if (isBank) p += r>=15?20:r>=12?15:r>=9?8:r>=6?3:0; else p += r>=20?20:r>=15?16:r>=10?9:r>=6?3:0; }
-  if (isBank) { if (q.priceToBook != null) { const pb = q.priceToBook; p += pb<1?18:pb<1.5?14:pb<2.5?8:pb<4?3:0; } }
-  else if (d != null) { if (isCap) p += d<.5?18:d<1?14:d<2?8:d<3.5?3:0; else p += d<.1?18:d<.3?15:d<.5?11:d<1?5:d<2?1:0; }
-  if (n  != null) { if (isBank) p += n>=20?17:n>=15?13:n>=10?7:n>=5?2:0; else if (isCap) p += n>=12?17:n>=8?13:n>=5?8:n>=2?3:0; else if (isPhrm) p += n>=18?17:n>=12?13:n>=7?7:n>=3?2:0; else p += n>=20?17:n>=15?14:n>=10?9:n>=5?3:0; }
-  if (rc != null) { if (isCap) p += rc>=14?15:rc>=10?12:rc>=7?7:rc>=4?2:0; else p += rc>=22?15:rc>=16?12:rc>=10?7:rc>=6?2:0; }
-  if (q.freeCashFlow != null) { if (q.revenue > 0) { const fm = q.freeCashFlow/q.revenue*100; p += fm>=15?15:fm>=10?12:fm>=5?7:fm>=0?3:0; } else p += q.freeCashFlow > 0 ? 8 : 0; }
-  if (!isBank && q.pe != null) { if (isPhrm) p += q.pe<18?15:q.pe<28?12:q.pe<40?6:q.pe<55?2:0; else if (isCap) p += q.pe<10?15:q.pe<15?12:q.pe<22?7:q.pe<35?2:0; else p += q.pe<15?15:q.pe<22?12:q.pe<30?7:q.pe<45?2:0; }
-  else if (isBank && q.roa != null) { const ra = q.roa*100; p += ra>=1.5?15:ra>=1?11:ra>=.6?6:ra>=.3?2:0; }
-  return Math.min(100, Math.round(p));
-}
-
-function buildHeatmap() {
-  // Pre-populate price + WB/PE/MC caches from already-loaded data
-  // Sources: fundCache (from sheet load) and modalPriceData (from opened modals)
-  const allSources = Object.assign({}, fundCache);
-  Object.entries(modalPriceData).forEach(([sym, q]) => {
-    if (q) allSources[sym.toUpperCase()] = Object.assign({}, allSources[sym.toUpperCase()] || {}, q);
-  });
-  Object.entries(allSources).forEach(([sym, q]) => {
-    if (!q) return;
-    // Seed WB / PE / MC caches from fundamentals
-    if (window._hmWbCache[sym] == null) window._hmWbCache[sym] = _calcWbForHm(q);
-    if (window._hmPeCache[sym] == null) window._hmPeCache[sym] = q.pe != null ? q.pe : null;
-    if (window._hmMcCache[sym] == null) window._hmMcCache[sym] = q.marketCap != null ? q.marketCap : null;
-    // Seed price cache
-    if (q.price && !window._hmPriceCache[sym]) {
-      const pct = q.chgPctFromClose != null ? q.chgPctFromClose
-                : (q.prevClose && q.prevClose > 0 && q.prevClose !== q.price
-                    ? (q.price - q.prevClose) / q.prevClose * 100 : 0);
-      window._hmPriceCache[sym] = { price: q.price, pct };
-    }
-  });
-  const symSet = new Set();
-  masterTFs.forEach(tf => tf.cols.forEach(col => col.forEach(s => { if (!HM_EXCLUDE.has(s.toUpperCase())) symSet.add(s); })));
-  consolidatedTFs.forEach(tf => tf.cols.forEach(col => col.forEach(s => { if (!HM_EXCLUDE.has(s.toUpperCase())) symSet.add(s); })));
-  const allSyms = [...symSet];
-
-  if (!allSyms.length) return '<div class="hm-no-data">No stocks loaded yet.<br>Open any modal first, or wait for the auto-refresh.</div>';
-
-  const sectors = ['ALL', ...new Set(allSyms.map(s => fundSector[s.toUpperCase()]).filter(Boolean))].sort();
-  const sectorBtns = sectors.map(s => {
-    const active = hmSector===s ? ' active' : '';
-    const label  = s==='ALL' ? '🌐 All' : s;
-    const safe   = s.replace(/'/g, '&#39;');
-    return '<button class="hm-sec-btn' + active + '" onclick="hmSetSector(\'' + safe + '\')">' + label + '</button>';
-  }).join('');
-
-  const sortBtns = [
-    {k:'pct',l:'% Change'},{k:'mktcap',l:'Mkt Cap'},{k:'pe',l:'PE'},{k:'wb',l:'WB Score'}
-  ].map(b => '<button class="hm-sort-btn' + (hmSort===b.k?' active':'') + '" onclick="hmSetSort(\'' + b.k + '\')">' + b.l + '</button>').join('');
-
-  let syms = hmSector==='ALL' ? allSyms : allSyms.filter(s=>(fundSector[s.toUpperCase()]||'')===hmSector);
-
-  const cells = syms.map(sym => {
-    const cache = window._hmPriceCache[sym] || {};
-    const pct   = cache.pct   != null ? cache.pct   : null;
-    const price = cache.price != null ? cache.price : null;
-    const symUp = sym.toUpperCase();
-    const caMatch = corpActions.find(ca => {
-      if ((ca.symbol||'').toUpperCase() !== symUp) return false;
-      const days = daysUntilEarnings(ca.exDate);
-      return days !== null && days >= 0;
-    });
-    const hasEarn = !!caMatch;
-
-    let bg = '#1a1f2e', tc = '#4a5a75';
-    if (pct != null) {
-      if      (pct >= 5)  { bg='#064e3b'; tc='#6ee7b7'; }
-      else if (pct >= 3)  { bg='#065f46'; tc='#34d399'; }
-      else if (pct >= 1)  { bg='#047857'; tc='#a7f3d0'; }
-      else if (pct >= 0)  { bg='#1e2d22'; tc='#86efac'; }
-      else if (pct >=-1)  { bg='#3b1e1e'; tc='#fca5a5'; }
-      else if (pct >=-3)  { bg='#7f1d1d'; tc='#fca5a5'; }
-      else                { bg='#991b1b'; tc='#fee2e2'; }
-    }
-    const pctStr   = pct   != null ? (pct>=0?'+':'') + pct.toFixed(2)+'%' : 'loading…';
-    const priceStr = price != null ? '₹'+Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}) : '';
-    const wb  = window._hmWbCache[sym]  || 0;
-    const pe  = window._hmPeCache[sym]  || 9999;
-    const mc  = window._hmMcCache[sym]  || 0;
-
-    const earnAttr = hasEarn ? ' earn-glow' : '';
-    const caTitle  = caMatch ? (caMatch.type||'Corp Action') + (caMatch.exDate ? ' · Ex: ' + caMatch.exDate : '') : '';
-    const earnSpan = hasEarn ? '<span class="hm-earn" title="' + caTitle + '">\uD83D\uDD14</span>' : '';
-    const loadingClass = pct == null ? ' loading' : '';
-    return '<div class="hm-cell' + earnAttr + loadingClass + '" style="background:' + bg + '" onclick="hmCellClick(\'' + sym + '\')" data-sym="' + sym + '" data-pct="' + (pct||0) + '" data-mc="' + mc + '" data-pe="' + pe + '" data-wb="' + wb + '">'
-      + earnSpan
-      + '<span class="hm-sym">' + sym + '</span>'
-      + '<span class="hm-pct" style="color:' + tc + '">' + pctStr + '</span>'
-      + '<span class="hm-price" style="color:' + tc + '">' + priceStr + '</span>'
-      + '</div>';
-  }).join('');
-
-  // Fire fetch immediately — no delay
-  requestAnimationFrame(() => fetchHeatmapPrices(syms));
-
-  return '<div class="hm-sector-bar">' + sectorBtns + '</div>'
-    + '<div class="hm-sort-row"><span class="hm-sort-label">SORT:</span>' + sortBtns
-    + '<span style="margin-left:auto;font-family:Oxanium,sans-serif;font-size:0.65rem;color:var(--muted);letter-spacing:0.07em">' + syms.length + ' stocks</span></div>'
-    + '<div id="hmProgress"><div id="hmProgressBar"></div></div>'
-    + '<div id="hmStatusLine"></div>'
-    + '<div class="heatmap-grid" id="hmGrid">' + cells + '</div>';
-}
-
-function hmSetSector(sec) { hmSector=sec; if(activeTab==='heatmap') render(); }
-
-function hmSetSort(key) {
-  hmSort = key;
-  const grid = document.getElementById('hmGrid');
-  if (!grid) return;
-  const cells = [...grid.querySelectorAll('.hm-cell')];
-  cells.sort((a,b) => {
-    const aP = parseFloat(a.dataset.pct)||0,  bP = parseFloat(b.dataset.pct)||0;
-    const aMc= parseFloat(a.dataset.mc)||0,   bMc= parseFloat(b.dataset.mc)||0;
-    const aWb= parseFloat(a.dataset.wb)||0,   bWb= parseFloat(b.dataset.wb)||0;
-    // For PE: treat 0/NaN as very high (put no-PE stocks at the end)
-    const aPe= parseFloat(a.dataset.pe), bPe= parseFloat(b.dataset.pe);
-    const aPeVal = (!aPe || isNaN(aPe)) ? 99999 : aPe;
-    const bPeVal = (!bPe || isNaN(bPe)) ? 99999 : bPe;
-    if (key==='pct')    return bP   - aP;
-    if (key==='mktcap') return bMc  - aMc;
-    if (key==='pe')     return aPeVal - bPeVal;
-    if (key==='wb')     return bWb  - aWb;
-    return 0;
-  });
-  cells.forEach(cell => grid.appendChild(cell));
-  document.querySelectorAll('.hm-sort-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.hm-sort-btn').forEach(b => {
-    if (b.textContent.toLowerCase().replace(' ','').includes(key==='pct'?'change':key==='wb'?'wb':key))
-      b.classList.add('active');
-  });
-}
-
-// Helper: apply color to a single heatmap cell
-function _hmApplyCell(sym, price, pct) {
-  let bg, tc;
-  if      (pct >= 5)  { bg='#064e3b'; tc='#6ee7b7'; }
-  else if (pct >= 3)  { bg='#065f46'; tc='#34d399'; }
-  else if (pct >= 1)  { bg='#047857'; tc='#a7f3d0'; }
-  else if (pct >= 0)  { bg='#1e2d22'; tc='#86efac'; }
-  else if (pct >=-1)  { bg='#3b1e1e'; tc='#fca5a5'; }
-  else if (pct >=-3)  { bg='#7f1d1d'; tc='#fca5a5'; }
-  else                { bg='#991b1b'; tc='#fee2e2'; }
-  const cell = document.querySelector('.hm-cell[data-sym="'+sym+'"]');
-  if (!cell) return;
-  cell.classList.remove('loading');
-  cell.style.background = bg;
-  cell.dataset.pct = pct;
-  // Also update MC/PE/WB data attributes so sort works correctly after prices load
-  const wb = window._hmWbCache[sym]; if (wb != null) cell.dataset.wb = wb;
-  const pe = window._hmPeCache[sym]; if (pe != null) cell.dataset.pe = pe;
-  const mc = window._hmMcCache[sym]; if (mc != null) cell.dataset.mc = mc;
-  const elPct   = cell.querySelector('.hm-pct');
-  const elPrice = cell.querySelector('.hm-price');
-  if (elPct)   { elPct.style.color = tc;   elPct.textContent   = (pct>=0?'+':'')+pct.toFixed(2)+'%'; }
-  if (elPrice) { elPrice.style.color = tc; elPrice.textContent = '₹'+Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-}
-
-async function fetchHeatmapPrices(syms) {
-  if (!syms || !syms.length) return;
-
-  // ── Step 1: seed from fundCache & modalPriceData instantly ──────────
-  let uncached = [];
-  syms.forEach(sym => {
-    if (window._hmPriceCache[sym]) {
-      // Already have it — apply immediately
-      const { price, pct } = window._hmPriceCache[sym];
-      _hmApplyCell(sym, price, pct);
-      return;
-    }
-    // Try fundCache (sheet data — has prevClose from closeyest formula)
-    const fc = fundCache[sym.toUpperCase()];
-    if (fc && fc.price) {
-      const pct = fc.prevClose && fc.prevClose > 0 && fc.prevClose !== fc.price
-                  ? (fc.price - fc.prevClose) / fc.prevClose * 100 : 0;
-      window._hmPriceCache[sym] = { price: fc.price, pct };
-      _hmApplyCell(sym, fc.price, pct);
-      return;
-    }
-    // Try modalPriceData
-    const mp = modalPriceData[sym];
-    if (mp && mp.price) {
-      const pct = mp.chgPctFromClose != null ? mp.chgPctFromClose
-                : (mp.prevClose && mp.prevClose > 0 && mp.prevClose !== mp.price
-                    ? (mp.price - mp.prevClose) / mp.prevClose * 100 : 0);
-      window._hmPriceCache[sym] = { price: mp.price, pct };
-      _hmApplyCell(sym, mp.price, pct);
-      return;
-    }
-    uncached.push(sym);
-  });
-
-  if (!uncached.length) {
-    const sl = document.getElementById('hmStatusLine');
-    if (sl) sl.textContent = '✓ All ' + syms.length + ' prices loaded from cache';
-    return;
-  }
-
-  // ── Step 2: fire ALL batches in parallel ────────────────────────────
-  const BATCH = 20;  // Apps Script handles 20 symbols per call fine
-  const batches = [];
-  for (let i = 0; i < uncached.length; i += BATCH) batches.push(uncached.slice(i, i + BATCH));
-
-  let done = syms.length - uncached.length;  // already resolved from cache
-  const total = syms.length;
-
-  // Show progress bar
-  const progressEl = document.getElementById('hmProgress');
-  const barEl      = document.getElementById('hmProgressBar');
-  const statusEl   = document.getElementById('hmStatusLine');
-  if (progressEl) progressEl.style.opacity = '1';
-  const setProgress = (n) => {
-    const pct = Math.round(n / total * 100);
-    if (barEl)    barEl.style.width = pct + '%';
-    if (statusEl) statusEl.textContent = '⚡ Loading… ' + n + '/' + total + ' prices';
-  };
-  setProgress(done);
-
-  // Fire all batches simultaneously
-  const batchPromises = batches.map(async batch => {
-    try {
-      const ctrl = new AbortController();
-      const timeout = setTimeout(() => ctrl.abort(), 20000);
-      const res = await fetch(
-        APPS_SCRIPT_URL + '?action=prices&symbols=' + batch.join(','),
-        { signal: ctrl.signal, redirect: 'follow' }
-      );
-      clearTimeout(timeout);
-      if (!res.ok) return;
-      const json = await res.json();
-      const bdata = json.data || {};
-      batch.forEach(sym => {
-        const q = bdata[sym];
-        if (!q || !q.price) {
-          // Symbol not in FUNDAMENTALS sheet — show as grey unloaded cell
-          const cell = document.querySelector('.hm-cell[data-sym="'+sym+'"]');
-          if (cell) {
-            cell.classList.remove('loading');
-            cell.style.background = '#1a1f2e';
-            const elPct = cell.querySelector('.hm-pct');
-            if (elPct) { elPct.style.color = '#4a5a75'; elPct.textContent = 'N/A'; }
-          }
-          done++; setProgress(done);
-          return;
-        }
-        const pct = q.chgPctFromClose != null ? q.chgPctFromClose
-                  : (q.prevClose && q.prevClose > 0 && q.prevClose !== q.price
-                      ? (q.price - q.prevClose) / q.prevClose * 100 : 0);
-        window._hmPriceCache[sym] = { price: q.price, pct };
-        // Update WB/PE/MC caches from fresh price data (includes fundamentals)
-        const wb = _calcWbForHm(q);
-        window._hmWbCache[sym] = wb;
-        if (q.pe        != null) window._hmPeCache[sym] = q.pe;
-        if (q.marketCap != null) window._hmMcCache[sym] = q.marketCap;
-        _hmApplyCell(sym, q.price, pct);
-        done++;
-        setProgress(done);
-      });
-    } catch(e) {
-      if (e.name !== 'AbortError') console.warn('[HM] batch failed:', e.message);
-    }
-  });
-
-  await Promise.all(batchPromises);
-
-  // Done
-  if (statusEl) statusEl.textContent = '✓ ' + done + '/' + total + ' prices loaded';
-  if (progressEl) setTimeout(() => { progressEl.style.opacity = '0'; }, 2000);
-}
-
-function hmCellClick(sym) {
-  for (const tf of masterTFs) {
-    for (let ci=0; ci<tf.cols.length; ci++) {
-      if (tf.cols[ci].includes(sym)) { openModal(tf.label, CATS[ci].label, tf.cols[ci]); return; }
-    }
-  }
-  openModal('Heatmap', sym, [sym]);
-}
-
-
-// ═══════════════════════════════════════════════════════════
-// COMPARE MODE — side-by-side fundamentals
-// Data via APPS_SCRIPT_URL (same endpoint as modal)
-// ═══════════════════════════════════════════════════════════
-let compareSyms = [];
-
-function buildComparePanel() {
-  const tagHtml = compareSyms.map(s =>
-    `<span class="cmp-tag">${s}<button class="compare-rem-btn" onclick="compareRemove('${s}')">✕</button></span>`
-  ).join('');
-
-  const toolbar = `
-    <div class="compare-toolbar">
-      <span class="compare-toolbar-label">ADD STOCK (max 4):</span>
-      <input class="compare-sym-input" id="cmpInput" maxlength="20" placeholder="e.g. TCS"
-        onkeydown="if(event.key==='Enter')compareAdd()">
-      <button class="compare-add-btn" onclick="compareAdd()">+ Add</button>
-      ${tagHtml}
-      ${compareSyms.length ? '<button class="compare-clear-btn" onclick="compareClear()">✕ Clear All</button>' : ''}
-    </div>`;
-
-  if (!compareSyms.length) {
-    return `<div class="compare-panel">${toolbar}
-      <div class="compare-placeholder">
-        <span class="compare-placeholder-icon">⚖️</span>
-        <span class="compare-placeholder-text">ADD 2–4 STOCKS TO COMPARE SIDE BY SIDE</span>
-        <span style="font-size:0.72rem;color:var(--muted);font-family:Calibri,sans-serif">PE · ROE · ROCE · D/E · NPM · Free Cash Flow · Warren Buffett Score</span>
-      </div></div>`;
-  }
-
-  const METRICS = [
-    {lbl:'Warren Score /100', f:'_wb',         fmt:v=>v.toFixed(0),                                                  hib:true },
-    {lbl:'Price (₹)',         f:'price',        fmt:v=>'₹'+Number(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}), hib:null},
-    {lbl:'P/E Ratio',         f:'pe',           fmt:v=>v.toFixed(1),                                                  hib:'low'},
-    {lbl:'P/B Ratio',         f:'priceToBook',  fmt:v=>v.toFixed(2)+'x',                                              hib:'low'},
-    {lbl:'EPS (₹)',           f:'eps',          fmt:v=>'₹'+v.toFixed(2),                                              hib:true },
-    {lbl:'ROE %',             f:'_roe',         fmt:v=>v.toFixed(1)+'%',                                              hib:true },
-    {lbl:'ROCE %',            f:'_roce',        fmt:v=>v.toFixed(1)+'%',                                              hib:true },
-    {lbl:'D/E Ratio',         f:'debtToEquity', fmt:v=>v.toFixed(2),                                                  hib:'low'},
-    {lbl:'Net Profit Margin', f:'_npm',         fmt:v=>v.toFixed(1)+'%',                                              hib:true },
-    {lbl:'Div Yield %',       f:'_dy',          fmt:v=>v.toFixed(2)+'%',                                              hib:true },
-    {lbl:'Market Cap',        f:'marketCap',    fmt:v=>fmtCap(v).replace(/<[^>]+>/g,''),                              hib:true },
-    {lbl:'Revenue',           f:'revenue',      fmt:v=>fmtCap(v).replace(/<[^>]+>/g,''),                              hib:true },
-    {lbl:'EBITDA',            f:'ebitda',       fmt:v=>fmtCap(v).replace(/<[^>]+>/g,''),                              hib:true },
-    {lbl:'Free Cash Flow',    f:'freeCashFlow', fmt:v=>fmtCap(v).replace(/<[^>]+>/g,''),                              hib:true },
-    {lbl:'52W High',          f:'high52',       fmt:v=>'₹'+Number(v).toLocaleString('en-IN',{minimumFractionDigits:2}), hib:null},
-    {lbl:'52W Low',           f:'low52',        fmt:v=>'₹'+Number(v).toLocaleString('en-IN',{minimumFractionDigits:2}), hib:null},
-    {lbl:'Sector',            f:'_sector',      fmt:v=>v,                                                             hib:null },
-    {lbl:'Earnings Date',     f:'_earn',        fmt:v=>v,                                                             hib:null },
-  ];
-
-  function calcWb(q) {
-    if (!q || !q.price) return null;
-    const sec=(q.sector||'').toLowerCase();
-    const ib=/bank|financial service|nbfc|finance/i.test(sec);
-    const ic=/utility|power|steel|metal|oil|energy|telecom/i.test(sec);
-    const ip=/pharma|health|biotech/i.test(sec);
-    let p=0;
-    const r=q.roe!=null?q.roe*100:null, n=q.netProfitMargin!=null?q.netProfitMargin*100:null;
-    const rc=q.roce!=null?q.roce*100:null, d=q.debtToEquity;
-    if(r!=null){if(ib)p+=r>=15?20:r>=12?15:r>=9?8:r>=6?3:0;else p+=r>=20?20:r>=15?16:r>=10?9:r>=6?3:0;}
-    if(ib){if(q.priceToBook!=null){const pb=q.priceToBook;p+=pb<1?18:pb<1.5?14:pb<2.5?8:pb<4?3:0;}}
-    else if(d!=null){if(ic)p+=d<.5?18:d<1?14:d<2?8:d<3.5?3:0;else p+=d<.1?18:d<.3?15:d<.5?11:d<1?5:d<2?1:0;}
-    if(n!=null){if(ib)p+=n>=20?17:n>=15?13:n>=10?7:n>=5?2:0;else if(ic)p+=n>=12?17:n>=8?13:n>=5?8:n>=2?3:0;else if(ip)p+=n>=18?17:n>=12?13:n>=7?7:n>=3?2:0;else p+=n>=20?17:n>=15?14:n>=10?9:n>=5?3:0;}
-    if(rc!=null){if(ic)p+=rc>=14?15:rc>=10?12:rc>=7?7:rc>=4?2:0;else p+=rc>=22?15:rc>=16?12:rc>=10?7:rc>=6?2:0;}
-    if(q.freeCashFlow!=null){if(q.revenue>0){const fm=q.freeCashFlow/q.revenue*100;p+=fm>=15?15:fm>=10?12:fm>=5?7:fm>=0?3:0;}else p+=q.freeCashFlow>0?8:0;}
-    if(!ib&&q.pe!=null){if(ip)p+=q.pe<18?15:q.pe<28?12:q.pe<40?6:q.pe<55?2:0;else if(ic)p+=q.pe<10?15:q.pe<15?12:q.pe<22?7:q.pe<35?2:0;else p+=q.pe<15?15:q.pe<22?12:q.pe<30?7:q.pe<45?2:0;}
-    else if(ib&&q.roa!=null){const ra=q.roa*100;p+=ra>=1.5?15:ra>=1?11:ra>=.6?6:ra>=.3?2:0;}
-    return Math.min(100,Math.round(p));
-  }
-
-  const data = compareSyms.map(sym => {
-    const q = modalPriceData[sym] || {};
-    return {
-      sym, price:q.price, pe:q.pe, priceToBook:q.priceToBook, eps:q.eps,
-      _roe:  q.roe!=null?q.roe*100:null,
-      _roce: q.roce!=null?q.roce*100:null,
-      debtToEquity: q.debtToEquity,
-      _npm:  q.netProfitMargin!=null?q.netProfitMargin*100:null,
-      _dy:   q.dividendYield!=null?q.dividendYield*100:null,
-      marketCap:q.marketCap, revenue:q.revenue, ebitda:q.ebitda, freeCashFlow:q.freeCashFlow,
-      high52:q.high52, low52:q.low52,
-      _sector: q.sector||fundSector[sym.toUpperCase()]||'—',
-      _earn:   q.earningsDate||fundEarnings[sym.toUpperCase()]||'—',
-      _wb: calcWb(q),
-    };
-  });
-
-  const pending = compareSyms.filter(s => !modalPriceData[s] || !modalPriceData[s].price);
-  if (pending.length) setTimeout(() => fetchCompareData(pending), 100);
-
-  const hdrs = compareSyms.map(sym => {
-    const d  = data.find(x=>x.sym===sym)||{};
-    const wb = d._wb;
-    const wc = wb==null?'#6a7d96':wb>=75?'#00e5a0':wb>=55?'#fbbf24':wb>=35?'#fb923c':'#fb7185';
-    const wl = wb==null?'':wb>=75?'🟢 BUY':wb>=55?'🟡 WATCH':wb>=35?'🟠 AVG':'🔴 AVOID';
-    const info = pending.includes(sym)
-      ? `<span style="font-size:0.65rem;color:var(--muted);font-family:Oxanium,sans-serif">Loading…</span>`
-      : (wb!=null ? `<span style="font-size:0.72rem;color:${wc};font-family:Oxanium,sans-serif;font-weight:700">${wb}/100 ${wl}</span>` : '');
-    return `<th class="sym-th"><div style="display:flex;flex-direction:column;gap:3px">
-      <span style="font-size:1.05rem;font-family:Calibri,sans-serif;font-weight:800;color:var(--text)">${sym}</span>
-      ${info}
-    </div></th>`;
-  }).join('');
-
-  const rows = METRICS.map(m => {
-    const vals = data.map(d => d[m.f]);
-    const nums = vals.filter(v => v!=null && typeof v==='number');
-    const bestHigh  = m.hib===true  && nums.length ? Math.max(...nums) : null;
-    const bestLow   = m.hib==='low' && nums.length ? Math.min(...nums) : null;
-    const worstHigh = m.hib==='low' && nums.length ? Math.max(...nums) : null;
-    const cells = vals.map(v => {
-      if (v==null) return `<td style="color:var(--border2)">—</td>`;
-      const isBest  = (m.hib===true  && v===bestHigh) || (m.hib==='low' && v===bestLow);
-      const isWorst = (m.hib==='low' && v===worstHigh && v!==bestLow);
-      return `<td class="${isBest?'compare-best':isWorst?'compare-worst':''}">${m.fmt(v)}${isBest?' ★':''}</td>`;
-    }).join('');
-    return `<tr><td class="row-metric">${m.lbl}</td>${cells}</tr>`;
-  }).join('');
-
-  return `<div class="compare-panel">${toolbar}
-    <div class="compare-table-wrap"><table class="compare-tbl">
-      <thead><tr><th class="row-metric">Metric</th>${hdrs}</tr></thead>
-      <tbody>${rows}</tbody>
-    </table></div>
-    <p style="margin-top:10px;font-family:Oxanium,sans-serif;font-size:0.65rem;color:var(--muted);letter-spacing:0.07em">
-      ★ = best &nbsp;·&nbsp; Data fetched live via Apps Script &nbsp;·&nbsp; 🟢BUY = WB ≥75
-    </p></div>`;
-}
-
-function compareAdd() {
-  const inp = document.getElementById('cmpInput');
-  if (!inp) return;
-  const sym = inp.value.trim().toUpperCase().replace(/[^A-Z0-9_]/g,'');
-  if (!sym) return;
-  if (compareSyms.includes(sym)) { inp.value=''; return; }
-  if (compareSyms.length >= 4) { alert('Max 4 stocks'); return; }
-  compareSyms.push(sym);
-  inp.value = '';
-  if (activeTab==='compare') render();
-  // Auto-fetch data immediately for this stock
-  fetchCompareData([sym]);
-}
-function compareRemove(sym) { compareSyms=compareSyms.filter(s=>s!==sym); if(activeTab==='compare') render(); }
-function compareClear()     { compareSyms=[]; if(activeTab==='compare') render(); }
-
-async function fetchCompareData(syms) {
-  if (!syms||!syms.length) syms = compareSyms.filter(s=>!modalPriceData[s]||!modalPriceData[s].price);
-  if (!syms.length) return;
-  try {
-    const ctrl = new AbortController();
-    setTimeout(()=>ctrl.abort(), 20000);
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=prices&symbols=${syms.join(',')}`, { signal:ctrl.signal, redirect:'follow' });
-    if (!res.ok) return;
-    const json = await res.json();
-    const bd = json.data || {};
-    syms.forEach(sym => {
-      const q = bd[sym];
-      if (!q||!q.price) return;
-      const cached = fundCache[sym.toUpperCase()]||{};
-      const merged = Object.assign({}, q);
-      ['eps','pe','priceToBook','dividendYield','roe','roa','roce','debtToEquity',
-       'revenue','netIncome','netProfitMargin','ebitda','freeCashFlow',
-       'marketCap','high52','low52','sector','industry','earningsDate'].forEach(k => {
-        if (cached[k]!=null) merged[k]=cached[k];
-      });
-      const sk = sym.toUpperCase();
-      if (!merged.sector       && fundSector[sk])   merged.sector       = fundSector[sk];
-      if (!merged.earningsDate && fundEarnings[sk]) merged.earningsDate = fundEarnings[sk];
-      modalPriceData[sym] = merged;
-    });
-    if (activeTab==='compare') render();
-  } catch(e) { console.warn('fetchCompareData:', e); }
-}
-
 </script>
 </body>
+</html>
