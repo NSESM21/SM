@@ -1655,6 +1655,8 @@ body.mobile-view #mainContent {
   transition:all 0.18s;
 }
 .mob-tf-btn.active { border-bottom-color:var(--accent); }
+.mob-tf-count { font-size:0.58rem; opacity:0.7; font-weight:600; }
+
 .mob-cat-list { padding:8px; display:flex; flex-direction:column; gap:6px; }
 .mob-cat-card {
   background:var(--surface); border:1px solid var(--border2); border-radius:12px; overflow:hidden;
@@ -1689,6 +1691,30 @@ body.mobile-view #mainContent {
 .mob-stock-pct.flat { color:#fbbf24; background:rgba(251,191,36,0.1); }
 body.light-theme .mob-cat-card { background:#fffefb; border-color:#e8ddd0; }
 body.light-theme .mob-stock-chip { background:#f5f0e8; border-color:#ddd6ca; }
+/* Long-press feedback ripple */
+.mob-stock-chip.lp-active { box-shadow:0 0 0 3px var(--accent); transform:scale(0.97); }
+/* Gainer / loser chip tint */
+.mob-stock-chip.chip-up   { background:rgba(0,229,160,0.07) !important; border-color:rgba(0,229,160,0.35) !important; }
+.mob-stock-chip.chip-down { background:rgba(251,113,133,0.07) !important; border-color:rgba(251,113,133,0.35) !important; }
+/* Common-stock badge on consol pills */
+.mob-consol-pill { position:relative; }
+.mob-common-badge {
+  position:absolute; top:-5px; right:-5px;
+  background:#f59e0b; color:#000; font-size:0.5rem; font-weight:900;
+  border-radius:50%; width:14px; height:14px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Oxanium',sans-serif; pointer-events:none;
+}
+/* Long-press toast */
+#lpToast {
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(10px);
+  background:var(--accent); color:#000; font-family:'Oxanium',sans-serif;
+  font-size:0.78rem; font-weight:800; padding:8px 18px; border-radius:20px;
+  opacity:0; transition:opacity 0.2s, transform 0.2s; z-index:9999;
+  pointer-events:none; white-space:nowrap;
+}
+#lpToast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
 
 .mob-consol-list { padding:8px; display:flex; flex-direction:column; gap:7px; }
 .mob-consol-tf-card {
@@ -1903,7 +1929,7 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
 
 <div class="sheet-bar" id="sheetBar">
   <button class="stab active" data-tab="master"><span class="dot" style="background:#00e5a0"></span><u>M</u>aster<span class="tab-badge" id="badge-master">—</span></button>
-  <button class="stab" data-tab="consolidated"><span class="dot" style="background:#818cf8"></span><u>C</u>onsolidated<span class="tab-badge" id="badge-consolidated">—</span></button>
+  <button class="stab" data-tab="consolidated"><span class="dot" style="background:#818cf8"></span><u>C</u>onsole<span class="tab-badge" id="badge-consolidated">—</span></button>
   <button class="stab" data-tab="earnings"><span class="dot" style="background:#f59e0b"></span>Corp Actions [<u>E</u>]<span class="tab-badge" id="badge-earnings">—</span></button>
   <button class="stab" data-tab="heatmap"><span class="dot" style="background:#f472b6"></span><u>H</u>eatmap<span class="tab-badge" id="badge-heatmap">—</span></button>
   <button class="stab" data-tab="compare"><span class="dot" style="background:#818cf8"></span>Compare [<u>X</u>]<span class="tab-badge" id="badge-compare">—</span></button>
@@ -1970,7 +1996,7 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
     <div class="kb-section">
       <div class="kb-section-title">Navigation</div>
       <div class="kb-row"><span class="kb-key">M</span><span class="kb-desc">Master tab</span></div>
-      <div class="kb-row"><span class="kb-key">C</span><span class="kb-desc">Consolidated tab</span></div>
+      <div class="kb-row"><span class="kb-key">C</span><span class="kb-desc">Console tab</span></div>
       <div class="kb-row"><span class="kb-key">E</span><span class="kb-desc">Corp Actions tab</span></div>
       <div class="kb-row"><span class="kb-key">H</span><span class="kb-desc">Heatmap tab</span></div>
       <div class="kb-row"><span class="kb-key">X</span><span class="kb-desc">Compare tab</span></div>
@@ -3791,7 +3817,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'c' || e.key === 'C') {
     activeTab = 'consolidated'; render();
-    showKbToast('<strong>C</strong> — Consolidated tab');
+    showKbToast('<strong>C</strong> — Console tab');
     return;
   }
   if (e.key==='e'||e.key==='E') { activeTab='earnings'; render(); showKbToast('<strong>E</strong> — Corp Actions tab'); return; }
@@ -3918,6 +3944,50 @@ function mbnSwitch(tab) {
   render();
 }
 
+
+// ── Long-press to add stock chip to Compare ─────────────────
+let _lpTimer = null;
+let _lpTarget = null;
+
+function showLpToast(msg) {
+  const t = document.getElementById('lpToast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function attachLongPress(chip) {
+  const onStart = (e) => {
+    _lpTarget = chip;
+    chip.classList.add('lp-active');
+    _lpTimer = setTimeout(() => {
+      const sym = chip.dataset.sym;
+      if (!sym) return;
+      const upper = sym.toUpperCase();
+      if (compareSyms.includes(upper)) {
+        showLpToast(sym + ' already in Compare');
+      } else if (compareSyms.length >= 4) {
+        showLpToast('Compare full (max 4)');
+      } else {
+        compareSyms.push(upper);
+        updateTabBadges();
+        showLpToast('✓ ' + sym + ' added to Compare');
+        if (navigator.vibrate) navigator.vibrate(40);
+      }
+      chip.classList.remove('lp-active');
+      _lpTimer = null;
+    }, 500);
+  };
+  const onEnd = () => {
+    clearTimeout(_lpTimer); _lpTimer = null;
+    chip.classList.remove('lp-active');
+  };
+  chip.addEventListener('touchstart', onStart, { passive: true });
+  chip.addEventListener('touchend',   onEnd,   { passive: true });
+  chip.addEventListener('touchmove',  onEnd,   { passive: true });
+}
+
 function mobRender() {
   const mc = document.getElementById('mainContent');
   const term = searchTerm.toLowerCase();
@@ -3959,6 +4029,8 @@ function mobRender() {
       if (entry) openModal(entry.tf, entry.cat, entry.stocks);
     });
   });
+  // Long-press on stock chip → add to Compare
+  mc.querySelectorAll('.mob-stock-chip').forEach(chip => attachLongPress(chip));
 }
 
 function mobBuildCatList(tf, term) {
@@ -3973,7 +4045,9 @@ function mobBuildCatList(tf, term) {
       const pctCls = pct == null ? '' : pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat';
       const pctTxt = pct != null ? (pct > 0 ? '+' : '') + pct.toFixed(2) + '%' : '';
       const earn   = getEarnBadge(s);
-      return `<div class="mob-stock-chip" data-sym="${s}" data-tf="${tf.label}" data-cat="${cat.label}"
+      // Gainer/loser tint class — applied only when price data is loaded
+      const tintCls = pct == null ? '' : pct > 0 ? ' chip-up' : pct < 0 ? ' chip-down' : '';
+      return `<div class="mob-stock-chip${tintCls}" data-sym="${s}" data-tf="${tf.label}" data-cat="${cat.label}"
         style="border-color:${cat.color}33">
         <span class="mob-stock-sym">${s}${earn}</span>
         ${price || pctTxt ? `<div class="mob-stock-meta">
@@ -4016,11 +4090,13 @@ function mobSwitchMasterTF(idx) {
     // Re-attach event listeners for new chips
     catList.querySelectorAll('.mob-cat-hd').forEach(hd =>
       hd.addEventListener('click', () => hd.closest('.mob-cat-card').classList.toggle('collapsed')));
-    catList.querySelectorAll('.mob-stock-chip').forEach(chip =>
+    catList.querySelectorAll('.mob-stock-chip').forEach(chip => {
       chip.addEventListener('click', () => {
         const { sym, tf, cat } = chip.dataset;
         if (sym && tf && cat) openModal(tf, cat, [sym]);
-      }));
+      });
+      attachLongPress(chip);
+    });
   }
 }
 
@@ -4029,10 +4105,12 @@ function mobBuildMaster(term) {
   if (mobMasterTFIdx >= masterTFs.length) mobMasterTFIdx = 0;
   const tf = masterTFs[mobMasterTFIdx];
 
-  const tfBar = masterTFs.map((t, i) => `
-    <button class="mob-tf-btn ${i === mobMasterTFIdx ? 'active' : ''}"
+  const tfBar = masterTFs.map((t, i) => {
+    const tfTotal = t.cols.reduce((a, c) => a + c.length, 0);
+    return `<button class="mob-tf-btn ${i === mobMasterTFIdx ? 'active' : ''}"
       style="${i === mobMasterTFIdx ? 'color:'+t.color+';border-bottom-color:'+t.color : ''}"
-      onclick="mobSwitchMasterTF(${i})">${t.label}</button>`).join('');
+      onclick="mobSwitchMasterTF(${i})">${t.label}<span class="mob-tf-count"> · ${tfTotal}</span></button>`;
+  }).join('');
 
   return `
     <div class="mob-tf-bar">${tfBar}</div>
@@ -4045,6 +4123,14 @@ function mobBuildConsol(term) {
   window._mobConStore = {};
   let _idx = 0;
 
+  // Build frequency map — how many TFs each symbol appears in
+  const symTFCount = {};
+  consolidatedTFs.forEach(tf => tf.cols.forEach(col => col.forEach(s => {
+    const k = s.toUpperCase();
+    symTFCount[k] = (symTFCount[k] || 0) + 1;
+  })));
+  const maxTFs = consolidatedTFs.length;
+
   const cards = consolidatedTFs.map(tf => {
     const totalStocks = tf.cols.reduce((a, c) => a + c.length, 0);
 
@@ -4056,8 +4142,13 @@ function mobBuildConsol(term) {
       const pills = stocks.map(s => {
         const key = 'mp' + (_idx++);
         window._mobConStore[key] = { tf: tf.label, cat: cat.label, stocks: [s] };
-        return `<span class="mob-consol-pill" data-key="${key}"
-          style="color:${cat.color};border-color:${cat.color}44;background:${cat.color}10">${s}</span>`;
+        const count = symTFCount[s.toUpperCase()] || 1;
+        // Show badge only if stock appears in 2+ TFs
+        const badge = count > 1 ? `<span class="mob-common-badge" title="In ${count} timeframes">${count}</span>` : '';
+        return `<span class="mob-consol-pill" data-key="${key}" style="position:relative;display:inline-flex;
+          color:${cat.color};border-color:${count > 1 ? cat.color+'88' : cat.color+'44'};
+          background:${count > 1 ? cat.color+'22' : cat.color+'10'};
+          ${count > 1 ? 'font-weight:800;' : ''}">${s}${badge}</span>`;
       }).join('');
 
       return `<div class="mob-consol-cat-row">
@@ -4068,10 +4159,17 @@ function mobBuildConsol(term) {
 
     if (!catRows) return '';
 
+    // Count common stocks in this TF
+    const commonInTF = tf.cols.flat().filter(s => (symTFCount[s.toUpperCase()]||1) > 1).length;
+    const commonBadge = commonInTF > 0
+      ? `<span style="font-size:0.58rem;background:rgba(245,158,11,0.2);color:#f59e0b;border-radius:8px;padding:1px 6px;font-family:'Oxanium',sans-serif;font-weight:700">${commonInTF} common</span>`
+      : '';
+
     return `<div class="mob-consol-tf-card" data-tf="${tf.label}">
       <div class="mob-consol-tf-hd" style="color:${tf.color};border-left-color:${tf.color}">
         <span class="mob-consol-tf-name">${tf.label}</span>
-        <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:6px">
+          ${commonBadge}
           <span class="mob-consol-tf-count">${totalStocks} stocks</span>
           <span class="mob-consol-tf-arrow">▼</span>
         </div>
