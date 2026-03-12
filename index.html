@@ -1357,6 +1357,47 @@ body.mobile-view .con-tbl td { font-size: 0.72rem !important; padding: 5px 8px !
   transition: opacity 0.15s, transform 0.12s;
 }
 .con-tbl .pill-xs:hover { opacity: 0.8; transform: scale(1.08); }
+/* ── R4 Moment Pick — new entry + confluence ── */
+@keyframes r4Pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(0,229,160,0.6); }
+  50%      { box-shadow: 0 0 0 5px rgba(0,229,160,0); }
+}
+.pill-xs.r4-new {
+  animation: r4Pulse 1.4s ease-in-out infinite;
+  border-color: #00e5a0 !important;
+  background: rgba(0,229,160,0.14) !important;
+  color: #00e5a0 !important;
+}
+.pill-xs.r4-new::before {
+  content: '★';
+  font-size: 0.55rem;
+  margin-right: 3px;
+  vertical-align: middle;
+  opacity: 0.9;
+}
+/* Confluence badge — shown on multi-TF stocks */
+.r4-conf {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #f59e0b; color: #000;
+  font-size: 0.52rem; font-weight: 900; font-family: 'Oxanium', sans-serif;
+  border-radius: 50%; width: 13px; height: 13px;
+  margin-left: 3px; vertical-align: middle;
+  cursor: default; flex-shrink: 0;
+}
+/* Console header signal summary bar */
+#r4SignalBar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 6px 12px; margin-bottom: 8px;
+  background: rgba(0,229,160,0.05); border: 1px solid rgba(0,229,160,0.2);
+  border-radius: 8px; font-family: 'Oxanium', sans-serif; font-size: 0.72rem;
+}
+#r4SignalBar.hidden { display: none; }
+.r4-sig-label { color: var(--muted); font-weight: 600; }
+.r4-sig-entry { color: #00e5a0; font-weight: 800; cursor: pointer; }
+.r4-sig-entry:hover { text-decoration: underline; }
+.r4-sig-conf  { color: #f59e0b; font-weight: 800; }
+.r4-sig-sep   { color: var(--border2); }
+
 .con-tbl .empty-cell { color: var(--border2); font-size: 0.75rem; text-align: center; }
 .con-tbl .clickable-cell { cursor: pointer; }
 .con-tbl .clickable-cell:hover { background: rgba(255,255,255,0.05) !important; }
@@ -2079,6 +2120,10 @@ const CONSOLIDATED_TF_STARTS = ['M-D-H','D-H:','D-H ','H-15','D:R2'];
 // ═══════════════════════════════════════════════════════════
 let masterTFs = [];
 let consolidatedTFs = [];
+// R4 signal tracking — persists across refreshes
+let r4NewEntries  = new Set();   // "SYM|TFLabel" — stocks NEW in this refresh
+let r4Confluence  = {};          // sym.toUpperCase() → number of TFs it appears in
+let _prevConsolSnap = {};        // sym.toUpperCase() → Set of tfLabels from LAST refresh
 let activeTab = 'master';
 let activeMasterTF = 0; // index of currently selected master TF
 let searchTerm = '';
@@ -2548,7 +2593,36 @@ async function loadSheet() {
     const json = await res.json();
     const data = json.data || json; // support both old and new Apps Script format
     console.log('✓ Got data:', data.length, 'rows,', data[0]?.length, 'cols');
+    // Snapshot current consolidated state BEFORE parse (to detect new entries)
+    const snapBefore = {};
+    consolidatedTFs.forEach(tf => tf.cols.forEach((col, ci) => col.forEach(s => {
+      const k = s.toUpperCase();
+      if (!snapBefore[k]) snapBefore[k] = new Set();
+      snapBefore[k].add(tf.label);
+    })));
     parseSheetRows(data);
+    // Compute new R4 entries — stocks in consolTFs now but NOT in last snapshot
+    r4NewEntries = new Set();
+    r4Confluence = {};
+    // Use a per-symbol Set to count unique TFs only (not per-category occurrences)
+    const _symTFSeen = {};  // sym → Set of tfLabels already counted
+    consolidatedTFs.forEach(tf => tf.cols.forEach(col => col.forEach(s => {
+      const k = s.toUpperCase();
+      if (!_symTFSeen[k]) _symTFSeen[k] = new Set();
+      // Confluence: only increment once per unique TF
+      if (!_symTFSeen[k].has(tf.label)) {
+        _symTFSeen[k].add(tf.label);
+        r4Confluence[k] = (r4Confluence[k] || 0) + 1;
+      }
+      // First-ever load: _prevConsolSnap is empty — don't mark everything as "new"
+      if (Object.keys(_prevConsolSnap).length > 0) {
+        if (!_prevConsolSnap[k] || !_prevConsolSnap[k].has(tf.label)) {
+          r4NewEntries.add(k + '|' + tf.label);
+        }
+      }
+    })));
+    _prevConsolSnap = snapBefore;
+    if (r4NewEntries.size > 0) console.log('[R4] New entries:', [...r4NewEntries].join(', '));
     // Load sector/industry/earnings from FUNDAMENTALS sheet (bundled in response)
     if (json.sectorData && Object.keys(json.sectorData).length) {
       Object.entries(json.sectorData).forEach(([sym, d]) => {
@@ -3208,12 +3282,18 @@ function buildConsolidated(term) {
       const cellKey = registerClick(tf.label, cat.label, stocks);
 
       const pills = stocks.map(s => {
+        const k = s.toUpperCase();
+        const isNew     = r4NewEntries.has(k + '|' + tf.label);
+        const conf      = r4Confluence[k] || 1;
+        const confBadge = conf > 1 ? `<span class="r4-conf" title="${conf} timeframes">${conf}</span>` : '';
+        const newCls    = isNew ? ' r4-new' : '';
         const lbl = term
           ? s.replace(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), m => `<mark>${m}</mark>`)
           : s;
-        return `<span class="pill-xs"
-          style="color:${cat.color};border-color:${cat.color}33;background:${cat.color}0f"
-          title="${s} · ${cat.label} · ${tf.label}">${lbl}</span>`;
+        const tipExtra = (isNew ? ' ★ NEW ENTRY' : '') + (conf > 1 ? ' · ' + conf + ' TFs' : '');
+        return `<span class="pill-xs${newCls}"
+          style="${isNew ? '' : 'color:'+cat.color+';border-color:'+cat.color+'33;background:'+cat.color+'0f'}"
+          title="${s} · ${cat.label} · ${tf.label}${tipExtra}">${lbl}${confBadge}</span>`;
       }).join('');
 
       return `<td class="con-cell${isLast ? '' : ' tf-sep'} clickable-cell"
@@ -3232,7 +3312,31 @@ function buildConsolidated(term) {
     </tr>`;
   }).join('');
 
-  return `
+  // ── R4 Signal Summary Bar ──
+  const newList = [...r4NewEntries].map(k => {
+    const [sym, tf] = k.split('|');
+    return { sym, tf };
+  });
+  const confList = Object.entries(r4Confluence)
+    .filter(([,c]) => c >= 2)
+    .sort(([,a],[,b]) => b - a);
+
+  const signalBar = newList.length > 0 || confList.length > 0 ? `
+    <div id="r4SignalBar">
+      <span class="r4-sig-label">⚡ SIGNALS</span>
+      ${newList.length > 0 ? `
+        <span class="r4-sig-sep">|</span>
+        <span class="r4-sig-label">★ New R4:</span>
+        ${newList.map(e => `<span class="r4-sig-entry" title="${e.tf}" onclick="document.querySelector('.pill-xs.r4-new[title*=\'${e.sym}\']')?.scrollIntoView({behavior:'smooth',block:'center'})">${e.sym}<span style="font-size:0.62rem;opacity:0.7;margin-left:2px">${e.tf}</span></span>`).join('<span class="r4-sig-sep">·</span>')}
+      ` : ''}
+      ${confList.length > 0 ? `
+        <span class="r4-sig-sep">|</span>
+        <span class="r4-sig-label">🔥 Multi-TF:</span>
+        ${confList.map(([sym,c]) => `<span class="r4-sig-conf">${sym}<span class="r4-conf" style="margin-left:3px">${c}</span></span>`).join('<span class="r4-sig-sep">·</span>')}
+      ` : ''}
+    </div>` : '';
+
+  return signalBar + `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
       <button class="col-collapse-all" onclick="toggleCollapseAll()">
         ${collapsedCats.size > 0 ? '⊞ Expand All' : '⊟ Collapse All'}
@@ -4123,11 +4227,16 @@ function mobBuildConsol(term) {
   window._mobConStore = {};
   let _idx = 0;
 
-  // Build frequency map — how many TFs each symbol appears in
+  // Build frequency map — unique TFs per symbol (not per category)
   const symTFCount = {};
+  const _symTFSeen = {};
   consolidatedTFs.forEach(tf => tf.cols.forEach(col => col.forEach(s => {
     const k = s.toUpperCase();
-    symTFCount[k] = (symTFCount[k] || 0) + 1;
+    if (!_symTFSeen[k]) _symTFSeen[k] = new Set();
+    if (!_symTFSeen[k].has(tf.label)) {
+      _symTFSeen[k].add(tf.label);
+      symTFCount[k] = (symTFCount[k] || 0) + 1;
+    }
   })));
   const maxTFs = consolidatedTFs.length;
 
