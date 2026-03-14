@@ -1607,12 +1607,13 @@ html.mobile-view #mobileBottomNav {
 }
 .mbn-btn {
   flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 2px; background: transparent; border: none;
+  justify-content: center; gap: 1px; background: transparent; border: none;
   cursor: pointer; color: var(--muted); font-family: 'Oxanium', sans-serif;
-  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.04em;
-  padding: 6px 2px; border-radius: 10px; transition: all 0.2s; position: relative;
+  font-size: 0.5rem; font-weight: 700; letter-spacing: 0.02em;
+  padding: 5px 1px; border-radius: 10px; transition: all 0.2s; position: relative;
+  min-width: 0;
 }
-.mbn-btn svg { width: 22px; height: 22px; transition: all 0.2s; }
+.mbn-btn svg { width: 19px; height: 19px; transition: all 0.2s; flex-shrink: 0; }
 .mbn-btn span { text-transform: uppercase; }
 .mbn-btn em {
   position: absolute; top: 3px; right: 6px; font-style: normal;
@@ -1971,9 +1972,11 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
 <div class="sheet-bar" id="sheetBar">
   <button class="stab active" data-tab="master"><span class="dot" style="background:#00e5a0"></span><u>M</u>aster<span class="tab-badge" id="badge-master">—</span></button>
   <button class="stab" data-tab="consolidated"><span class="dot" style="background:#818cf8"></span><u>C</u>onsole<span class="tab-badge" id="badge-consolidated">—</span></button>
-  <button class="stab" data-tab="earnings"><span class="dot" style="background:#f59e0b"></span>Corp Actions [<u>E</u>]<span class="tab-badge" id="badge-earnings">—</span></button>
+  <button class="stab" data-tab="earnings"><span class="dot" style="background:#f59e0b"></span><u>E</u>vents<span class="tab-badge" id="badge-earnings">—</span></button>
   <button class="stab" data-tab="heatmap"><span class="dot" style="background:#f472b6"></span><u>H</u>eatmap<span class="tab-badge" id="badge-heatmap">—</span></button>
   <button class="stab" data-tab="compare"><span class="dot" style="background:#818cf8"></span>Compare [<u>X</u>]<span class="tab-badge" id="badge-compare">—</span></button>
+  <button class="stab" data-tab="trade"><span class="dot" style="background:#f97316"></span><u>T</u>rade<span class="tab-badge" id="badge-trade">—</span></button>
+  <button class="stab" data-tab="invest"><span class="dot" style="background:#34d399"></span><u>I</u>nvest<span class="tab-badge" id="badge-invest">—</span></button>
 </div>
 
 <div class="sector-filter-bar hidden" id="sectorFilterBar">
@@ -1991,7 +1994,7 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
   </div>
 </main>
 
-<!-- Mobile bottom navigation bar -->
+<!-- Mobile bottom navigation bar — 7 tabs -->
 <nav id="mobileBottomNav">
   <button class="mbn-btn active" data-tab="master" onclick="mbnSwitch('master')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -2003,9 +2006,19 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
     <span>Consol</span>
     <em id="mbn-badge-consolidated">—</em>
   </button>
+  <button class="mbn-btn" data-tab="trade" onclick="mbnSwitch('trade')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <span>Trade</span>
+    <em id="mbn-badge-trade">—</em>
+  </button>
+  <button class="mbn-btn" data-tab="invest" onclick="mbnSwitch('invest')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+    <span>Invest</span>
+    <em id="mbn-badge-invest">—</em>
+  </button>
   <button class="mbn-btn" data-tab="heatmap" onclick="mbnSwitch('heatmap')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="4" height="4" rx="0.5"/><rect x="10" y="3" width="4" height="4" rx="0.5"/><rect x="17" y="3" width="4" height="4" rx="0.5"/><rect x="3" y="10" width="4" height="4" rx="0.5"/><rect x="10" y="10" width="4" height="4" rx="0.5"/><rect x="17" y="10" width="4" height="4" rx="0.5"/><rect x="3" y="17" width="4" height="4" rx="0.5"/><rect x="10" y="17" width="4" height="4" rx="0.5"/><rect x="17" y="17" width="4" height="4" rx="0.5"/></svg>
-    <span>Heatmap</span>
+    <span>Heat</span>
     <em id="mbn-badge-heatmap">—</em>
   </button>
   <button class="mbn-btn" data-tab="earnings" onclick="mbnSwitch('earnings')">
@@ -2041,6 +2054,8 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
       <div class="kb-row"><span class="kb-key">E</span><span class="kb-desc">Corp Actions tab</span></div>
       <div class="kb-row"><span class="kb-key">H</span><span class="kb-desc">Heatmap tab</span></div>
       <div class="kb-row"><span class="kb-key">X</span><span class="kb-desc">Compare tab</span></div>
+      <div class="kb-row"><span class="kb-key">T</span><span class="kb-desc">Trade signals tab</span></div>
+      <div class="kb-row"><span class="kb-key">I</span><span class="kb-desc">Invest signals tab</span></div>
     </div>
 
     <div class="kb-section">
@@ -2136,7 +2151,7 @@ let fundIndustry = {};   // sym → industry string
 let fundEarnings = {};   // sym → earningsDate string
 let corpActions      = [];   // [{symbol, type, details, exDate, recordDate}]
 let earningsReports  = [];   // [{symbol, resultDate, quarter, notes}] — from EARNINGS sheet
-let activeEventsSubTab = 'corp'; // 'corp' | 'earnings'
+let activeEventsSubTab = 'corp'; // 'corp' | 'earnings' | 'results'
 let activeSector = 'ALL';
 
 // ── Corp actions helpers ──────────────────────────────────────────────────
@@ -2478,18 +2493,145 @@ function buildEarningsPanel() {
       </tr>`).join('');
   }
 
-  const isCorp = activeEventsSubTab !== 'earnings';
+  const isCorp     = activeEventsSubTab === 'corp';
+  const isEarnings = activeEventsSubTab === 'earnings';
+  const isResults  = activeEventsSubTab === 'results';
+
   const stActive   = 'padding:7px 18px;border:none;border-bottom:2px solid var(--accent);background:transparent;color:var(--accent);font-family:Oxanium,sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.08em;cursor:pointer;';
   const stInactive = 'padding:7px 18px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-family:Oxanium,sans-serif;font-weight:600;font-size:0.78rem;letter-spacing:0.08em;cursor:pointer;';
 
+  // ── BUILD RESULTS & NEWS TAB ───────────────────────────────────────────────
+  // Uses fundEarnings (scraped from Screener via Apps Script) + fundCache data
+  // Zero extra fetches — all data already in memory from loadSheet()
+  function buildResultsPanel() {
+    const allSyms = [...new Set(
+      [...masterTFs, ...consolidatedTFs].flatMap(tf => tf.cols.flat()).map(s => s.toUpperCase())
+    )];
+    const INDEX_LIKE = /^(NIFTY|SENSEX|INDIA_VIX|INDVIX|GOLDBEES|NIFTYBEES|BANKBEES|JUNIORBEES|LIQUIDBEES)/;
+
+    // Collect result dates from ALL three sources and merge, preferring most specific
+    const resultMap = {}; // sym → { date, days, source, quarter }
+
+    // Source 1: fundEarnings (Screener-scraped earningsDate from Apps Script)
+    Object.entries(fundEarnings).forEach(([sym, dateStr]) => {
+      if (!dateStr || INDEX_LIKE.test(sym)) return;
+      const days = daysUntilEarnings(dateStr);
+      if (days === null) return;
+      resultMap[sym] = { date: dateStr, days, source: 'Screener', quarter: '' };
+    });
+
+    // Source 2: fundCache earningsDate (may have more detail e.g. "(est. for QMar 2026)")
+    Object.entries(fundCache).forEach(([sym, fd]) => {
+      if (!fd || !fd.earningsDate || INDEX_LIKE.test(sym)) return;
+      const days = daysUntilEarnings(fd.earningsDate);
+      if (days === null) return;
+      // Only override if Screener gave a result or if this is the only source
+      if (!resultMap[sym] || fd.earningsDate.length > (resultMap[sym].date || '').length) {
+        resultMap[sym] = { date: fd.earningsDate, days, source: 'Screener', quarter: '' };
+      }
+    });
+
+    // Source 3: earningsReports (manually maintained EARNINGS sheet) — highest trust
+    earningsReports.forEach(er => {
+      const sym = (er.symbol || '').toUpperCase();
+      if (!sym) return;
+      const days = daysUntilEarnings(er.resultDate);
+      if (days === null) return;
+      resultMap[sym] = { date: er.resultDate, days, source: 'Manual', quarter: er.quarter || '', notes: er.notes || '' };
+    });
+
+    // Sort: upcoming first (by days asc), then past (by days desc)
+    const upcoming = Object.entries(resultMap)
+      .filter(([, r]) => r.days >= 0)
+      .sort(([, a], [, b]) => a.days - b.days);
+
+    const past = Object.entries(resultMap)
+      .filter(([, r]) => r.days < 0 && r.days >= -30)
+      .sort(([, a], [, b]) => b.days - a.days);
+
+    const hasData = upcoming.length > 0 || past.length > 0;
+
+    function resultChip(days) {
+      if (days === 0)  return '<span class="earn-days-chip today">TODAY</span>';
+      if (days <= 7)   return `<span class="earn-days-chip soon">In ${days}d</span>`;
+      if (days <= 30)  return `<span class="earn-days-chip week">In ${days}d</span>`;
+      return `<span class="earn-days-chip future">In ${days}d</span>`;
+    }
+    function rowCls(days) { return days === 0 ? 'earn-today' : days <= 7 ? 'earn-soon' : ''; }
+
+    function buildResultRows(arr) {
+      if (!arr.length) return '<tr><td colspan="5" class="earn-none">No upcoming result dates found</td></tr>';
+      return arr.map(([sym, r]) => {
+        const fd     = fundCache[sym] || {};
+        const sector = fd.sector || fundSector[sym] || '';
+        const inWl   = allSyms.includes(sym);
+        const srcBadge = r.source === 'Manual'
+          ? `<span style="font-size:9px;background:rgba(167,139,250,0.15);color:#a78bfa;border-radius:3px;padding:1px 4px;margin-left:4px">Manual</span>`
+          : `<span style="font-size:9px;background:rgba(0,229,160,0.1);color:#00e5a0;border-radius:3px;padding:1px 4px;margin-left:4px">Screener</span>`;
+        const est = r.date && r.date.includes('est.') ? '<span style="font-size:9px;color:var(--muted);margin-left:3px">(est.)</span>' : '';
+        const qLabel = r.quarter ? `<span style="font-size:10px;color:#a78bfa;margin-left:4px">${r.quarter}</span>` : '';
+        return `<tr class="${rowCls(r.days)}" style="${!inWl ? 'opacity:0.5' : ''}">
+          <td>
+            <span class="earn-sym">${sym}</span>${srcBadge}${qLabel}<br>
+            <span style="font-size:10px;color:var(--muted)">${sector || '—'}</span>
+          </td>
+          <td style="font-size:12px">${r.date}${est}${r.notes ? `<br><span style="font-size:10px;color:var(--muted)">${r.notes}</span>` : ''}</td>
+          <td>${resultChip(r.days)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    const thisWeek = upcoming.filter(([, r]) => r.days <= 7).length;
+
+    return `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="font-size:0.75rem;color:var(--muted);line-height:1.6">
+          Auto-populated from <strong style="color:#00e5a0">Screener</strong> (Apps Script scrape) + 
+          <strong style="color:#a78bfa">Manual</strong> EARNINGS sheet.
+          ${!hasData ? '<br><span style="color:#fbbf24">⚠ No data yet — run <code>runUpdateEarningsOnly()</code> in Apps Script to scrape result dates.</span>' : ''}
+        </div>
+        ${thisWeek > 0 ? `<span style="font-family:Oxanium,sans-serif;font-size:0.7rem;font-weight:800;background:rgba(245,158,11,0.15);color:#f59e0b;border-radius:6px;padding:3px 10px">🔔 ${thisWeek} results this week</span>` : ''}
+      </div>
+      ${upcoming.length > 0 ? `
+      <h3>📅 Upcoming Results — ${upcoming.length} stocks</h3>
+      <table class="earn-tbl">
+        <thead><tr><th>Symbol</th><th>Result Date</th><th>Timeline</th></tr></thead>
+        <tbody>${buildResultRows(upcoming)}</tbody>
+      </table>` : `<div style="padding:24px 0;color:var(--muted);font-size:0.8rem">No upcoming result dates found in Screener data or EARNINGS sheet.</div>`}
+      ${past.length > 0 ? `
+      <h3 style="margin-top:24px;color:var(--muted)">Recent Results (last 30 days)</h3>
+      <table class="earn-tbl">
+        <thead><tr><th>Symbol</th><th>Result Date</th><th>Days ago</th></tr></thead>
+        <tbody>${past.map(([sym, r]) => {
+          const sector = (fundCache[sym] || {}).sector || fundSector[sym] || '';
+          const srcBadge = r.source === 'Manual'
+            ? `<span style="font-size:9px;background:rgba(167,139,250,0.15);color:#a78bfa;border-radius:3px;padding:1px 4px;margin-left:4px">Manual</span>`
+            : `<span style="font-size:9px;background:rgba(0,229,160,0.1);color:#00e5a0;border-radius:3px;padding:1px 4px;margin-left:4px">Screener</span>`;
+          return `<tr>
+            <td><span class="earn-sym">${sym}</span>${srcBadge}<br><span style="font-size:10px;color:var(--muted)">${sector||'—'}</span></td>
+            <td style="font-size:12px">${r.date}</td>
+            <td><span class="earn-days-chip future">${Math.abs(r.days)}d ago</span></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>` : ''}
+      <div style="margin-top:14px;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:11px;color:var(--muted)">
+        ${Object.keys(resultMap).length} result dates loaded ·
+        Screener dates may be estimates — confirm before trading ·
+        Add confirmed dates to EARNINGS sheet for highest accuracy
+      </div>`;
+  }
+
   return `
     <div class="earnings-panel">
-      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px">
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;scrollbar-width:none">
         <button style="${isCorp?stActive:stInactive}" onclick="setEventsSubTab('corp')">
           📋 CORP ACTIONS <span style="font-size:10px;opacity:0.7">(${caUpcoming.length})</span>
         </button>
-        <button style="${!isCorp?stActive:stInactive}" onclick="setEventsSubTab('earnings')">
+        <button style="${isEarnings?stActive:stInactive}" onclick="setEventsSubTab('earnings')">
           📊 EARNINGS RESULTS <span style="font-size:10px;opacity:0.7">(${erUpcoming.length})</span>
+        </button>
+        <button style="${isResults?stActive:stInactive}" onclick="setEventsSubTab('results')">
+          📅 RESULTS &amp; NEWS <span style="font-size:10px;opacity:0.7">(${Object.keys(fundEarnings).length})</span>
         </button>
       </div>
       ${isCorp ? `
@@ -2513,7 +2655,7 @@ function buildEarningsPanel() {
         <div style="margin-top:16px;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:11px;color:var(--muted)">
           ${corpActions.length>0 ? '✅ '+corpActions.length+' actions loaded from CORP_ACTIONS sheet' : '⚠️ No data — paste NSE corporate actions into the CORP_ACTIONS sheet'}
         </div>
-      ` : `
+      ` : isEarnings ? `
         <h3>📊 Earnings Results — ${erUpcoming.length} upcoming</h3>
         <div style="margin-bottom:12px;padding:10px 14px;background:rgba(167,139,250,0.06);border:1px solid rgba(167,139,250,0.2);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.6">
           Manually maintained · Add rows to the <strong style="color:#a78bfa">EARNINGS</strong> sheet in Google Sheets<br>
@@ -2538,7 +2680,7 @@ function buildEarningsPanel() {
         <div style="margin-top:16px;padding:10px 14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:11px;color:var(--muted)">
           ${earningsReports.length>0 ? '✅ '+earningsReports.length+' entries loaded from EARNINGS sheet' : '⚠️ No data — create an EARNINGS sheet with columns: SYMBOL, RESULT_DATE, QUARTER, NOTES'}
         </div>
-      `}
+      ` : buildResultsPanel()}
     </div>`;
 }
 
@@ -3401,35 +3543,23 @@ function openModal(tfLabel, catLabel, stocks) {
         <div id="fetch-progress-label"></div>
       </div>
       <div class="modal-body">
-        <!-- PRICE TAB -->
+        <!-- PRICE TAB — card grid matching fundamentals tab layout -->
         <div class="modal-tab-panel active" id="mpanel-price">
-          <table class="price-table" id="price-table">
-            <thead>
-              <tr id="price-table-hdr">
-                <th class="col-sym">Symbol</th>
-                <th style="text-align:right;color:#00e5a0;min-width:110px">LTP (₹)</th>
-                <th style="text-align:right;min-width:110px" id="hdr-chg">Chg (Close)</th>
-                <th style="text-align:right;min-width:110px" id="hdr-chgpct">Chg% (Close)</th>
-                <th style="text-align:right;color:#8dafc8;min-width:100px">Open</th>
-                <th style="text-align:right;color:#8dafc8;min-width:110px">Prev Close</th>
-                <th style="text-align:right;color:#00e5a0;min-width:105px">Day High</th>
-                <th style="text-align:right;color:#fb7185;min-width:105px">Day Low</th>
-                <th style="text-align:right;color:#00e5a0;min-width:105px">52W High</th>
-                <th style="text-align:right;color:#fb7185;min-width:105px">52W Low</th>
-              </tr>
-            </thead>
-            <tbody id="price-tbody">
-              ${stocks.map(s => `<tr id="row-${s}">
-                <td class="col-sym sym-cell">
-                  <span class="sym-name">${s}</span>
-                  <a href="https://www.nseindia.com/get-quotes/equity?symbol=${s}" target="_blank" class="sym-link">NSE ↗</a>
-                </td>
-                <td style="text-align:right" colspan="9">
+          <div class="fund-sort-bar" id="price-sort-bar">
+            <span class="fund-sort-label">Sort:</span>
+            <button class="sort-btn active" data-psort="default" onclick="sortPriceCards('default',this)">Default</button>
+            <button class="sort-btn" data-psort="ltp" onclick="sortPriceCards('ltp',this)">LTP <span class="sort-arrow">↓</span></button>
+            <button class="sort-btn" data-psort="chg" onclick="sortPriceCards('chg',this)">Chg% <span class="sort-arrow">↓</span></button>
+            <button class="sort-btn" data-psort="w52" onclick="sortPriceCards('w52',this)">52W Pos <span class="sort-arrow">↓</span></button>
+          </div>
+          <div class="fund-grid" id="price-card-grid">
+            ${stocks.map((s, i) => `
+              <div class="fund-card price-card" id="pcard-${s}" data-orig-idx="${i}" data-ltp="0" data-chg="0" data-w52="0">
+                <div class="fund-card-loading">
                   <span class="loading-dots">Loading<span>.</span><span>.</span><span>.</span></span>
-                </td>
-              </tr>`).join('')}
-            </tbody>
-          </table>
+                </div>
+              </div>`).join('')}
+          </div>
         </div>
 
         <!-- FUNDAMENTALS TAB -->
@@ -3496,22 +3626,18 @@ function switchModalTab(tab) {
 function toggleChgMode() {
   chgMode = chgMode === 'open' ? 'close' : 'open';
   const btn = document.getElementById('toggleChgMode');
-  const hdrChg = document.getElementById('hdr-chg');
-  const hdrPct = document.getElementById('hdr-chgpct');
-  if (chgMode === 'open') {
-    btn.textContent = 'DAY OPEN';
-    btn.style.borderColor = 'var(--accent)';
-    btn.style.color = 'var(--accent)';
-    btn.style.background = 'rgba(0,229,160,0.12)';
-    hdrChg.textContent = 'Chg (Open)';
-    hdrPct.textContent = 'Chg% (Open)';
-  } else {
-    btn.textContent = 'PREV CLOSE';
-    btn.style.borderColor = '#38bdf8';
-    btn.style.color = '#38bdf8';
-    btn.style.background = 'rgba(56,189,248,0.12)';
-    hdrChg.textContent = 'Chg (Close)';
-    hdrPct.textContent = 'Chg% (Close)';
+  if (btn) {
+    if (chgMode === 'open') {
+      btn.textContent = 'DAY OPEN';
+      btn.style.borderColor = 'var(--accent)';
+      btn.style.color = 'var(--accent)';
+      btn.style.background = 'rgba(0,229,160,0.12)';
+    } else {
+      btn.textContent = 'PREV CLOSE';
+      btn.style.borderColor = '#38bdf8';
+      btn.style.color = '#38bdf8';
+      btn.style.background = 'rgba(56,189,248,0.12)';
+    }
   }
   renderModalRows(modalPriceData);
 }
@@ -3574,32 +3700,108 @@ function renderModalRows(priceData) {
     const w52HighColor  = '#00e5a0';
     const w52LowColor   = '#fb7185';
 
-    // ── PRICE ROW ──
-    // Sync to heatmap caches
+    // Sync to heatmap caches (was in old price row — keep this)
     if (!window._hmPriceCache) window._hmPriceCache={};
-    if (!window._hmWbCache) window._hmWbCache={};
-    if (!window._hmPeCache) window._hmPeCache={};
-    if (!window._hmMcCache) window._hmMcCache={};
     window._hmPriceCache[symbol] = { price: q.price, pct: chgPctClose };
-    const isLight = document.body.classList.contains('light-theme');
-    const ltpColor   = isLight ? '#0d1117'  : '#ffffff';
-    const openColor  = isLight ? '#4a6080'  : '#8dafc8';
+
+    // ── PRICE CARD (replaces the old table row) ──
+    // Keep the legacy row-${symbol} element reference alive for cache/tint systems
+    // but the visible UI is now pcard-${symbol}
     const priceRow = document.getElementById('row-' + symbol);
-    if (priceRow) {
-      priceRow.innerHTML = `
-        <td class="col-sym sym-cell">
-          <span class="sym-name">${symbol}</span>
-          <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="sym-link">NSE ↗</a>
-        </td>
-        <td style="text-align:right;font-weight:800;color:${ltpColor};font-size:1.18rem">₹${fmt(q.price)}</td>
-        <td style="text-align:right;font-weight:700;color:${chgColor};font-size:1.06rem">${arrow} ${fmt(Math.abs(chg))}</td>
-        <td style="text-align:right;font-weight:800;color:${chgColor};font-size:1.12rem">${chgPct>=0?'+':''}${chgPct.toFixed(2)}%</td>
-        <td style="text-align:right;color:${openColor};font-weight:500;font-size:1rem">${open ? '₹'+fmt(open) : '<span style="color:var(--border2)">—</span>'}</td>
-        <td style="text-align:right;color:${openColor};font-weight:500;font-size:1rem">${prevClose ? '₹'+fmt(prevClose) : '<span style="color:var(--border2)">—</span>'}</td>
-        <td style="text-align:right;font-weight:700;color:${dayHighColor};font-size:1rem">${q.high && q.high > 0 ? '₹'+fmt(q.high) : '<span style="color:var(--border2)">—</span>'}</td>
-        <td style="text-align:right;font-weight:700;color:${dayLowColor};font-size:1rem">${q.low && q.low > 0 ? '₹'+fmt(q.low) : '<span style="color:var(--border2)">—</span>'}</td>
-        <td style="text-align:right;font-weight:700;color:${w52HighColor};font-size:1rem">₹${fmt(q.high52)}</td>
-        <td style="text-align:right;font-weight:700;color:${w52LowColor};font-size:1rem">₹${fmt(q.low52)}</td>`;
+    if (priceRow) priceRow.innerHTML = ''; // clear legacy row silently
+
+    const pcard = document.getElementById('pcard-' + symbol);
+    if (pcard) {
+      // Update sort data-attributes for the sort bar
+      const w52pos = (q.high52 && q.low52 && q.high52 > q.low52)
+        ? Math.round(((q.price - q.low52) / (q.high52 - q.low52)) * 100) : 0;
+      pcard.dataset.ltp  = q.price;
+      pcard.dataset.chg  = chgPctClose;
+      pcard.dataset.w52  = w52pos;
+
+      // Day range bar position
+      const dayRange = (q.high && q.low && q.high > q.low)
+        ? Math.round(((q.price - q.low) / (q.high - q.low)) * 100) : null;
+      const dayRangeBar = (q.high && q.low && q.high > q.low) ? `
+        <div class="fund-52w-bar-wrap" style="margin-top:8px">
+          <div class="fund-52w-labels">
+            <span style="color:#fb7185;font-size:0.62rem">₹${fmt(q.low)}</span>
+            <span style="color:#8a9ab0;font-size:0.58rem;font-family:Oxanium,sans-serif;font-weight:600;letter-spacing:0.06em">DAY RANGE · ${dayRange}%</span>
+            <span style="color:#00e5a0;font-size:0.62rem">₹${fmt(q.high)}</span>
+          </div>
+          <div class="fund-52w-track">
+            <div class="fund-52w-fill" style="width:${dayRange}%;background:${chgColor}"></div>
+            <div class="fund-52w-thumb" style="left:${dayRange}%;border-color:${chgColor}"></div>
+          </div>
+        </div>` : '';
+
+      // 52W range bar
+      const lo52 = q.low52 || 0, hi52 = q.high52 || 0;
+      const pct52 = (hi52 > lo52 && q.price) ? Math.min(100, Math.max(0, ((q.price - lo52) / (hi52 - lo52)) * 100)) : 0;
+      const bar52Color = pct52 > 70 ? '#00e5a0' : pct52 > 40 ? '#fbbf24' : '#fb7185';
+      const w52Bar = (hi52 > 0 && lo52 > 0) ? `
+        <div class="fund-52w-bar-wrap" style="margin-top:8px">
+          <div class="fund-52w-labels">
+            <span style="color:#fb7185;font-size:0.62rem">₹${fmt(lo52)}</span>
+            <span style="color:#8a9ab0;font-size:0.58rem;font-family:Oxanium,sans-serif;font-weight:600;letter-spacing:0.06em">52W RANGE · ${pct52.toFixed(0)}%</span>
+            <span style="color:#00e5a0;font-size:0.62rem">₹${fmt(hi52)}</span>
+          </div>
+          <div class="fund-52w-track">
+            <div class="fund-52w-fill" style="width:${pct52}%;background:${bar52Color}"></div>
+            <div class="fund-52w-thumb" style="left:${pct52}%;border-color:${bar52Color}"></div>
+          </div>
+        </div>` : '';
+
+      pcard.classList.add('animate-in');
+      pcard.innerHTML = `
+        <div class="fund-card-hd">
+          <div class="fund-card-sym-wrap">
+            <span class="fund-card-sym">${symbol}</span>
+            <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="fund-card-sym-link">NSE ↗</a>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <span class="price-chg-badge" style="background:${isUp?'rgba(0,229,160,0.15)':'rgba(251,113,133,0.15)'};color:${chgColor};border:1px solid ${chgColor}44;border-radius:20px;padding:3px 10px;font-family:Oxanium,sans-serif;font-size:0.72rem;font-weight:800;letter-spacing:0.06em">
+              ${arrow} ${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%
+            </span>
+            <div class="fund-card-price">₹${fmt(q.price)}<small>LTP</small></div>
+          </div>
+        </div>
+
+        ${w52Bar}
+        ${dayRangeBar}
+
+        <div class="fund-metrics-body" style="margin-top:8px">
+          <div class="fund-metric-row">
+            <div class="fund-metric">
+              <span class="fund-metric-label">Open</span>
+              <span class="fund-metric-value" style="color:#8dafc8">${open ? '₹'+fmt(open) : '<span class="fund-metric-value dim">—</span>'}</span>
+            </div>
+            <div class="fund-metric">
+              <span class="fund-metric-label">Prev Close</span>
+              <span class="fund-metric-value" style="color:#8dafc8">${prevClose ? '₹'+fmt(prevClose) : '<span class="fund-metric-value dim">—</span>'}</span>
+            </div>
+          </div>
+          <div class="fund-metric-row">
+            <div class="fund-metric">
+              <span class="fund-metric-label">Day High</span>
+              <span class="fund-metric-value" style="color:#00e5a0">${q.high && q.high > 0 ? '₹'+fmt(q.high) : '<span class="fund-metric-value dim">—</span>'}</span>
+            </div>
+            <div class="fund-metric">
+              <span class="fund-metric-label">Day Low</span>
+              <span class="fund-metric-value" style="color:#fb7185">${q.low && q.low > 0 ? '₹'+fmt(q.low) : '<span class="fund-metric-value dim">—</span>'}</span>
+            </div>
+          </div>
+          <div class="fund-metric-row">
+            <div class="fund-metric">
+              <span class="fund-metric-label">Chg (₹)</span>
+              <span class="fund-metric-value" style="color:${chgColor}">${isUp?'+':''}${fmt(Math.abs(chg))}</span>
+            </div>
+            <div class="fund-metric">
+              <span class="fund-metric-label">Chg from</span>
+              <span class="fund-metric-value" style="color:#8dafc8;font-size:0.68rem">${chgMode === 'open' ? 'Open' : 'Close'}</span>
+            </div>
+          </div>
+        </div>`;
     }
 
     // ── FUNDAMENTALS CARD ──
@@ -3863,14 +4065,12 @@ function sortFundCards(mode, btn) {
   btn.classList.add('active');
 
   if (mode === 'none') {
-    // Restore DOM order (original order by data-original-index)
     const cards = [...grid.querySelectorAll('.fund-card')];
     cards.sort((a, b) => parseInt(a.dataset.origIdx||0) - parseInt(b.dataset.origIdx||0));
     cards.forEach(c => grid.appendChild(c));
     return;
   }
 
-  // Toggle direction
   fundSortDir[mode] = fundSortDir[mode] === 'desc' ? 'asc' : 'desc';
   const dir = fundSortDir[mode];
   btn.querySelector('.sort-arrow').textContent = dir === 'desc' ? '↓' : '↑';
@@ -3879,10 +4079,38 @@ function sortFundCards(mode, btn) {
   cards.sort((a, b) => {
     const av = parseFloat(a.dataset[mode] ?? (mode==='de'||mode==='pe'?9999:-1));
     const bv = parseFloat(b.dataset[mode] ?? (mode==='de'||mode==='pe'?9999:-1));
-    // For PE and D/E: lower is better → ascending default; for others: higher is better → descending default
     return dir === 'desc' ? bv - av : av - bv;
   });
   cards.forEach((c, i) => { c.style.animationDelay = (i * 40) + 'ms'; grid.appendChild(c); });
+}
+
+const priceSortDir = {};
+function sortPriceCards(mode, btn) {
+  const grid = document.getElementById('price-card-grid');
+  if (!grid) return;
+
+  document.querySelectorAll('#price-sort-bar .sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  if (mode === 'default') {
+    const cards = [...grid.querySelectorAll('.price-card')];
+    cards.sort((a, b) => parseInt(a.dataset.origIdx||0) - parseInt(b.dataset.origIdx||0));
+    cards.forEach(c => grid.appendChild(c));
+    return;
+  }
+
+  priceSortDir[mode] = priceSortDir[mode] === 'desc' ? 'asc' : 'desc';
+  const dir = priceSortDir[mode];
+  const arrowEl = btn.querySelector('.sort-arrow');
+  if (arrowEl) arrowEl.textContent = dir === 'desc' ? '↓' : '↑';
+
+  const cards = [...grid.querySelectorAll('.price-card')];
+  cards.sort((a, b) => {
+    const av = parseFloat(a.dataset[mode] ?? 0);
+    const bv = parseFloat(b.dataset[mode] ?? 0);
+    return dir === 'desc' ? bv - av : av - bv;
+  });
+  cards.forEach((c, i) => { c.style.animationDelay = (i * 35) + 'ms'; grid.appendChild(c); });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -4108,7 +4336,11 @@ function mobRender() {
   } else if (activeTab === 'earnings') {
     mc.innerHTML = mobBuildEarnings();
   } else if (activeTab === 'compare') {
-    mc.innerHTML = buildComparePanel(); // compare works fine, just needs scroll wrap
+    mc.innerHTML = buildComparePanel();
+  } else if (activeTab === 'trade') {
+    mc.innerHTML = mobBuildTrade();
+  } else if (activeTab === 'invest') {
+    mc.innerHTML = mobBuildInvest();
   }
 
   // accordion toggles for master cats
@@ -4299,6 +4531,225 @@ function mobBuildEarnings() {
   return `<div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 4px;">${buildEarningsPanel()}</div>`;
 }
 
+// ── Mobile Trade Tab — card-per-stock layout, 6-inch optimised ─────────────
+function mobBuildTrade() {
+  const allScores = computeAllBCS();
+  const symConsolMap = {};
+  consolidatedTFs.forEach(tf => {
+    if (!BCS_CONSOL_LABELS.includes(tf.label)) return;
+    tf.cols.forEach(col => col.forEach(sym => {
+      const k = sym.toUpperCase();
+      if (!symConsolMap[k]) symConsolMap[k] = new Set();
+      symConsolMap[k].add(tf.label);
+    }));
+  });
+
+  const rows = Object.entries(symConsolMap)
+    .map(([sym, consolSet]) => ({
+      sym, consolLabels: [...consolSet],
+      bcs: allScores[sym] || computeBCS(sym)
+    }))
+    .sort((a, b) => {
+      if (b.consolLabels.length !== a.consolLabels.length) return b.consolLabels.length - a.consolLabels.length;
+      return b.bcs.total - a.bcs.total;
+    });
+
+  if (!rows.length) {
+    return `<div style="padding:48px 20px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif;font-size:0.85rem">
+      No console signals loaded yet</div>`;
+  }
+
+  // Combination summary cards at top
+  const comboSummary = BCS_CONSOL_LABELS.map(l => {
+    const m = CONSOL_META[l];
+    const cnt = rows.filter(r => r.consolLabels.includes(l)).length;
+    return `<div class="mob-combo-card" style="border-color:${m.color}44;background:${m.color}0a">
+      <div style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:800;color:${m.color};letter-spacing:0.06em;margin-bottom:2px">${l}</div>
+      <div style="font-family:Oxanium,sans-serif;font-size:1.1rem;font-weight:800;color:${m.color}">${cnt}</div>
+    </div>`;
+  }).join('');
+
+  const cards = rows.map(r => {
+    const fd = fundCache[r.sym] || {};
+    const price   = fd.price;
+    const chgPct = _getChgPct(fd);
+    const priceTxt = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+    const pctTxt  = chgPct != null ? `${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%` : '';
+    const pctCls  = chgPct == null ? '' : chgPct > 0 ? 'up' : chgPct < 0 ? 'down' : 'flat';
+    const sector  = fd.sector || fundSector[r.sym] || '';
+    const earnBadge = getEarnBadge(r.sym);
+    const isNew   = r.consolLabels.some(l => r4NewEntries.has(r.sym + '|' + l));
+    const multiBadge = r.consolLabels.length >= 2
+      ? `<span style="font-family:Oxanium,sans-serif;font-size:0.55rem;font-weight:800;background:rgba(249,115,22,0.2);color:#f97316;border-radius:3px;padding:1px 5px">${r.consolLabels.length}×</span>` : '';
+    const newBadge = isNew ? `<span style="font-family:Oxanium,sans-serif;font-size:0.52rem;font-weight:800;background:rgba(249,115,22,0.18);color:#f97316;border:1px solid rgba(249,115,22,0.4);border-radius:3px;padding:1px 4px">NEW</span>` : '';
+    const consolPills = r.consolLabels.map(l => {
+      const m = CONSOL_META[l] || { color:'#818cf8' };
+      return `<span style="font-family:Oxanium,sans-serif;font-size:0.52rem;font-weight:700;color:${m.color};border:1px solid ${m.color}44;background:${m.color}11;border-radius:4px;padding:1px 6px;white-space:nowrap">${l}</span>`;
+    }).join('');
+    const bcs = r.bcs;
+    const barColor = bcs.total >= 70 ? '#f97316' : bcs.total >= 50 ? '#fbbf24' : '#38bdf8';
+    const w52bar = bcs.pct52 != null
+      ? `<div style="display:flex;align-items:center;gap:5px;margin-top:4px">
+          <div style="flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden">
+            <div style="width:${bcs.pct52}%;height:100%;background:linear-gradient(90deg,#38bdf8,#f97316);border-radius:2px"></div>
+          </div>
+          <span style="font-size:10px;color:var(--muted)">${bcs.pct52}%</span>
+        </div>` : '';
+
+    return `<div class="mob-ti-card" onclick="openSymbolModal('${r.sym}')">
+      <div class="mob-ti-card-top">
+        <div>
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+            <span class="mob-ti-sym">${r.sym}${earnBadge}</span>${multiBadge}${newBadge}
+          </div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:1px">${sector}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:Oxanium,sans-serif;font-size:0.85rem;font-weight:800;color:var(--text)">${priceTxt}</div>
+          ${pctTxt ? `<div class="mob-stock-pct ${pctCls}" style="margin-top:1px">${pctTxt}</div>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:3px;margin:6px 0">${consolPills}</div>
+      ${w52bar}
+      <div class="mob-ti-bcs-row">
+        <div style="flex:1;height:5px;background:var(--border2);border-radius:3px;overflow:hidden">
+          <div style="width:${bcs.total}%;height:100%;background:${barColor};border-radius:3px"></div>
+        </div>
+        <span style="font-family:Oxanium,sans-serif;font-size:0.65rem;font-weight:800;color:${barColor}">BCS ${bcs.total}</span>
+        <span style="font-family:Oxanium,sans-serif;font-size:0.55rem;font-weight:800;background:${bcs.labelBg};color:${bcs.labelColor};border-radius:3px;padding:1px 5px">${bcs.label}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div style="padding:10px 8px;overflow-y:auto;-webkit-overflow-scrolling:touch">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">${comboSummary}</div>
+    <div style="font-family:Oxanium,sans-serif;font-size:0.62rem;color:var(--muted);margin-bottom:8px;padding:0 2px">
+      ${rows.length} signals · sorted by combination strength · tap for fundamentals
+    </div>
+    ${cards}
+  </div>`;
+}
+
+// ── Mobile Invest Tab — card-per-stock layout, Monthly S4 focused ──────────
+function mobBuildInvest() {
+  const allScores = computeAllBCS();
+  const s4Stocks = new Set();
+  masterTFs.forEach(tf => {
+    if (tf.label === 'Monthly S4') {
+      tf.cols.forEach(col => col.forEach(sym => { if (sym && sym.trim()) s4Stocks.add(sym.toUpperCase()); }));
+    }
+  });
+  const aboveR4 = new Set();
+  masterTFs.forEach(tf => {
+    if (tf.label === 'Monthly R4' || tf.label === 'Monthly R2') {
+      tf.cols.forEach(col => col.forEach(sym => { if (sym) aboveR4.add(sym.toUpperCase()); }));
+    }
+  });
+
+  if (!s4Stocks.size) {
+    return `<div style="padding:48px 20px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif;font-size:0.85rem">
+      No stocks in Monthly S4 yet</div>`;
+  }
+
+  const rows = [...s4Stocks]
+    .map(sym => ({ sym, bcs: allScores[sym] || computeBCS(sym), isAboveR4: aboveR4.has(sym) }))
+    .sort((a, b) => {
+      if (!a.isAboveR4 && b.isAboveR4) return -1;
+      if (a.isAboveR4 && !b.isAboveR4) return 1;
+      return b.bcs.total - a.bcs.total;
+    });
+
+  const pureCount = rows.filter(r => !r.isAboveR4).length;
+  const r4Count   = rows.filter(r => r.isAboveR4).length;
+
+  const cards = rows.map(r => {
+    const fd = fundCache[r.sym] || {};
+    const price    = fd.price;
+    const chgPct = _getChgPct(fd);
+    const priceTxt = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+    const pctTxt   = chgPct != null ? `${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%` : '';
+    const pctCls   = chgPct == null ? '' : chgPct > 0 ? 'up' : chgPct < 0 ? 'down' : 'flat';
+    const sector   = fd.sector || fundSector[r.sym] || '';
+    const roe  = fd.roe   != null ? (fd.roe  * 100).toFixed(1) + '%' : '—';
+    const roce = fd.roce  != null ? (fd.roce * 100).toFixed(1) + '%' : '—';
+    const de   = fd.debtToEquity != null ? fd.debtToEquity.toFixed(2) : '—';
+    const pe   = fd.pe    != null ? fd.pe.toFixed(1) : '—';
+    const earnBadge = getEarnBadge(r.sym);
+    const statusBadge = r.isAboveR4
+      ? `<span style="font-family:Oxanium,sans-serif;font-size:0.52rem;font-weight:800;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);border-radius:3px;padding:1px 5px">↑ R4</span>`
+      : `<span style="font-family:Oxanium,sans-serif;font-size:0.52rem;font-weight:800;background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.35);border-radius:3px;padding:1px 5px">M-S4</span>`;
+    const bcs = r.bcs;
+    const barColor = bcs.total >= 70 ? '#f97316' : bcs.total >= 50 ? '#fbbf24' : '#34d399';
+    const roeGood  = fd.roe  != null && fd.roe  * 100 >= 15;
+    const roceGood = fd.roce != null && fd.roce * 100 >= 16;
+    const deGood   = fd.debtToEquity != null && fd.debtToEquity < 0.5;
+
+    // Risk flags
+    const sec = (fd.sector || '').toLowerCase();
+    const isB = /bank|financial/i.test(sec);
+    const flags = [];
+    if (fd.beta != null && fd.beta > 1.5) flags.push(`<span style="font-size:0.5rem;background:rgba(251,113,133,0.15);color:#fb7185;border-radius:3px;padding:1px 4px">β${fd.beta.toFixed(1)}</span>`);
+    if (!isB && fd.debtToEquity != null && fd.debtToEquity > 2) flags.push(`<span style="font-size:0.5rem;background:rgba(251,113,133,0.15);color:#fb7185;border-radius:3px;padding:1px 4px">High D/E</span>`);
+
+    return `<div class="mob-ti-card${r.isAboveR4 ? ' above-r4' : ' s4-zone'}" onclick="openSymbolModal('${r.sym}')">
+      <div class="mob-ti-card-top">
+        <div>
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+            <span class="mob-ti-sym">${r.sym}${earnBadge}</span>${statusBadge}
+          </div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-top:1px">${sector}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:Oxanium,sans-serif;font-size:0.85rem;font-weight:800;color:var(--text)">${priceTxt}</div>
+          ${pctTxt ? `<div class="mob-stock-pct ${pctCls}" style="margin-top:1px">${pctTxt}</div>` : ''}
+        </div>
+      </div>
+      <div class="mob-ti-fund-row">
+        <span class="mob-ti-fl">ROE</span><span class="${roeGood ? 'mob-ti-fv-good' : 'mob-ti-fv'}">${roe}</span>
+        <span class="mob-ti-fl">ROCE</span><span class="${roceGood ? 'mob-ti-fv-good' : 'mob-ti-fv'}">${roce}</span>
+        <span class="mob-ti-fl">D/E</span><span class="${deGood ? 'mob-ti-fv-good' : 'mob-ti-fv'}">${de}</span>
+        <span class="mob-ti-fl">PE</span><span class="mob-ti-fv">${pe}</span>
+      </div>
+      <div class="mob-ti-bcs-row">
+        <div style="flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden">
+          <div style="width:${bcs.total}%;height:100%;background:${barColor};border-radius:2px"></div>
+        </div>
+        <span style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;color:${barColor}">BCS ${bcs.total}</span>
+        ${flags.join('')}
+      </div>
+      <div style="font-size:0.58rem;color:var(--muted);margin-top:4px">
+        Size: <span style="color:var(--text);font-weight:700">${_posSizeLabel(bcs.total, fd.beta)}</span>
+        <span style="opacity:0.5"> · educational only</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const positionNote = `<div style="margin:8px 2px 10px;padding:8px 10px;background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.15);border-radius:7px;font-size:0.62rem;color:var(--muted);line-height:1.5">
+    <strong style="color:#34d399">Monthly S4</strong> = accumulation zone. 
+    <span style="color:#fbbf24">↑ R4</span> = already broken above R4.
+    Tap any card to view full fundamentals.
+  </div>`;
+
+  return `<div style="padding:10px 8px;overflow-y:auto;-webkit-overflow-scrolling:touch">
+    <div style="display:flex;gap:7px;margin-bottom:8px">
+      <div style="flex:1;padding:8px 10px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:8px;text-align:center">
+        <div style="font-family:Oxanium,sans-serif;font-size:1.2rem;font-weight:800;color:#34d399">${pureCount}</div>
+        <div style="font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif">In S4</div>
+      </div>
+      ${r4Count > 0 ? `<div style="flex:1;padding:8px 10px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:8px;text-align:center">
+        <div style="font-family:Oxanium,sans-serif;font-size:1.2rem;font-weight:800;color:#fbbf24">${r4Count}</div>
+        <div style="font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif">Above R4</div>
+      </div>` : ''}
+      <div style="flex:1;padding:8px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;text-align:center">
+        <div style="font-family:Oxanium,sans-serif;font-size:1.2rem;font-weight:800;color:var(--text)">${rows.length}</div>
+        <div style="font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif">Total</div>
+      </div>
+    </div>
+    ${positionNote}
+    ${cards}
+  </div>`;
+}
+
 function mobSyncIndexStrip() {
   const map = [
     ['nifty',     'mix-nifty-val',     'mix-nifty-chg'],
@@ -4333,13 +4784,12 @@ function mobileSearchHandler(val) {
 }
 
 function mobSyncBadges() {
-  ['master','consolidated','heatmap','earnings','compare'].forEach(tab => {
+  ['master','consolidated','heatmap','earnings','compare','trade','invest'].forEach(tab => {
     const src = document.getElementById('badge-' + tab);
     const dst = document.getElementById('mbn-badge-' + tab);
     if (!src || !dst) return;
     const val = src.textContent || '—';
     dst.textContent = val;
-    // show badge only if it has a real number
     dst.classList.toggle('has-val', val !== '—' && val !== '' && val !== '0');
   });
 }
@@ -5545,15 +5995,119 @@ function buildHeatmap() {
   // Fire fetch immediately — no delay
   requestAnimationFrame(() => fetchHeatmapPrices(syms));
 
+  // ── SECTOR ROTATION RADAR ─────────────────────────────────────────────────
+  // Counts stocks per sector across ALL TFs (master + consolidated)
+  // Compares: how many in bullish TFs (R4/R2) vs accumulation (S4)
+  // Zero extra fetches — reads masterTFs/consolidatedTFs already in memory
+  const radarHtml = buildSectorRadar();
+
   return '<div class="hm-sector-bar">' + sectorBtns + '</div>'
     + '<div class="hm-sort-row"><span class="hm-sort-label">SORT:</span>' + sortBtns
     + '<span style="margin-left:auto;font-family:Oxanium,sans-serif;font-size:0.65rem;color:var(--muted);letter-spacing:0.07em">' + syms.length + ' stocks</span></div>'
+    + radarHtml
     + '<div id="hmProgress"><div id="hmProgressBar"></div></div>'
     + '<div id="hmStatusLine"></div>'
     + '<div class="heatmap-grid" id="hmGrid">' + cells + '</div>';
 }
 
 function hmSetSector(sec) { hmSector=sec; if(activeTab==='heatmap') render(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SECTOR ROTATION RADAR
+// Shows which sectors are accumulating bullish signals across TFs.
+// Reads masterTFs + consolidatedTFs — zero fetches, zero latency.
+// ═══════════════════════════════════════════════════════════════════════════
+function buildSectorRadar() {
+  // Categorise TF labels into signal types
+  const BULLISH_TF = new Set(['Monthly R4','Monthly R2','Daily R4','Daily R2',
+    '1 Hour R4','15 Min R4','M-D-H: R4','D-H: R4','H-15m: R4','D:R2 & H:R4']);
+  const ACCUM_TF   = new Set(['Monthly S4']);
+
+  // sym → { bullish: count, accum: count }
+  const symSignals = {};
+  [...masterTFs, ...consolidatedTFs].forEach(tf => {
+    const isBull  = BULLISH_TF.has(tf.label);
+    const isAccum = ACCUM_TF.has(tf.label);
+    if (!isBull && !isAccum) return;
+    tf.cols.forEach(col => col.forEach(sym => {
+      const k = sym.toUpperCase();
+      if (!symSignals[k]) symSignals[k] = { bullish:0, accum:0 };
+      if (isBull)  symSignals[k].bullish++;
+      if (isAccum) symSignals[k].accum++;
+    }));
+  });
+
+  // Aggregate by sector
+  const sectorMap = {};  // sector → { bullish, accum, total, syms[] }
+  Object.entries(symSignals).forEach(([sym, sig]) => {
+    const sec = fundSector[sym] || 'Unknown';
+    if (!sectorMap[sec]) sectorMap[sec] = { bullish:0, accum:0, total:0, syms:[] };
+    sectorMap[sec].bullish += sig.bullish;
+    sectorMap[sec].accum  += sig.accum;
+    sectorMap[sec].total++;
+    sectorMap[sec].syms.push(sym);
+  });
+
+  const sectors = Object.entries(sectorMap)
+    .filter(([s]) => s !== 'Unknown' && s !== '')
+    .sort((a, b) => (b[1].bullish + b[1].accum * 0.5) - (a[1].bullish + a[1].accum * 0.5));
+
+  if (!sectors.length) return '';
+
+  const maxBullish = Math.max(...sectors.map(([,d]) => d.bullish), 1);
+
+  const radarRows = sectors.map(([sec, d]) => {
+    const bullPct  = Math.round(d.bullish / maxBullish * 100);
+    // Momentum score: bullish signals / max possible (stocks × TFs)
+    const momentum = d.total > 0 ? Math.round(d.bullish / (d.total * BULLISH_TF.size) * 100) : 0;
+    // Bar color: high momentum = green, medium = amber, low = muted
+    const barColor = momentum >= 40 ? '#34d399' : momentum >= 20 ? '#fbbf24' : '#38bdf8';
+    const labelColor = momentum >= 40 ? '#34d399' : momentum >= 20 ? '#fbbf24' : 'var(--muted)';
+    const accumBadge = d.accum > 0
+      ? `<span class="sr-accum-badge" title="${d.accum} stocks in Monthly S4 (accumulation)">S4:${d.accum}</span>` : '';
+    const tipSyms = d.syms.slice(0,8).join(', ') + (d.syms.length > 8 ? '…' : '');
+    return `<div class="sr-row" title="${sec}: ${d.bullish} bullish signals · ${d.total} stocks · ${tipSyms}">
+      <div class="sr-sec-name" style="color:${labelColor}">${sec}</div>
+      <div class="sr-bar-wrap">
+        <div class="sr-bar-fill" style="width:${bullPct}%;background:${barColor}"></div>
+      </div>
+      <div class="sr-stats">
+        <span class="sr-bull" style="color:${barColor}">${d.bullish}</span>
+        <span class="sr-tot">/${d.total}</span>
+        ${accumBadge}
+      </div>
+    </div>`;
+  }).join('');
+
+  const topSector = sectors[0];
+  const topName   = topSector ? topSector[0] : '—';
+  const topBull   = topSector ? topSector[1].bullish : 0;
+
+  return `<div class="sr-panel" id="srPanel">
+    <div class="sr-header">
+      <span class="sr-title">📡 SECTOR ROTATION RADAR</span>
+      <span class="sr-sub">Bullish signal density by sector · bar = signals / max</span>
+      <span class="sr-leader">Leading: <strong style="color:#34d399">${topName}</strong> (${topBull} signals)</span>
+      <button class="sr-toggle" onclick="toggleSectorRadar()">▲ Hide</button>
+    </div>
+    <div class="sr-body" id="srBody">${radarRows}</div>
+    <div class="sr-legend">
+      <span><span style="color:#34d399">■</span> High momentum ≥40%</span>
+      <span><span style="color:#fbbf24">■</span> Medium 20–40%</span>
+      <span><span style="color:#38bdf8">■</span> Low &lt;20%</span>
+      <span class="sr-accum-badge" style="position:relative;top:0;right:0">S4:N</span> = stocks in Monthly S4
+    </div>
+  </div>`;
+}
+
+function toggleSectorRadar() {
+  const body = document.getElementById('srBody');
+  const btn  = document.querySelector('.sr-toggle');
+  if (!body || !btn) return;
+  const collapsed = body.style.display === 'none';
+  body.style.display   = collapsed ? '' : 'none';
+  btn.textContent = collapsed ? '▲ Hide' : '▼ Show';
+}
 
 function hmSetSort(key) {
   hmSort = key;
@@ -5975,5 +6529,990 @@ async function fetchCompareData(syms) {
   } catch(e) { console.warn('fetchCompareData:', e); }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// BCS — BULLISH CONVICTION SCORE ENGINE
+// Pure client-side computation — zero extra fetches, zero latency.
+// Runs entirely on data already in fundCache / r4Confluence / corpActions.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// The 4 Console combinations exactly as defined in CONSOL_DEFS:
+//   M-D-H: R4   = Monthly + Daily + Hourly confluence
+//   D-H: R4     = Daily + Hourly confluence
+//   H-15m: R4   = Hourly + 15-min confluence  ← was missing from Trade tab
+//   D:R2 & H:R4 = Daily R2 momentum + Hourly R4 continuation
+const BCS_CONSOL_LABELS = ['M-D-H: R4','D-H: R4','H-15m: R4','D:R2 & H:R4'];
+
+// TF signal weights for BCS scoring
+const BCS_TF_WEIGHT = {
+  'Monthly R4': 10, 'Monthly R2': 7,  'Monthly S4': 4,
+  'Daily R4':   9,  'Daily R2':   6,
+  '1 Hour R4':  7,  '15 Min R4':  5,
+  'M-D-H: R4':  12, 'D-H: R4':   10,
+  'H-15m: R4':  9,  'D:R2 & H:R4': 10
+};
+
+function computeBCS(sym) {
+  const k   = sym.toUpperCase();
+  const fd  = fundCache[k] || {};
+  let score = 0;
+  const detail = {};
+
+  // ── COMPONENT 1: TF Confluence (0–42 pts) ──────────────────────────────
+  // Sum weights for each TF the stock appears in (master + consolidated)
+  let tfPts = 0;
+  const symTFs = [];
+  [...masterTFs, ...consolidatedTFs].forEach(tf => {
+    if (tf.cols.some(col => col.includes(sym) || col.includes(k))) {
+      const w = BCS_TF_WEIGHT[tf.label] || 3;
+      tfPts += w;
+      symTFs.push(tf.label);
+    }
+  });
+  // Bonus: stock appears in a consolidated TF (multi-TF convergence signal)
+  const consolCount = symTFs.filter(l => BCS_CONSOL_LABELS.includes(l)).length;
+  if (consolCount >= 2) tfPts += 8;
+  else if (consolCount === 1) tfPts += 4;
+  // Cap at 42
+  const tfScore = Math.min(42, tfPts);
+  score += tfScore;
+  detail.tfScore = tfScore;
+  detail.tfLabels = symTFs;
+
+  // ── COMPONENT 2: Fundamental Quality (0–28 pts) ─────────────────────────
+  let fundPts = 0;
+  const sec = (fd.sector || fundSector[k] || '').toLowerCase();
+  const isBank = /bank|financial service|nbfc|finance/i.test(sec);
+  const isCap  = /utility|power|steel|metal|oil|energy/i.test(sec);
+
+  const roe  = fd.roe   != null ? fd.roe  * 100 : null;
+  const roce = fd.roce  != null ? fd.roce * 100 : null;
+  const de   = fd.debtToEquity;
+  const npm  = fd.netProfitMargin != null ? fd.netProfitMargin * 100 : null;
+  const fcf  = fd.freeCashFlow;
+  const rev  = fd.revenue;
+
+  // ROE (0–8 pts)
+  if (roe != null) {
+    if (isBank) fundPts += roe >= 15 ? 8 : roe >= 10 ? 5 : roe >= 6 ? 2 : 0;
+    else        fundPts += roe >= 20 ? 8 : roe >= 15 ? 6 : roe >= 10 ? 3 : 0;
+  }
+  // ROCE (0–7 pts) — skip for banks
+  if (!isBank && roce != null) {
+    fundPts += roce >= 22 ? 7 : roce >= 16 ? 5 : roce >= 10 ? 2 : 0;
+  }
+  // D/E (0–6 pts) — skip for banks
+  if (!isBank && de != null) {
+    if (isCap) fundPts += de < 0.5 ? 6 : de < 1 ? 4 : de < 2 ? 2 : 0;
+    else       fundPts += de < 0.1 ? 6 : de < 0.3 ? 5 : de < 0.5 ? 3 : de < 1 ? 1 : 0;
+  }
+  // Net profit margin (0–5 pts)
+  if (npm != null) {
+    fundPts += npm >= 20 ? 5 : npm >= 12 ? 3 : npm >= 5 ? 1 : 0;
+  }
+  // FCF positive (0–2 pts)
+  if (fcf != null && rev != null && rev > 0) {
+    const fcfM = fcf / rev * 100;
+    fundPts += fcfM >= 10 ? 2 : fcfM >= 0 ? 1 : 0;
+  }
+  const fundScore = Math.min(28, fundPts);
+  score += fundScore;
+  detail.fundScore = fundScore;
+
+  // ── COMPONENT 3: 52-Week Position (0–15 pts) ───────────────────────────
+  let w52Score = 0;
+  const price = fd.price;
+  const h52   = fd.high52;
+  const l52   = fd.low52;
+  if (price != null && h52 != null && l52 != null && h52 > l52) {
+    const pct52 = (price - l52) / (h52 - l52);
+    // In upper 30% of 52W range = strong momentum
+    if      (pct52 >= 0.85) w52Score = 12;  // near 52W high — breakout zone
+    else if (pct52 >= 0.70) w52Score = 15;  // sweet spot: confirmed uptrend
+    else if (pct52 >= 0.50) w52Score = 10;
+    else if (pct52 >= 0.30) w52Score = 5;   // mid range
+    else                    w52Score = 2;   // deep value (invest signal)
+  }
+  score += w52Score;
+  detail.w52Score = w52Score;
+  detail.pct52 = (price != null && h52 != null && l52 != null && h52 > l52)
+    ? Math.round(((price - l52) / (h52 - l52)) * 100) : null;
+
+  // ── COMPONENT 4: Corporate Action Proximity (0–10 pts) ─────────────────
+  let caScore = 0;
+  const symCA = corpActions.filter(a => (a.symbol || '').toUpperCase() === k);
+  symCA.forEach(ca => {
+    const d = daysUntilEarnings(ca.exDate);
+    if (d == null) return;
+    if (d >= 0 && d <= 7)  caScore = Math.max(caScore, 10); // imminent
+    else if (d >= 0 && d <= 14) caScore = Math.max(caScore, 6);
+    else if (d >= 0 && d <= 30) caScore = Math.max(caScore, 3);
+  });
+  const earnDate = fd.earningsDate || fundEarnings[k] || '';
+  if (earnDate) {
+    const ed = daysUntilEarnings(earnDate);
+    if (ed != null && ed >= 0 && ed <= 14) caScore = Math.max(caScore, 8);
+    else if (ed != null && ed >= 0 && ed <= 30) caScore = Math.max(caScore, 4);
+  }
+  score += caScore;
+  detail.caScore = caScore;
+
+  // ── COMPONENT 5: Price Momentum (0–5 pts) ──────────────────────────────
+  // Uses chgPctFromClose from fundCache
+  let momScore = 0;
+  const chgPct = _getChgPct(fd);
+  if (chgPct != null) {
+    if (chgPct >= 2)       momScore = 5;
+    else if (chgPct >= 0.5) momScore = 3;
+    else if (chgPct >= 0)   momScore = 1;
+  }
+  score += momScore;
+  detail.momScore = momScore;
+
+  const finalScore = Math.min(100, Math.round(score));
+  detail.total = finalScore;
+
+  // ── LABEL ───────────────────────────────────────────────────────────────
+  let label, labelColor, labelBg;
+  // Monthly S4 at high BCS = strong invest signal
+  const atMonthlyS4 = symTFs.some(l => l === 'Monthly S4');
+  if (atMonthlyS4 && finalScore >= 45) {
+    label = 'INVEST'; labelColor = '#34d399'; labelBg = 'rgba(52,211,153,0.15)';
+  } else if (finalScore >= 70) {
+    label = 'TRADE';  labelColor = '#f97316'; labelBg = 'rgba(249,115,22,0.15)';
+  } else if (finalScore >= 50) {
+    label = 'WATCH';  labelColor = '#fbbf24'; labelBg = 'rgba(251,191,36,0.12)';
+  } else {
+    label = 'MONITOR'; labelColor = '#6b7280'; labelBg = 'rgba(107,114,128,0.08)';
+  }
+  detail.label = label; detail.labelColor = labelColor; detail.labelBg = labelBg;
+
+  return detail;
+}
+
+// Compute scores for ALL watchlist symbols — runs in <5ms on 200 stocks
+function computeAllBCS() {
+  const result = {};
+  const allSyms = new Set(
+    [...masterTFs, ...consolidatedTFs].flatMap(tf => tf.cols.flat()).map(s => s.toUpperCase())
+  );
+  allSyms.forEach(sym => { result[sym] = computeBCS(sym); });
+  return result;
+}
+
+// ── BCS Score pill HTML ────────────────────────────────────────────────────
+function bcsPill(bcs, compact) {
+  if (!bcs) return '';
+  const s = bcs.total;
+  // Bar width: proportional fill
+  const barW = s;
+  const barColor = s >= 70 ? '#f97316' : s >= 50 ? '#fbbf24' : s >= 30 ? '#38bdf8' : '#4b5563';
+  if (compact) {
+    return `<span class="bcs-pill" style="background:${bcs.labelBg};color:${bcs.labelColor}" title="BCS ${s}/100 · ${bcs.label}">${s}</span>`;
+  }
+  return `<div class="bcs-block">
+    <div class="bcs-header">
+      <span class="bcs-score" style="color:${bcs.labelColor}">${s}</span>
+      <span class="bcs-label" style="background:${bcs.labelBg};color:${bcs.labelColor}">${bcs.label}</span>
+    </div>
+    <div class="bcs-bar-track"><div class="bcs-bar-fill" style="width:${barW}%;background:${barColor}"></div></div>
+    <div class="bcs-breakdown">
+      <span title="TF Confluence">TF:${bcs.tfScore}</span>
+      <span title="Fundamentals">F:${bcs.fundScore}</span>
+      <span title="52W Position">52W:${bcs.w52Score}</span>
+      <span title="Corp Action">CA:${bcs.caScore}</span>
+      <span title="Momentum">M:${bcs.momScore}</span>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ALERT SYSTEM — detects new high-conviction signals each refresh cycle
+// Uses session state only — no fetch, no storage writes
+// ═══════════════════════════════════════════════════════════════════════════
+let _bcsAlertPrev = {};   // sym → previous BCS total
+let _bcsAlertBanner = null;
+
+function runBCSAlerts() {
+  const allScores = computeAllBCS();
+  const alerts = [];
+
+  Object.entries(allScores).forEach(([sym, bcs]) => {
+    const prev = _bcsAlertPrev[sym];
+    const cur  = bcs.total;
+
+    // Alert conditions:
+    // 1. BCS jumped ≥ 12 pts in one cycle (hot momentum)
+    if (prev != null && cur - prev >= 12) {
+      alerts.push({ sym, msg: `BCS ↑${cur - prev}pts → ${cur}`, color: '#f97316', label: bcs.label });
+    }
+    // 2. Newly crossed into TRADE zone (prev < 70, now ≥ 70)
+    if (prev != null && prev < 70 && cur >= 70) {
+      alerts.push({ sym, msg: `Crossed TRADE zone (${cur})`, color: '#f97316', label: 'TRADE' });
+    }
+    // 3. New entry in Consolidated TF this cycle (r4NewEntries already computed)
+    BCS_CONSOL_LABELS.forEach(tfl => {
+      if (r4NewEntries.has(sym + '|' + tfl) && cur >= 50) {
+        alerts.push({ sym, msg: `New in ${tfl} (BCS ${cur})`, color: '#818cf8', label: 'NEW' });
+      }
+    });
+    // 4. Earnings within 3 days + BCS ≥ 50
+    const earnDate = (fundCache[sym] || {}).earningsDate || fundEarnings[sym] || '';
+    if (earnDate) {
+      const ed = daysUntilEarnings(earnDate);
+      if (ed != null && ed >= 0 && ed <= 3 && cur >= 50) {
+        alerts.push({ sym, msg: `Earnings in ${ed}d · BCS ${cur}`, color: '#f59e0b', label: 'EARN' });
+      }
+    }
+    _bcsAlertPrev[sym] = cur;
+  });
+
+  if (alerts.length) _showAlertBanner(alerts);
+}
+
+function _showAlertBanner(alerts) {
+  if (_bcsAlertBanner) _bcsAlertBanner.remove();
+  const el = document.createElement('div');
+  el.id = 'bcs-alert-banner';
+  el.style.cssText = `
+    position:fixed;top:58px;right:12px;z-index:9000;
+    background:#11141a;border:1px solid rgba(249,115,22,0.5);
+    border-radius:10px;padding:10px 14px;max-width:320px;
+    box-shadow:0 8px 28px rgba(0,0,0,0.55);
+    font-family:Calibri,sans-serif;font-size:0.8rem;color:#fff;
+    animation:bcsSlideIn 0.25s ease;
+  `;
+  const rows = alerts.slice(0, 5).map(a =>
+    `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+      <span style="font-family:Oxanium,sans-serif;font-weight:800;font-size:0.75rem;color:${a.color};min-width:80px">${a.sym}</span>
+      <span style="font-size:0.72rem;color:#d0dce8;flex:1">${a.msg}</span>
+      <span style="font-size:0.6rem;background:${a.color}22;color:${a.color};padding:1px 5px;border-radius:4px;font-family:Oxanium,sans-serif;font-weight:800">${a.label}</span>
+    </div>`
+  ).join('');
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <span style="font-family:Oxanium,sans-serif;font-size:0.7rem;font-weight:800;letter-spacing:0.1em;color:#f97316">⚡ SIGNAL ALERTS</span>
+      <button onclick="document.getElementById('bcs-alert-banner').remove()" style="background:transparent;border:none;color:#6b7280;cursor:pointer;font-size:0.9rem;padding:0">✕</button>
+    </div>
+    ${rows}
+    ${alerts.length > 5 ? `<div style="font-size:0.65rem;color:#6b7280;margin-top:6px">+${alerts.length - 5} more — check Trade tab</div>` : ''}
+  `;
+  document.body.appendChild(el);
+  _bcsAlertBanner = el;
+  setTimeout(() => { if (el.parentNode) el.remove(); }, 12000);
+}
+
+// Hook alerts into loadSheet completion (after r4NewEntries are fresh)
+const _origRender = render;
+let _bcsAlertHooked = false;
+if (!_bcsAlertHooked) {
+  _bcsAlertHooked = true;
+  const _origLS = loadSheet;
+}
+
+// Run alerts after every render (checks only if masterTFs populated)
+function _maybeRunAlerts() {
+  if (masterTFs.length || consolidatedTFs.length) {
+    setTimeout(runBCSAlerts, 200); // micro-delay so fundCache is fully merged
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TRADE TAB — Uses the 4 Console combinations exactly:
+//   M-D-H: R4  |  D-H: R4  |  H-15m: R4  |  D:R2 & H:R4
+// Stocks are sourced ONLY from consolidatedTFs — same as the Console tab.
+// Ranked by BCS descending, grouped by combination strength.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Combination metadata for display
+const CONSOL_META = {
+  'M-D-H: R4':   { color:'#818cf8', strength:4, desc:'Monthly + Daily + Hourly' },
+  'D-H: R4':     { color:'#fb923c', strength:3, desc:'Daily + Hourly' },
+  'H-15m: R4':   { color:'#e879f9', strength:2, desc:'Hourly + 15-min' },
+  'D:R2 & H:R4': { color:'#2dd4bf', strength:2, desc:'Daily R2 + Hourly R4' },
+};
+
+function buildTradeTab() {
+  const allScores = computeAllBCS();
+
+  // Build sym → Set<consolLabel> map from consolidatedTFs only
+  // This exactly mirrors the Console tab data
+  const symConsolMap = {};
+  consolidatedTFs.forEach(tf => {
+    if (!BCS_CONSOL_LABELS.includes(tf.label)) return;
+    tf.cols.forEach(col => col.forEach(sym => {
+      const k = sym.toUpperCase();
+      if (!symConsolMap[k]) symConsolMap[k] = new Set();
+      symConsolMap[k].add(tf.label);
+    }));
+  });
+
+  if (!Object.keys(symConsolMap).length) {
+    return `<div class="trade-invest-panel"><div style="padding:60px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif">
+      <div style="font-size:1.2rem;margin-bottom:10px">No consolidated signals loaded</div>
+      <div style="font-size:0.8rem">The Trade tab reads from your 4 Console combinations:<br>
+      <strong style="color:#818cf8">M-D-H: R4</strong> · <strong style="color:#fb923c">D-H: R4</strong> · 
+      <strong style="color:#e879f9">H-15m: R4</strong> · <strong style="color:#2dd4bf">D:R2 &amp; H:R4</strong></div>
+    </div></div>`;
+  }
+
+  // Build rows with BCS — include ALL stocks from any console combination
+  // Apply sector filter if active (matches Master/Console tab behaviour)
+  const rows = Object.entries(symConsolMap)
+    .map(([sym, consolSet]) => ({
+      sym,
+      consolLabels: [...consolSet],
+      bcs: allScores[sym] || computeBCS(sym),
+      maxStrength: [...consolSet].reduce((mx, l) => Math.max(mx, (CONSOL_META[l]||{strength:1}).strength), 0),
+      allTFCount: r4Confluence[sym] || 0
+    }))
+    .filter(r => activeSector === 'ALL' || (fundSector[r.sym] || '') === activeSector)
+    .sort((a, b) => {
+      if (b.consolLabels.length !== a.consolLabels.length) return b.consolLabels.length - a.consolLabels.length;
+      if (b.maxStrength !== a.maxStrength) return b.maxStrength - a.maxStrength;
+      return b.bcs.total - a.bcs.total;
+    });
+
+  // Count per combination
+  const countPerCombo = {};
+  BCS_CONSOL_LABELS.forEach(l => {
+    countPerCombo[l] = rows.filter(r => r.consolLabels.includes(l)).length;
+  });
+  const multiComboCount = rows.filter(r => r.consolLabels.length >= 2).length;
+
+  const tableRows = rows.map(r => {
+    const fd = fundCache[r.sym] || {};
+    const price    = fd.price;
+    const chgPct = _getChgPct(fd);
+    const priceStr = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+    const pctStr   = chgPct != null
+      ? `<span class="${chgPct >= 0 ? 'val-green' : 'val-red'}">${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%</span>`
+      : '<span style="color:var(--muted)">—</span>';
+    const w52 = r.bcs.pct52 != null
+      ? `<div class="ti-52w-bar"><div class="ti-52w-fill" style="width:${r.bcs.pct52}%"></div></div><span style="font-size:10px;color:var(--muted)">${r.bcs.pct52}%</span>`
+      : '—';
+    const sector = fd.sector || fundSector[r.sym] || '';
+    const earnBadge = getEarnBadge(r.sym);
+
+    // Console combination pills — sorted by strength descending
+    const consolPills = [...r.consolLabels]
+      .sort((a,b) => (CONSOL_META[b]||{strength:0}).strength - (CONSOL_META[a]||{strength:0}).strength)
+      .map(l => {
+        const m = CONSOL_META[l] || { color:'#818cf8', desc:l };
+        return `<span class="ti-tf-pill consol" style="border-color:${m.color}55;color:${m.color};background:${m.color}14" title="${m.desc}">${l}</span>`;
+      }).join('');
+
+    // Multi-combination badge
+    const multibadge = r.consolLabels.length >= 2
+      ? `<span class="ti-conf-badge" title="In ${r.consolLabels.length} combinations">${r.consolLabels.length}×</span>` : '';
+    const newBadge = r.consolLabels.some(l => r4NewEntries.has(r.sym + '|' + l))
+      ? '<span class="ti-new-badge">NEW</span>' : '';
+
+    return `
+      <tr class="ti-row${r.consolLabels.length >= 3 ? ' tri-combo' : r.consolLabels.length >= 2 ? ' dual-combo' : ''}"
+          onclick="openSymbolModal('${r.sym}')">
+        <td class="ti-sym-cell">
+          <div style="display:flex;align-items:center;gap:5px">
+            <span class="ti-sym">${r.sym}${earnBadge}</span>${newBadge}${multibadge}
+          </div>
+          <span class="ti-sector">${sector}</span>
+        </td>
+        <td class="ti-price">${priceStr}<br>${pctStr}</td>
+        <td>${w52}</td>
+        <td class="ti-combos-cell">${consolPills}</td>
+        <td>${bcsPill(r.bcs, false)}</td>
+      </tr>`;
+  }).join('');
+
+  const badge = document.getElementById('badge-trade');
+  if (badge) {
+    badge.textContent = rows.length || '—';
+    badge.style.background = multiComboCount > 0 ? 'rgba(249,115,22,0.2)' : '';
+    badge.style.color = multiComboCount > 0 ? '#f97316' : '';
+  }
+
+  // Combination summary bar
+  const comboSummary = BCS_CONSOL_LABELS.map(l => {
+    const m = CONSOL_META[l];
+    const cnt = countPerCombo[l] || 0;
+    return `<div class="ti-combo-summary" style="border-color:${m.color}44;background:${m.color}0a">
+      <div class="ti-combo-label" style="color:${m.color}">${l}</div>
+      <div class="ti-combo-desc">${m.desc}</div>
+      <div class="ti-combo-count" style="color:${m.color}">${cnt}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="trade-invest-panel">
+    <div class="ti-header-row">
+      <div>
+        <h2 class="ti-title" style="color:#f97316">⚡ TRADE SIGNALS</h2>
+        <p class="ti-sub">Sourced from your 4 Console combinations · Sorted by convergence strength then BCS</p>
+      </div>
+      <div class="ti-stat-chips">
+        <span class="ti-stat" style="color:#a78bfa;background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.3)">🔥 ${multiComboCount} Multi-combo</span>
+        <span class="ti-stat" style="color:var(--muted);background:var(--surface2);border-color:var(--border2)">${rows.length} total signals</span>
+      </div>
+    </div>
+
+    <div class="ti-combo-bar">${comboSummary}</div>
+
+    <div class="ti-table-wrap">
+      <table class="ti-table">
+        <thead><tr>
+          <th>Symbol</th><th>Price / Chg%</th><th>52W Position</th>
+          <th>Console Combination(s)</th><th>BCS Score</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>
+    <div class="ti-legend">
+      <span><span style="background:rgba(249,115,22,0.15);color:#f97316;padding:1px 5px;border-radius:3px">Highlighted rows</span> = stock in 2+ combinations (strongest signal)</span>
+      <span style="color:var(--muted)">· Click any row to open fundamentals</span>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INVEST TAB — Long-term investment signals
+// SOURCE: Reads directly from the Monthly S4 master TF (all stocks in it)
+// COALINDIA fix: the tab shows ALL stocks in Monthly S4, sorted by BCS.
+// Stocks above Monthly R4 (like COALINDIA) are flagged but still shown.
+// ═══════════════════════════════════════════════════════════════════════════
+
+function buildInvestTab() {
+  const allScores = computeAllBCS();
+
+  // Step 1: Collect ALL stocks directly from Monthly S4 master TF
+  const s4Stocks = new Set();
+  masterTFs.forEach(tf => {
+    if (tf.label === 'Monthly S4') {
+      tf.cols.forEach(col => col.forEach(sym => {
+        if (sym && sym.trim()) s4Stocks.add(sym.toUpperCase());
+      }));
+    }
+  });
+
+  // Step 2: Also include any stock above Monthly R4 that had previously been in S4
+  // (user's note: COALINDIA is now above R4 — flag it but keep it visible)
+  const aboveR4Stocks = new Set();
+  masterTFs.forEach(tf => {
+    if (tf.label === 'Monthly R4' || tf.label === 'Monthly R2') {
+      tf.cols.forEach(col => col.forEach(sym => {
+        if (sym && sym.trim()) aboveR4Stocks.add(sym.toUpperCase());
+      }));
+    }
+  });
+
+  // Show all S4 stocks, and also R4/R2 stocks if they previously appeared in S4
+  // This means we always read Monthly S4 first, then optionally note R4 promotions
+  const HM_EX = new Set(['NIFTY50','NIFTY_50','GOLDBEES','NIFTYBEES','BANKBEES',
+    'JUNIORBEES','LIQUIDBEES','ICICIB22','MOM100','SETFNN50','INDIA_VIX','INDVIX']);
+
+  if (!s4Stocks.size) {
+    return `<div class="trade-invest-panel"><div style="padding:60px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif">
+      <div style="font-size:1.1rem;margin-bottom:8px">No stocks in Monthly S4</div>
+      <div style="font-size:0.8rem">Stocks appear here when they enter the <strong style="color:#34d399">Monthly S4</strong> level in your Master sheet.</div>
+    </div></div>`;
+  }
+
+  // Build rows from ALL Monthly S4 stocks, with sector filter applied
+  const rows = [...s4Stocks]
+    .filter(sym => !HM_EX.has(sym))
+    .filter(sym => activeSector === 'ALL' || (fundSector[sym] || '') === activeSector)
+    .map(sym => {
+      const bcs       = allScores[sym] || computeBCS(sym);
+      const isAboveR4 = aboveR4Stocks.has(sym);
+      return { sym, bcs, isAboveR4 };
+    })
+    .sort((a, b) => {
+      if (!a.isAboveR4 && b.isAboveR4) return -1;
+      if (a.isAboveR4 && !b.isAboveR4) return 1;
+      return b.bcs.total - a.bcs.total;
+    });
+
+  const pureS4Count    = rows.filter(r => !r.isAboveR4).length;
+  const promotedCount  = rows.filter(r => r.isAboveR4).length;
+
+  const tableRows = rows.map(r => {
+    const fd = fundCache[r.sym] || {};
+    const price    = fd.price;
+    const priceStr = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+    const chgPct = _getChgPct(fd);
+    const pctStr   = chgPct != null
+      ? `<span class="${chgPct >= 0 ? 'val-green' : 'val-red'}">${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%</span>`
+      : '—';
+    const roe  = fd.roe   != null ? (fd.roe  * 100).toFixed(1) + '%' : '—';
+    const roce = fd.roce  != null ? (fd.roce * 100).toFixed(1) + '%' : '—';
+    const de   = fd.debtToEquity != null ? fd.debtToEquity.toFixed(2) : '—';
+    const pe   = fd.pe    != null ? fd.pe.toFixed(1) : '—';
+    const fcf  = fd.freeCashFlow != null
+      ? (fd.freeCashFlow >= 0 ? '<span class="val-green">+FCF</span>' : '<span class="val-red">−FCF</span>') : '—';
+    const sector   = fd.sector || fundSector[r.sym] || '';
+    const earnDate = fd.earningsDate || fundEarnings[r.sym] || '';
+    const earnDays = daysUntilEarnings(earnDate);
+    const earnStr  = earnDays != null && earnDays >= 0
+      ? `<span class="ti-earn-soon" title="${earnDate}">📅 ${earnDays}d</span>` : '—';
+    const w52 = r.bcs.pct52 != null
+      ? `<div class="ti-52w-bar"><div class="ti-52w-fill" style="width:${r.bcs.pct52}%"></div></div><span style="font-size:10px;color:var(--muted)">${r.bcs.pct52}%</span>`
+      : '—';
+    const earnBadge = getEarnBadge(r.sym);
+
+    // Status badge: still in S4 zone vs moved above R4
+    const statusBadge = r.isAboveR4
+      ? `<span class="ti-above-r4-badge" title="Stock has moved above Monthly R4 — momentum confirmed, reassess entry">↑ Above R4</span>`
+      : `<span class="ti-s4-badge">M-S4</span>`;
+
+    // Risk flags
+    const riskFlags = [];
+    const sec = (fd.sector || '').toLowerCase();
+    const isB = /bank|financial/i.test(sec);
+    if (fd.beta != null && fd.beta > 1.5) riskFlags.push(`<span class="ti-risk-flag">β${fd.beta.toFixed(1)}</span>`);
+    if (!isB && fd.debtToEquity != null && fd.debtToEquity > 2) riskFlags.push('<span class="ti-risk-flag">High D/E</span>');
+    if (earnDays != null && earnDays >= 0 && earnDays <= 5) riskFlags.push('<span class="ti-risk-warn">Earn Risk</span>');
+
+    return `
+      <tr class="ti-row${r.isAboveR4 ? ' above-r4-row' : ' s4-highlight'}" onclick="openSymbolModal('${r.sym}')">
+        <td class="ti-sym-cell">
+          <div style="display:flex;align-items:center;gap:5px">
+            <span class="ti-sym">${r.sym}${earnBadge}</span>${statusBadge}
+          </div>
+          <span class="ti-sector">${sector}</span>
+        </td>
+        <td class="ti-price">${priceStr}<br>${pctStr}</td>
+        <td>${w52}</td>
+        <td>
+          <div class="ti-fund-grid">
+            <span class="ti-fund-lbl">ROE</span><span class="${fd.roe != null && fd.roe * 100 >= 15 ? 'val-green' : ''}">${roe}</span>
+            <span class="ti-fund-lbl">ROCE</span><span class="${fd.roce != null && fd.roce * 100 >= 16 ? 'val-green' : ''}">${roce}</span>
+            <span class="ti-fund-lbl">D/E</span><span class="${fd.debtToEquity != null && fd.debtToEquity < 0.5 ? 'val-green' : fd.debtToEquity != null && fd.debtToEquity > 2 ? 'val-red' : ''}">${de}</span>
+            <span class="ti-fund-lbl">PE</span><span>${pe}</span>
+            <span class="ti-fund-lbl">FCF</span><span>${fcf}</span>
+            <span class="ti-fund-lbl">Earn</span><span>${earnStr}</span>
+          </div>
+        </td>
+        <td>
+          ${bcsPill(r.bcs, false)}
+          <div style="margin-top:5px;padding:4px 6px;background:var(--surface2);border-radius:5px;font-size:0.6rem;color:var(--muted)">
+            <span style="color:var(--text);font-family:Oxanium,sans-serif;font-weight:700">${_posSizeLabel(r.bcs.total, fd.beta)}</span>
+            <span style="opacity:0.6"> suggested size</span>
+          </div>
+          <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px">${riskFlags.join('')}</div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  const badge = document.getElementById('badge-invest');
+  if (badge) {
+    badge.textContent = rows.length || '—';
+    badge.style.background = pureS4Count > 0 ? 'rgba(52,211,153,0.18)' : '';
+    badge.style.color = pureS4Count > 0 ? '#34d399' : '';
+  }
+
+  return `<div class="trade-invest-panel">
+    <div class="ti-header-row">
+      <div>
+        <h2 class="ti-title" style="color:#34d399">🌱 INVEST SIGNALS</h2>
+        <p class="ti-sub">All stocks in Monthly S4 accumulation zone · Stocks above R4 flagged · Sorted by BCS</p>
+      </div>
+      <div class="ti-stat-chips">
+        <span class="ti-stat" style="color:#34d399;background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.3)">📌 ${pureS4Count} in S4</span>
+        ${promotedCount > 0 ? `<span class="ti-stat" style="color:#f97316;background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.25)">↑ ${promotedCount} above R4</span>` : ''}
+        <span class="ti-stat" style="color:var(--muted);background:var(--surface2);border-color:var(--border2)">${rows.length} total</span>
+      </div>
+    </div>
+    <div style="margin:0 0 12px;padding:10px 14px;background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.18);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.7">
+      <strong style="color:#34d399">Monthly S4</strong> = long-term accumulation zone.
+      <span style="color:#f97316">↑ Above R4</span> = stock has broken out above Monthly R4 (e.g. COALINDIA) — momentum confirmed but entry timing needs reassessment.
+      Green = fundamental strength. <strong style="color:var(--text)">Suggested size</strong> = educational position sizing based on BCS + Beta — not financial advice. Click any row for full fundamentals popup.
+    </div>
+    <div class="ti-table-wrap">
+      <table class="ti-table">
+        <thead><tr>
+          <th>Symbol</th><th>Price / Chg%</th><th>52W Position</th><th>Fundamentals</th><th>BCS + Risk</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ── Position size suggestion (Phase 5) ───────────────────────────────────
+// Educational only — based on BCS + Beta. Not financial advice.
+// 1% = high conviction, low volatility; 0.25% = lower conviction or high beta
+function _posSizeLabel(bcsTotal, beta) {
+  const b = beta != null ? beta : 1.0;
+  if (bcsTotal >= 70 && b <= 1.0)  return '1.0% of portfolio';
+  if (bcsTotal >= 70 && b <= 1.5)  return '0.75% of portfolio';
+  if (bcsTotal >= 55 && b <= 1.2)  return '0.5% of portfolio';
+  if (bcsTotal >= 45)               return '0.25% of portfolio';
+  return '0.25% of portfolio';
+}
+
+// ── _getChgPct: resolve change% from whatever is available in fd ──────────
+// fundCache (from sectorData on load) has: price + prevClose
+// modalPriceData (from action=prices) has: chgPctFromClose directly
+// Both paths are handled here so Trade/Invest tabs always show change%.
+function _getChgPct(fd) {
+  if (!fd) return null;
+  // Best: server-computed value from action=prices
+  if (fd.chgPctFromClose != null) return fd.chgPctFromClose;
+  // Fallback: compute from price + prevClose (always in sectorData/fundCache)
+  const p  = fd.price;
+  const pc = fd.prevClose;
+  if (p != null && pc != null && pc > 0 && p !== pc) {
+    return (p - pc) / pc * 100;
+  }
+  // Last resort: compute from price + open (some sessions only have open)
+  const o = fd.open;
+  if (p != null && o != null && o > 0 && p !== o) {
+    return (p - o) / o * 100;
+  }
+  return null;
+}
+function openSymbolModal(sym) {
+  // Find the symbol in any TF and open modal (reuse existing openModal)
+  for (const tf of [...masterTFs, ...consolidatedTFs]) {
+    for (let ci = 0; ci < tf.cols.length; ci++) {
+      if (tf.cols[ci].includes(sym) || tf.cols[ci].includes(sym.toUpperCase())) {
+        openModal(tf.label, CATS[ci]?.label || '', [sym]);
+        return;
+      }
+    }
+  }
+  // Fallback: open with just the symbol
+  openModal('', '', [sym]);
+}
+
+// ── Hook Trade/Invest into render() and updateTabBadges() ─────────────────
+const _origRenderForBCS = render;
+render = function() {
+  _origRenderForBCS.apply(this, arguments);
+  if (activeTab === 'trade' || activeTab === 'invest') {
+    const mc    = document.getElementById('mainContent');
+    const sfBar = document.getElementById('sectorFilterBar');
+    // Show the sector filter bar — same behaviour as Master/Console tabs
+    if (sfBar) {
+      sfBar.classList.remove('hidden');
+      populateSectorFilter();
+    }
+    if (activeTab === 'trade')  mc.innerHTML = buildTradeTab();
+    if (activeTab === 'invest') mc.innerHTML = buildInvestTab();
+    document.querySelectorAll('.stab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
+  }
+};
+
+const _origUpdateBadgesForBCS = updateTabBadges;
+updateTabBadges = function() {
+  _origUpdateBadgesForBCS.apply(this, arguments);
+  try {
+    if (!masterTFs.length && !consolidatedTFs.length) return;
+
+    // Trade — count unique stocks across the 4 console combinations
+    const consolLabels = ['M-D-H: R4','D-H: R4','H-15m: R4','D:R2 & H:R4'];
+    const tradeSet = new Set();
+    consolidatedTFs.forEach(tf => {
+      if (!consolLabels.includes(tf.label)) return;
+      tf.cols.forEach(col => col.forEach(sym => tradeSet.add(sym.toUpperCase())));
+    });
+    const tradeBadge = document.getElementById('badge-trade');
+    if (tradeBadge) {
+      tradeBadge.textContent = tradeSet.size || '—';
+      tradeBadge.style.background = tradeSet.size > 0 ? 'rgba(249,115,22,0.2)' : '';
+      tradeBadge.style.color      = tradeSet.size > 0 ? '#f97316' : '';
+    }
+
+    // Invest — count directly from Monthly S4 TF rows (same source as buildInvestTab)
+    const s4Set = new Set();
+    masterTFs.forEach(tf => {
+      if (tf.label === 'Monthly S4') {
+        tf.cols.forEach(col => col.forEach(sym => { if (sym && sym.trim()) s4Set.add(sym.toUpperCase()); }));
+      }
+    });
+    const investBadge = document.getElementById('badge-invest');
+    if (investBadge) {
+      investBadge.textContent = s4Set.size || '—';
+      investBadge.style.background = s4Set.size > 0 ? 'rgba(52,211,153,0.18)' : '';
+      investBadge.style.color      = s4Set.size > 0 ? '#34d399' : '';
+    }
+
+    // Sync to mobile nav badges immediately
+    mobSyncBadges();
+
+    // Run signal alerts (deferred so fundCache fully merged after render)
+    _maybeRunAlerts();
+  } catch(e) { /* silent — never break existing behaviour */ }
+};
+
+// ── Keyboard shortcuts for new tabs ──────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 't' || e.key === 'T') { activeTab = 'trade';  render(); }
+  if (e.key === 'i' || e.key === 'I') { activeTab = 'invest'; render(); }
+});
+
 </script>
+
+<style>
+/* ── BCS PILL ──────────────────────────────────────────────── */
+.bcs-pill {
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:'Oxanium',sans-serif; font-size:0.62rem; font-weight:800;
+  letter-spacing:0.06em; padding:2px 6px; border-radius:5px;
+  line-height:1; cursor:default;
+}
+.bcs-block { min-width:110px; }
+.bcs-header { display:flex; align-items:center; gap:7px; margin-bottom:4px; }
+.bcs-score { font-family:'Oxanium',sans-serif; font-size:1.25rem; font-weight:800; line-height:1; }
+.bcs-label { font-family:'Oxanium',sans-serif; font-size:0.6rem; font-weight:800;
+  letter-spacing:0.1em; padding:2px 7px; border-radius:4px; }
+.bcs-bar-track { height:4px; background:var(--border2); border-radius:2px; overflow:hidden; margin-bottom:4px; }
+.bcs-bar-fill  { height:100%; border-radius:2px; transition:width 0.4s ease; }
+.bcs-breakdown { display:flex; gap:5px; flex-wrap:wrap; }
+.bcs-breakdown span { font-size:0.58rem; color:var(--muted); font-family:'Oxanium',sans-serif;
+  background:var(--surface2); padding:1px 4px; border-radius:3px; }
+
+/* ── TRADE/INVEST PANEL ────────────────────────────────────── */
+.trade-invest-panel { padding:14px; }
+.ti-header-row { display:flex; align-items:flex-start; justify-content:space-between;
+  margin-bottom:14px; gap:16px; flex-wrap:wrap; }
+.ti-title { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:0.08em;
+  margin:0 0 4px; }
+.ti-sub { font-size:0.75rem; color:var(--muted); margin:0; line-height:1.5; max-width:500px; }
+.ti-stat-chips { display:flex; gap:7px; flex-wrap:wrap; align-items:center; margin-top:4px; }
+.ti-stat { font-family:'Oxanium',sans-serif; font-size:0.66rem; font-weight:800;
+  letter-spacing:0.07em; padding:4px 10px; border-radius:6px; border:1px solid; white-space:nowrap; }
+
+.ti-table-wrap { overflow-x:auto; border-radius:8px; border:1px solid var(--border2);
+  background:var(--surface); }
+.ti-table { width:100%; border-collapse:collapse; white-space:nowrap; }
+.ti-table thead th { font-family:'Oxanium',sans-serif; font-size:0.68rem; font-weight:800;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
+  padding:10px 14px; background:var(--surface2); border-bottom:1px solid var(--border2);
+  text-align:left; }
+.ti-row { cursor:pointer; transition:background 0.12s; }
+.ti-row:hover td { background:rgba(255,255,255,0.03) !important; }
+.ti-row td { padding:11px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.ti-row.s4-highlight td { background:rgba(52,211,153,0.04); }
+.ti-row.s4-highlight:hover td { background:rgba(52,211,153,0.08) !important; }
+
+.ti-sym-cell { min-width:100px; }
+.ti-sym { font-family:'Oxanium',sans-serif; font-size:0.9rem; font-weight:800;
+  letter-spacing:0.04em; color:var(--text); }
+.ti-sector { font-size:0.65rem; color:var(--muted); display:block; margin-top:2px; }
+.ti-price { font-family:'Oxanium',sans-serif; font-size:0.82rem; font-weight:700;
+  color:var(--text); min-width:90px; }
+
+.ti-tf-pill { font-family:'Oxanium',sans-serif; font-size:0.58rem; font-weight:700;
+  letter-spacing:0.05em; padding:2px 7px; border-radius:4px; border:1px solid;
+  display:inline-block; margin:1px 2px 1px 0; }
+.ti-tf-pill.consol { font-weight:800; border-width:1.5px; }
+
+.ti-52w-bar { width:80px; height:5px; background:var(--border2); border-radius:3px;
+  overflow:hidden; display:inline-block; vertical-align:middle; margin-right:5px; }
+.ti-52w-fill { height:100%; background:linear-gradient(90deg,#38bdf8,#f97316); border-radius:3px; }
+
+.ti-new-badge { font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
+  letter-spacing:0.08em; background:rgba(249,115,22,0.2); color:#f97316;
+  border:1px solid rgba(249,115,22,0.5); padding:1px 5px; border-radius:4px; }
+.ti-conf-badge { font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
+  background:rgba(129,140,248,0.18); color:#818cf8; border-radius:4px; padding:1px 5px;
+  border:1px solid rgba(129,140,248,0.3); }
+.ti-s4-badge { font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
+  background:rgba(52,211,153,0.18); color:#34d399; border:1px solid rgba(52,211,153,0.4);
+  border-radius:4px; padding:1px 6px; letter-spacing:0.06em; }
+.ti-earn-soon { font-family:'Oxanium',sans-serif; font-size:0.62rem; font-weight:700;
+  color:#f59e0b; }
+.ti-risk-flag { font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
+  background:rgba(251,113,133,0.15); color:#fb7185; border-radius:3px; padding:1px 5px;
+  border:1px solid rgba(251,113,133,0.3); }
+.ti-risk-warn { font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
+  background:rgba(251,191,36,0.15); color:#fbbf24; border-radius:3px; padding:1px 5px;
+  border:1px solid rgba(251,191,36,0.3); }
+.ti-fund-grid { display:grid; grid-template-columns:32px auto 32px auto 32px auto;
+  gap:2px 8px; align-items:center; font-size:0.72rem; min-width:200px; }
+.ti-fund-lbl { color:var(--muted); font-size:0.62rem; }
+.ti-legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:12px;
+  font-size:0.68rem; color:var(--muted); font-family:'Oxanium',sans-serif; }
+
+/* ── ALERT BANNER ANIMATION ────────────────────────────────── */
+@keyframes bcsSlideIn {
+  from { transform:translateX(20px); opacity:0; }
+  to   { transform:translateX(0);    opacity:1; }
+}
+
+/* ── VALUE COLORS ──────────────────────────────────────────── */
+.val-green { color:#34d399 !important; }
+.val-red   { color:#fb7185 !important; }
+
+/* ── LIGHT THEME OVERRIDES ─────────────────────────────────── */
+body.light-theme .ti-table thead th { background:#f0f2f5; color:#4a5a70; border-color:#c8d0e0; }
+body.light-theme .ti-row td { border-color:#e8ddd0; }
+body.light-theme .ti-row:hover td { background:rgba(0,0,0,0.02) !important; }
+body.light-theme .ti-row.s4-highlight td { background:rgba(0,150,100,0.04); }
+body.light-theme .ti-table-wrap { border-color:#c8d0e0; background:#fff; }
+body.light-theme .bcs-bar-track { background:#e8ddd0; }
+body.light-theme .bcs-breakdown span { background:#f0f2f5; color:#4a5a70; }
+body.light-theme .val-green { color:#00643a !important; }
+body.light-theme .val-red   { color:#b01830 !important; }
+body.light-theme #bcs-alert-banner { background:#fff; border-color:rgba(249,115,22,0.45); }
+
+/* ── MOBILE TRADE / INVEST CARDS ───────────────────────────── */
+.mob-ti-card {
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:12px; padding:12px 13px; margin-bottom:8px; cursor:pointer;
+  transition:background 0.12s;
+}
+.mob-ti-card:active { background:var(--surface2); }
+.mob-ti-card.s4-zone  { border-left:3px solid rgba(52,211,153,0.5); }
+.mob-ti-card.above-r4 { border-left:3px solid rgba(251,191,36,0.5); }
+.mob-ti-card-top {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom:7px;
+}
+.mob-ti-sym {
+  font-family:'Oxanium',sans-serif; font-size:0.92rem; font-weight:800;
+  letter-spacing:0.04em; color:var(--text);
+}
+.mob-ti-bcs-row {
+  display:flex; align-items:center; gap:6px; margin-top:6px;
+}
+.mob-ti-fund-row {
+  display:grid; grid-template-columns:28px auto 28px auto 28px auto 28px auto;
+  gap:2px 6px; margin:6px 0 4px; font-size:0.68rem; align-items:center;
+}
+.mob-ti-fl  { color:var(--muted); font-size:0.58rem; }
+.mob-ti-fv  { color:var(--text); font-weight:600; }
+.mob-ti-fv-good { color:#34d399; font-weight:700; }
+.mob-combo-card {
+  border:1px solid; border-radius:8px; padding:7px 8px;
+  display:flex; flex-direction:column; gap:2px;
+}
+
+/* ── 6-INCH DISPLAY TWEAKS (@360–390px typical width) ─────── */
+@media (max-width: 420px) {
+  .mbn-btn { font-size: 0.46rem; padding: 4px 1px; }
+  .mbn-btn svg { width: 17px; height: 17px; }
+  .mbn-btn span { letter-spacing: 0; }
+  .mob-ti-card { padding: 10px 11px; }
+  .mob-ti-sym { font-size: 0.84rem; }
+  .mob-stock-chip { min-height: 48px; padding: 8px 10px; }
+  .mob-cat-name { font-size: 0.72rem; }
+  body.mobile-view #mainContent { height: calc(100vh - 48px - 38px - 56px); }
+  body.mobile-view #mobileBottomNav { height: 56px; }
+  .ti-combo-bar { grid-template-columns: repeat(2,1fr); }
+}
+
+/* ── LIGHT THEME MOBILE CARDS ──────────────────────────────── */
+body.light-theme .mob-ti-card { background:#fffefb; border-color:#e8ddd0; }
+body.light-theme .mob-ti-card.s4-zone  { border-left-color:rgba(0,150,100,0.4); }
+body.light-theme .mob-ti-card.above-r4 { border-left-color:rgba(200,150,0,0.4); }
+body.light-theme .mob-ti-fv-good { color:#00643a; }
+body.light-theme .mob-combo-card { background:#f8f9fb; }
+
+/* ── COMBINATION SUMMARY BAR ───────────────────────────────── */
+.ti-combo-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
+.ti-combo-summary {
+  border:1px solid; border-radius:8px; padding:10px 12px;
+  display:flex; flex-direction:column; gap:3px;
+}
+.ti-combo-label { font-family:'Oxanium',sans-serif; font-size:0.68rem; font-weight:800; letter-spacing:0.06em; }
+.ti-combo-desc  { font-size:0.6rem; color:var(--muted); line-height:1.4; }
+.ti-combo-count { font-family:'Oxanium',sans-serif; font-size:1.2rem; font-weight:800; margin-top:2px; }
+
+/* ── MULTI-COMBO ROW HIGHLIGHTS ────────────────────────────── */
+.ti-row.dual-combo td  { background:rgba(249,115,22,0.04); }
+.ti-row.tri-combo td   { background:rgba(249,115,22,0.09); border-left:3px solid #f97316; }
+.ti-combos-cell { max-width:260px; white-space:normal !important; }
+
+/* ── ABOVE-R4 ROW (stocks that moved past R4 from S4) ──────── */
+.ti-row.above-r4-row td { background:rgba(251,191,36,0.04); }
+.ti-above-r4-badge {
+  font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
+  background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.4);
+  border-radius:4px; padding:1px 6px; letter-spacing:0.05em;
+}
+
+/* ── SECTOR ROTATION RADAR ─────────────────────────────────── */
+.sr-panel {
+  margin:0 0 12px; padding:12px 14px;
+  background:var(--surface); border:1px solid var(--border2); border-radius:10px;
+}
+.sr-header {
+  display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;
+}
+.sr-title {
+  font-family:'Oxanium',sans-serif; font-size:0.72rem; font-weight:800;
+  letter-spacing:0.1em; color:var(--text); text-transform:uppercase;
+}
+.sr-sub   { font-size:0.62rem; color:var(--muted); flex:1; }
+.sr-leader { font-size:0.68rem; color:var(--muted); white-space:nowrap; }
+.sr-toggle {
+  font-family:'Oxanium',sans-serif; font-size:0.58rem; font-weight:700;
+  background:transparent; border:1px solid var(--border2); color:var(--muted);
+  padding:2px 8px; border-radius:4px; cursor:pointer; white-space:nowrap;
+}
+.sr-toggle:hover { color:var(--accent); border-color:var(--accent); }
+
+.sr-body { display:flex; flex-direction:column; gap:5px; }
+.sr-row {
+  display:flex; align-items:center; gap:8px; cursor:default;
+  padding:3px 0; border-bottom:1px solid var(--border);
+}
+.sr-row:last-child { border-bottom:none; }
+.sr-sec-name {
+  font-family:'Oxanium',sans-serif; font-size:0.65rem; font-weight:700;
+  letter-spacing:0.04em; min-width:130px; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.sr-bar-wrap {
+  flex:1; height:6px; background:var(--border2); border-radius:3px; overflow:hidden;
+  min-width:60px;
+}
+.sr-bar-fill { height:100%; border-radius:3px; transition:width 0.5s ease; }
+.sr-stats { display:flex; align-items:center; gap:4px; min-width:70px; }
+.sr-bull { font-family:'Oxanium',sans-serif; font-size:0.7rem; font-weight:800; }
+.sr-tot  { font-size:0.62rem; color:var(--muted); }
+.sr-accum-badge {
+  font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
+  background:rgba(52,211,153,0.15); color:#34d399; border:1px solid rgba(52,211,153,0.35);
+  border-radius:3px; padding:1px 4px;
+}
+.sr-legend {
+  display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;
+  font-size:0.6rem; color:var(--muted); font-family:'Oxanium',sans-serif;
+  border-top:1px solid var(--border); padding-top:7px; align-items:center;
+}
+
+/* ── LIGHT THEME FOR RADAR ─────────────────────────────────── */
+body.light-theme .sr-panel { background:#fffefb; border-color:#c8d0e0; }
+body.light-theme .sr-bar-wrap { background:#e8ddd0; }
+body.light-theme .sr-row { border-color:#e8ddd0; }
+body.light-theme .ti-combo-summary { background:#f8f9fb; }
+body.light-theme .ti-row.dual-combo td { background:rgba(249,115,22,0.03); }
+body.light-theme .ti-row.above-r4-row td { background:rgba(251,191,36,0.03); }
+
+/* ── PRICE CARD — modal price tab card layout ──────────────── */
+.price-card .fund-card-hd { align-items: flex-start; }
+.price-card .fund-card-sym { font-size: 1.05rem; }
+.price-card .fund-card-price { font-size: 1.28rem; font-weight: 800; color: var(--text); }
+.price-card .fund-card-price small {
+  font-size: 0.55rem; color: var(--muted); font-family: 'Oxanium',sans-serif;
+  font-weight: 700; letter-spacing: 0.08em; margin-left: 5px; vertical-align: middle;
+}
+.price-chg-badge { white-space: nowrap; }
+
+/* Sort bar in price tab — reuse fund-sort-bar styling, scope overrides to price */
+#price-sort-bar .sort-btn.active {
+  background: rgba(56,189,248,0.13);
+  border-color: rgba(56,189,248,0.5);
+  color: #38bdf8;
+}
+
+/* Light theme price card */
+body.light-theme .price-card { background: #fffefb; border-color: #e8ddd0; }
+body.light-theme #price-sort-bar { background: #f0f2f5; border-color: #c8d0e0; }
+
+/* ── SECTOR FILTER — show correctly for trade/invest ───────── */
+/* The bar is sticky at top:98px normally.
+   When Trade/Invest are active it sits below the sheet-bar just like Master/Console */
+</style>
 </body>
