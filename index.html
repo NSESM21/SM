@@ -1971,12 +1971,10 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
 
 <div class="sheet-bar" id="sheetBar">
   <button class="stab active" data-tab="master"><span class="dot" style="background:#00e5a0"></span><u>M</u>aster<span class="tab-badge" id="badge-master">—</span></button>
-  <button class="stab" data-tab="consolidated"><span class="dot" style="background:#818cf8"></span><u>C</u>onsole<span class="tab-badge" id="badge-consolidated">—</span></button>
+  <button class="stab" data-tab="consolidated"><span class="dot" style="background:#818cf8"></span><u>S</u>ignals<span class="tab-badge" id="badge-consolidated">—</span></button>
   <button class="stab" data-tab="earnings"><span class="dot" style="background:#f59e0b"></span><u>E</u>vents<span class="tab-badge" id="badge-earnings">—</span></button>
   <button class="stab" data-tab="heatmap"><span class="dot" style="background:#f472b6"></span><u>H</u>eatmap<span class="tab-badge" id="badge-heatmap">—</span></button>
-  <button class="stab" data-tab="compare"><span class="dot" style="background:#818cf8"></span>Compare [<u>X</u>]<span class="tab-badge" id="badge-compare">—</span></button>
-  <button class="stab" data-tab="trade"><span class="dot" style="background:#f97316"></span><u>T</u>rade<span class="tab-badge" id="badge-trade">—</span></button>
-  <button class="stab" data-tab="invest"><span class="dot" style="background:#34d399"></span><u>I</u>nvest<span class="tab-badge" id="badge-invest">—</span></button>
+  <button class="stab" data-tab="compare"><span class="dot" style="background:#818cf8"></span><u>C</u>ompare<span class="tab-badge" id="badge-compare">—</span></button>
 </div>
 
 <div class="sector-filter-bar hidden" id="sectorFilterBar">
@@ -1994,7 +1992,7 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
   </div>
 </main>
 
-<!-- Mobile bottom navigation bar — 7 tabs -->
+<!-- Mobile bottom navigation bar — 5 tabs -->
 <nav id="mobileBottomNav">
   <button class="mbn-btn active" data-tab="master" onclick="mbnSwitch('master')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -2003,18 +2001,8 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
   </button>
   <button class="mbn-btn" data-tab="consolidated" onclick="mbnSwitch('consolidated')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>
-    <span>Consol</span>
+    <span>Signals</span>
     <em id="mbn-badge-consolidated">—</em>
-  </button>
-  <button class="mbn-btn" data-tab="trade" onclick="mbnSwitch('trade')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-    <span>Trade</span>
-    <em id="mbn-badge-trade">—</em>
-  </button>
-  <button class="mbn-btn" data-tab="invest" onclick="mbnSwitch('invest')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-    <span>Invest</span>
-    <em id="mbn-badge-invest">—</em>
   </button>
   <button class="mbn-btn" data-tab="heatmap" onclick="mbnSwitch('heatmap')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="4" height="4" rx="0.5"/><rect x="10" y="3" width="4" height="4" rx="0.5"/><rect x="17" y="3" width="4" height="4" rx="0.5"/><rect x="3" y="10" width="4" height="4" rx="0.5"/><rect x="10" y="10" width="4" height="4" rx="0.5"/><rect x="17" y="10" width="4" height="4" rx="0.5"/><rect x="3" y="17" width="4" height="4" rx="0.5"/><rect x="10" y="17" width="4" height="4" rx="0.5"/><rect x="17" y="17" width="4" height="4" rx="0.5"/></svg>
@@ -2050,12 +2038,12 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
     <div class="kb-section">
       <div class="kb-section-title">Navigation</div>
       <div class="kb-row"><span class="kb-key">M</span><span class="kb-desc">Master tab</span></div>
-      <div class="kb-row"><span class="kb-key">C</span><span class="kb-desc">Console tab</span></div>
-      <div class="kb-row"><span class="kb-key">E</span><span class="kb-desc">Corp Actions tab</span></div>
+      <div class="kb-row"><span class="kb-key">S</span><span class="kb-desc">Signals tab</span></div>
+      <div class="kb-row"><span class="kb-key">T</span><span class="kb-desc">Signals → Trade sub-tab</span></div>
+      <div class="kb-row"><span class="kb-key">I</span><span class="kb-desc">Signals → Invest sub-tab</span></div>
+      <div class="kb-row"><span class="kb-key">E</span><span class="kb-desc">Events tab</span></div>
       <div class="kb-row"><span class="kb-key">H</span><span class="kb-desc">Heatmap tab</span></div>
-      <div class="kb-row"><span class="kb-key">X</span><span class="kb-desc">Compare tab</span></div>
-      <div class="kb-row"><span class="kb-key">T</span><span class="kb-desc">Trade signals tab</span></div>
-      <div class="kb-row"><span class="kb-key">I</span><span class="kb-desc">Invest signals tab</span></div>
+      <div class="kb-row"><span class="kb-key">C</span><span class="kb-desc">Compare tab</span></div>
     </div>
 
     <div class="kb-section">
@@ -4147,14 +4135,14 @@ document.addEventListener('keydown', e => {
     showKbToast('<strong>M</strong> — Master tab');
     return;
   }
-  if (e.key === 'c' || e.key === 'C') {
+  if (e.key === 's' || e.key === 'S') {
     activeTab = 'consolidated'; render();
-    showKbToast('<strong>C</strong> — Console tab');
+    showKbToast('<strong>S</strong> — Signals tab');
     return;
   }
-  if (e.key==='e'||e.key==='E') { activeTab='earnings'; render(); showKbToast('<strong>E</strong> — Corp Actions tab'); return; }
+  if (e.key==='e'||e.key==='E') { activeTab='earnings'; render(); showKbToast('<strong>E</strong> — Events tab'); return; }
   if (e.key==='h'||e.key==='H') { activeTab='heatmap';  render(); showKbToast('<strong>H</strong> — Heatmap tab'); return; }
-  if (e.key==='x'||e.key==='X') { activeTab='compare';  render(); showKbToast('<strong>X</strong> — Compare tab'); return; }
+  if (e.key==='c'||e.key==='C') { activeTab='compare';  render(); showKbToast('<strong>C</strong> — Compare tab'); return; }
   if (e.key==='?') { toggleKbHelp(); return; }
   if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && activeTab === 'master' && masterTFs.length) {
     if (e.key === 'ArrowLeft')  activeMasterTF = (activeMasterTF - 1 + masterTFs.length) % masterTFs.length;
@@ -7182,72 +7170,264 @@ function openSymbolModal(sym) {
   openModal('', '', [sym]);
 }
 
-// ── Hook Trade/Invest into render() and updateTabBadges() ─────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// SIGNALS SUB-TAB SYSTEM
+// Three sub-tabs inside the Signals (consolidated) tab:
+//   timeframe — existing buildConsolidated() table
+//   trade     — buildTradeTab()
+//   invest    — buildInvestTab()
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Persist last sub-tab across page loads
+let activeSignalsSubTab = 'timeframe';
+try {
+  const saved = localStorage.getItem('nse-signals-subtab');
+  if (saved === 'trade' || saved === 'invest' || saved === 'timeframe') activeSignalsSubTab = saved;
+} catch(e) {}
+
+function setSignalsSubTab(tab) {
+  activeSignalsSubTab = tab;
+  try { localStorage.setItem('nse-signals-subtab', tab); } catch(e) {}
+  // Re-render the signals tab content only — no full render() needed
+  const mc = document.getElementById('mainContent');
+  if (!mc) return;
+  mc.innerHTML = buildSignalsWrapper(searchTerm.toLowerCase());
+  // Re-attach consolidated click handler if on timeframe
+  if (tab === 'timeframe') {
+    mc.addEventListener('click', e => {
+      const cell = e.target.closest('.clickable-cell');
+      if (!cell) return;
+      const key = cell.dataset.storeKey;
+      const entry = window._conClickStore && window._conClickStore[key];
+      if (entry) openModal(entry.tfLabel, entry.catLabel, entry.stocks);
+    });
+  }
+}
+
+// ── Sub-tab bar: shows inline counts, styled consistently ─────────────────
+function buildSignalsSubTabBar() {
+  // Compute counts for badges
+  const consolLabels = ['M-D-H: R4','D-H: R4','H-15m: R4','D:R2 & H:R4'];
+  const tradeSet = new Set();
+  consolidatedTFs.forEach(tf => {
+    if (!consolLabels.includes(tf.label)) return;
+    tf.cols.forEach(col => col.forEach(sym => tradeSet.add(sym.toUpperCase())));
+  });
+  const tradeCount = tradeSet.size;
+
+  const s4Set = new Set();
+  masterTFs.forEach(tf => {
+    if (tf.label === 'Monthly S4') tf.cols.forEach(col => col.forEach(sym => { if (sym) s4Set.add(sym.toUpperCase()); }));
+  });
+  const investCount = s4Set.size;
+
+  const tfCount = consolidatedTFs.reduce((a, tf) => a + tf.cols.reduce((b, col) => b + col.length, 0), 0);
+
+  // New entries indicator for Trade
+  const hasNew = [...r4NewEntries].some(k => consolLabels.some(l => k.endsWith('|' + l)));
+
+  const st = (key, color) => activeSignalsSubTab === key
+    ? `border-bottom:2px solid ${color};color:${color};background:transparent;`
+    : `border-bottom:2px solid transparent;color:var(--muted);background:transparent;`;
+  const base = `font-family:Oxanium,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;padding:9px 16px;border:none;cursor:pointer;transition:all 0.15s;white-space:nowrap;`;
+
+  return `<div class="signals-subtab-bar" id="signalsSubTabBar">
+    <button style="${base}${st('timeframe','#818cf8')}" onclick="setSignalsSubTab('timeframe')">
+      ⚡ Timeframe <span class="sig-sub-count" style="color:#818cf8">${tfCount||'—'}</span>
+    </button>
+    <button style="${base}${st('trade','#f97316')}" onclick="setSignalsSubTab('trade')">
+      ⚡ <u>T</u>rade <span class="sig-sub-count" style="color:#f97316">${tradeCount||'—'}</span>${hasNew?'<span class="sig-new-dot"></span>':''}
+    </button>
+    <button style="${base}${st('invest','#34d399')}" onclick="setSignalsSubTab('invest')">
+      🌱 <u>I</u>nvest <span class="sig-sub-count" style="color:#34d399">${investCount||'—'}</span>
+    </button>
+  </div>`;
+}
+
+// ── Master wrapper: sub-tab bar + content ─────────────────────────────────
+function buildSignalsWrapper(term) {
+  const subBar = buildSignalsSubTabBar();
+  let content = '';
+  if (activeSignalsSubTab === 'timeframe') {
+    content = buildConsolidated(term || searchTerm.toLowerCase());
+  } else if (activeSignalsSubTab === 'trade') {
+    content = buildTradeTab();
+  } else {
+    content = buildInvestTab();
+  }
+  return subBar + `<div class="signals-content" id="signalsContent">${content}</div>`;
+}
+
+// ── Hook into render() ─────────────────────────────────────────────────────
 const _origRenderForBCS = render;
 render = function() {
-  _origRenderForBCS.apply(this, arguments);
-  if (activeTab === 'trade' || activeTab === 'invest') {
+  const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
+
+  // For consolidated tab override entirely to inject sub-tab wrapper
+  if (activeTab === 'consolidated' && !isMob) {
     const mc    = document.getElementById('mainContent');
     const sfBar = document.getElementById('sectorFilterBar');
-    // Show the sector filter bar — same behaviour as Master/Console tabs
-    if (sfBar) {
-      sfBar.classList.remove('hidden');
-      populateSectorFilter();
-    }
-    if (activeTab === 'trade')  mc.innerHTML = buildTradeTab();
-    if (activeTab === 'invest') mc.innerHTML = buildInvestTab();
-    document.querySelectorAll('.stab').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
+    if (sfBar) { sfBar.classList.remove('hidden'); populateSectorFilter(); }
+    mc.innerHTML = buildSignalsWrapper(searchTerm.toLowerCase());
+    // Re-attach consolidated click handler for timeframe sub-tab
+    mc.addEventListener('click', e => {
+      const cell = e.target.closest('.clickable-cell');
+      if (!cell) return;
+      const key = cell.dataset.storeKey;
+      const entry = window._conClickStore && window._conClickStore[key];
+      if (entry) openModal(entry.tfLabel, entry.catLabel, entry.stocks);
+    });
+    document.querySelectorAll('.stab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'consolidated'));
+    updateTabBadges();
+    return;
+  }
+
+  // For trade/invest as legacy activeTab values — redirect to signals
+  if (activeTab === 'trade' || activeTab === 'invest') {
+    activeSignalsSubTab = activeTab;
+    activeTab = 'consolidated';
+    try { localStorage.setItem('nse-signals-subtab', activeSignalsSubTab); } catch(e) {}
+  }
+
+  _origRenderForBCS.apply(this, arguments);
+
+  // Sector filter for signals sub-tabs (trade/invest need it too)
+  if (activeTab === 'consolidated') {
+    const sfBar = document.getElementById('sectorFilterBar');
+    if (sfBar) { sfBar.classList.remove('hidden'); populateSectorFilter(); }
   }
 };
 
+// ── updateTabBadges override: Signals badge shows urgency ──────────────────
 const _origUpdateBadgesForBCS = updateTabBadges;
 updateTabBadges = function() {
   _origUpdateBadgesForBCS.apply(this, arguments);
   try {
     if (!masterTFs.length && !consolidatedTFs.length) return;
 
-    // Trade — count unique stocks across the 4 console combinations
+    // Trade count
     const consolLabels = ['M-D-H: R4','D-H: R4','H-15m: R4','D:R2 & H:R4'];
     const tradeSet = new Set();
     consolidatedTFs.forEach(tf => {
       if (!consolLabels.includes(tf.label)) return;
       tf.cols.forEach(col => col.forEach(sym => tradeSet.add(sym.toUpperCase())));
     });
-    const tradeBadge = document.getElementById('badge-trade');
-    if (tradeBadge) {
-      tradeBadge.textContent = tradeSet.size || '—';
-      tradeBadge.style.background = tradeSet.size > 0 ? 'rgba(249,115,22,0.2)' : '';
-      tradeBadge.style.color      = tradeSet.size > 0 ? '#f97316' : '';
-    }
+    const tradeCount = tradeSet.size;
 
-    // Invest — count directly from Monthly S4 TF rows (same source as buildInvestTab)
+    // Invest count
     const s4Set = new Set();
     masterTFs.forEach(tf => {
-      if (tf.label === 'Monthly S4') {
-        tf.cols.forEach(col => col.forEach(sym => { if (sym && sym.trim()) s4Set.add(sym.toUpperCase()); }));
-      }
+      if (tf.label === 'Monthly S4') tf.cols.forEach(col => col.forEach(sym => { if (sym && sym.trim()) s4Set.add(sym.toUpperCase()); }));
     });
-    const investBadge = document.getElementById('badge-invest');
-    if (investBadge) {
-      investBadge.textContent = s4Set.size || '—';
-      investBadge.style.background = s4Set.size > 0 ? 'rgba(52,211,153,0.18)' : '';
-      investBadge.style.color      = s4Set.size > 0 ? '#34d399' : '';
+    const investCount = s4Set.size;
+
+    // Signals badge: show trade count (most urgent) in orange if > 0
+    // else show consolidated total in default colour
+    const bc = document.getElementById('badge-consolidated');
+    if (bc) {
+      if (tradeCount > 0) {
+        bc.textContent = tradeCount;
+        bc.style.background = 'rgba(249,115,22,0.22)';
+        bc.style.color = '#f97316';
+        bc.title = tradeCount + ' trade signals';
+      } else {
+        const total = consolidatedTFs.reduce((a, tf) => a + tf.cols.reduce((b, col) => b + col.length, 0), 0);
+        bc.textContent = total || '—';
+        bc.style.background = '';
+        bc.style.color = '';
+        bc.title = '';
+      }
     }
 
-    // Sync to mobile nav badges immediately
+    // Keep hidden badge elements alive for mobSyncBadges compatibility
+    let bt = document.getElementById('badge-trade');
+    if (!bt) { bt = document.createElement('span'); bt.id = 'badge-trade'; bt.style.display = 'none'; document.body.appendChild(bt); }
+    bt.textContent = tradeCount || '—';
+
+    let bi = document.getElementById('badge-invest');
+    if (!bi) { bi = document.createElement('span'); bi.id = 'badge-invest'; bi.style.display = 'none'; document.body.appendChild(bi); }
+    bi.textContent = investCount || '—';
+
+    // Refresh sub-tab bar counts if signals tab is active
+    const stBar = document.getElementById('signalsSubTabBar');
+    if (stBar) stBar.outerHTML = buildSignalsSubTabBar();
+
+    // Mobile badges
     mobSyncBadges();
 
-    // Run signal alerts (deferred so fundCache fully merged after render)
     _maybeRunAlerts();
-  } catch(e) { /* silent — never break existing behaviour */ }
+  } catch(e) { /* silent */ }
 };
 
-// ── Keyboard shortcuts for new tabs ──────────────────────────────────────
+// ── Keyboard shortcuts ─────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-  if (e.key === 't' || e.key === 'T') { activeTab = 'trade';  render(); }
-  if (e.key === 'i' || e.key === 'I') { activeTab = 'invest'; render(); }
+  if (e.key === 't' || e.key === 'T') {
+    activeTab = 'consolidated'; activeSignalsSubTab = 'trade';
+    try { localStorage.setItem('nse-signals-subtab', 'trade'); } catch(e2) {}
+    render(); showKbToast('<strong>T</strong> — Signals: Trade');
+  }
+  if (e.key === 'i' || e.key === 'I') {
+    activeTab = 'consolidated'; activeSignalsSubTab = 'invest';
+    try { localStorage.setItem('nse-signals-subtab', 'invest'); } catch(e2) {}
+    render(); showKbToast('<strong>I</strong> — Signals: Invest');
+  }
 });
+
+// ── Mobile: swipe between Signals sub-tabs ────────────────────────────────
+const _sigSubOrder = ['timeframe', 'trade', 'invest'];
+let _sigSwipeX = 0, _sigSwipeActive = false;
+
+document.addEventListener('touchstart', e => {
+  const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
+  if (!isMob || activeTab !== 'consolidated') return;
+  _sigSwipeX = e.touches[0].clientX;
+  _sigSwipeActive = true;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  if (!_sigSwipeActive) return;
+  _sigSwipeActive = false;
+  const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
+  if (!isMob || activeTab !== 'consolidated') return;
+  const dx = e.changedTouches[0].clientX - _sigSwipeX;
+  if (Math.abs(dx) < 50) return;
+  const cur = _sigSubOrder.indexOf(activeSignalsSubTab);
+  let next = dx < 0 ? cur + 1 : cur - 1;
+  next = Math.max(0, Math.min(_sigSubOrder.length - 1, next));
+  if (next === cur) return;
+  activeSignalsSubTab = _sigSubOrder[next];
+  try { localStorage.setItem('nse-signals-subtab', activeSignalsSubTab); } catch(e2) {}
+  render();
+  showKbToast(`${dx < 0 ? '→' : '←'} <strong>${activeSignalsSubTab.charAt(0).toUpperCase() + activeSignalsSubTab.slice(1)}</strong>`);
+}, { passive: true });
+
+// ── Mobile: mobBuildConsol now includes sub-tab bar ────────────────────────
+const _origMobBuildConsol = mobBuildConsol;
+mobBuildConsol = function(term) {
+  const subBar = buildSignalsSubTabBar().replace(/style="[^"]*"/g, s => s); // keep styles
+  let content = '';
+  if (activeSignalsSubTab === 'trade') {
+    content = mobBuildTrade();
+  } else if (activeSignalsSubTab === 'invest') {
+    content = mobBuildInvest();
+  } else {
+    content = _origMobBuildConsol(term);
+  }
+  return subBar + content;
+};
+
+// ── mobSyncBadges: only 5 tabs now ────────────────────────────────────────
+mobSyncBadges = function() {
+  ['master','consolidated','heatmap','earnings','compare'].forEach(tab => {
+    const src = document.getElementById('badge-' + tab);
+    const dst = document.getElementById('mbn-badge-' + tab);
+    if (!src || !dst) return;
+    const val = src.textContent || '—';
+    dst.textContent = val;
+    dst.classList.toggle('has-val', val !== '—' && val !== '' && val !== '0');
+  });
+};
 
 </script>
 
@@ -7490,7 +7670,28 @@ body.light-theme .ti-combo-summary { background:#f8f9fb; }
 body.light-theme .ti-row.dual-combo td { background:rgba(249,115,22,0.03); }
 body.light-theme .ti-row.above-r4-row td { background:rgba(251,191,36,0.03); }
 
-/* ── PRICE CARD — modal price tab card layout ──────────────── */
+/* ── SIGNALS SUB-TAB BAR ───────────────────────────────────── */
+.signals-subtab-bar {
+  display:flex; align-items:center; gap:0;
+  background:var(--surface); border-bottom:2px solid var(--border2);
+  padding:0 14px; overflow-x:auto; scrollbar-width:none;
+  position:sticky; top:98px; z-index:190;
+  flex-shrink:0;
+}
+.signals-subtab-bar::-webkit-scrollbar { display:none; }
+.signals-content { min-height:0; }
+.sig-sub-count {
+  font-family:'Oxanium',sans-serif; font-size:0.6rem; font-weight:800;
+  background:rgba(255,255,255,0.07); border-radius:8px;
+  padding:1px 6px; margin-left:5px; letter-spacing:0.04em;
+}
+.sig-new-dot {
+  display:inline-block; width:6px; height:6px; border-radius:50%;
+  background:#f97316; margin-left:4px; vertical-align:middle;
+  animation:pulse 1.5s infinite;
+}
+body.light-theme .signals-subtab-bar { background:#f0f2f5; border-color:#c8d0e0; }
+body.light-theme .sig-sub-count { background:rgba(0,0,0,0.06); }
 .price-card .fund-card-hd { align-items: flex-start; }
 .price-card .fund-card-sym { font-size: 1.05rem; }
 .price-card .fund-card-price { font-size: 1.28rem; font-weight: 800; color: var(--text); }
