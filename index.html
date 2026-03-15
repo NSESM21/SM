@@ -7226,19 +7226,22 @@ function buildSignalsSubTabBar() {
   // New entries indicator for Trade
   const hasNew = [...r4NewEntries].some(k => consolLabels.some(l => k.endsWith('|' + l)));
 
+  // Layout/sizing handled by CSS .sstab-btn — no JS mobile-detection here
+  // (avoids body-class timing race: html.mobile-view is set before body.mobile-view)
   const st = (key, color) => activeSignalsSubTab === key
     ? `border-bottom:2px solid ${color};color:${color};background:transparent;`
     : `border-bottom:2px solid transparent;color:var(--muted);background:transparent;`;
-  const base = `font-family:Oxanium,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.08em;padding:9px 16px;border:none;cursor:pointer;transition:all 0.15s;white-space:nowrap;`;
+  // Only non-layout properties in inline style — padding/flex/font-size live in .sstab-btn CSS
+  const base = `font-family:Oxanium,sans-serif;font-weight:700;border:none;cursor:pointer;transition:all 0.15s;white-space:nowrap;`;
 
   return `<div class="signals-subtab-bar" id="signalsSubTabBar">
-    <button style="${base}${st('timeframe','#818cf8')}" onclick="setSignalsSubTab('timeframe')">
+    <button class="sstab-btn" style="${base}${st('timeframe','#818cf8')}" onclick="setSignalsSubTab('timeframe')">
       ⚡ Timeframe <span class="sig-sub-count" style="color:#818cf8">${tfCount||'—'}</span>
     </button>
-    <button style="${base}${st('trade','#f97316')}" onclick="setSignalsSubTab('trade')">
+    <button class="sstab-btn" style="${base}${st('trade','#f97316')}" onclick="setSignalsSubTab('trade')">
       ⚡ <u>T</u>rade <span class="sig-sub-count" style="color:#f97316">${tradeCount||'—'}</span>${hasNew?'<span class="sig-new-dot"></span>':''}
     </button>
-    <button style="${base}${st('invest','#34d399')}" onclick="setSignalsSubTab('invest')">
+    <button class="sstab-btn" style="${base}${st('invest','#34d399')}" onclick="setSignalsSubTab('invest')">
       🌱 <u>I</u>nvest <span class="sig-sub-count" style="color:#34d399">${investCount||'—'}</span>
     </button>
   </div>`;
@@ -7672,13 +7675,45 @@ body.light-theme .ti-row.above-r4-row td { background:rgba(251,191,36,0.03); }
 
 /* ── SIGNALS SUB-TAB BAR ───────────────────────────────────── */
 .signals-subtab-bar {
-  display:flex; align-items:center; gap:0;
+  display:flex; align-items:center; justify-content:flex-start; gap:0;
   background:var(--surface); border-bottom:2px solid var(--border2);
   padding:0 14px; overflow-x:auto; scrollbar-width:none;
   position:sticky; top:98px; z-index:190;
-  flex-shrink:0;
+  flex-shrink:0; width:100%; box-sizing:border-box;
 }
 .signals-subtab-bar::-webkit-scrollbar { display:none; }
+
+/* Desktop button style */
+.sstab-btn {
+  font-size:0.78rem; letter-spacing:0.08em;
+  padding:9px 16px; flex-shrink:0; text-align:left;
+}
+
+/* ── Mobile: bar sticks below 48px header + 38px index strip ── */
+body.mobile-view .signals-subtab-bar,
+html.mobile-view .signals-subtab-bar {
+  top: 86px;
+  padding: 0;
+}
+/* Mobile buttons: equal-width, centred text, fills full bar width */
+body.mobile-view .sstab-btn,
+html.mobile-view .sstab-btn {
+  flex: 1 1 0;
+  text-align: center;
+  padding: 11px 4px;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  min-width: 0;
+}
+
+/* Also cover the narrow-screen case via media query (belt-and-suspenders) */
+@media (max-width: 600px) {
+  .signals-subtab-bar { top:86px; padding:0; }
+  .sstab-btn {
+    flex:1 1 0; text-align:center; padding:11px 4px;
+    font-size:0.72rem; letter-spacing:0.03em; min-width:0;
+  }
+}
 .signals-content { min-height:0; }
 .sig-sub-count {
   font-family:'Oxanium',sans-serif; font-size:0.6rem; font-weight:800;
