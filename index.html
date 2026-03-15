@@ -1663,6 +1663,7 @@ body.mobile-view #mobileIndexStrip {
   display: flex; align-items: stretch; gap: 0;
   background: var(--surface); border-bottom: 1px solid var(--border2);
   overflow-x: auto; scrollbar-width: none;
+  height: 58px; flex-shrink: 0;
 }
 body.mobile-view #mobileIndexStrip::-webkit-scrollbar { display: none; }
 .mix-item {
@@ -1680,7 +1681,7 @@ body.light-theme .mix-item { border-color:#e8ddd0; }
 
 body.mobile-view #mainContent {
   padding: 0 !important; overflow-y: auto;
-  height: calc(100vh - 48px - 38px - 62px);
+  height: calc(100vh - 48px - 58px - 62px);
   -webkit-overflow-scrolling: touch;
 }
 .mob-tf-bar {
@@ -1983,6 +1984,9 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
 </div>
 
 <div id="parseDiagBar" style="display:none"></div>
+
+<!-- Mobile signals subtab bar — lives OUTSIDE mainContent so sticky works correctly -->
+<div id="mobileSubTabBar" style="display:none"></div>
 
 <main id="mainContent">
   <div class="state-screen">
@@ -4311,6 +4315,14 @@ function attachLongPress(chip) {
 function mobRender() {
   const mc = document.getElementById('mainContent');
   const term = searchTerm.toLowerCase();
+
+  // Hide subtab bar by default; mobBuildConsol will show it if needed
+  const subBarEl = document.getElementById('mobileSubTabBar');
+  if (subBarEl && activeTab !== 'consolidated') {
+    subBarEl.innerHTML = '';
+    subBarEl.style.display = 'none';
+    mc.style.height = ''; // reset to CSS default
+  }
 
   // sync bottom nav
   document.querySelectorAll('.mbn-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
@@ -7033,7 +7045,12 @@ function buildInvestTab() {
     const de   = fd.debtToEquity != null ? fd.debtToEquity.toFixed(2) : '—';
     const pe   = fd.pe    != null ? fd.pe.toFixed(1) : '—';
     const fcf  = fd.freeCashFlow != null
-      ? (fd.freeCashFlow >= 0 ? '<span class="val-green">+FCF</span>' : '<span class="val-red">−FCF</span>') : '—';
+      ? (() => {
+          const raw = fmtCap(fd.freeCashFlow).replace(/<[^>]+>/g, '');
+          return fd.freeCashFlow >= 0
+            ? `<span class="val-green">+${raw}</span>`
+            : `<span class="val-red">${raw}</span>`;
+        })() : '—';
     const sector   = fd.sector || fundSector[r.sym] || '';
     const earnDate = fd.earningsDate || fundEarnings[r.sym] || '';
     const earnDays = daysUntilEarnings(earnDate);
@@ -7405,19 +7422,32 @@ document.addEventListener('touchend', e => {
   showKbToast(`${dx < 0 ? '→' : '←'} <strong>${activeSignalsSubTab.charAt(0).toUpperCase() + activeSignalsSubTab.slice(1)}</strong>`);
 }, { passive: true });
 
-// ── Mobile: mobBuildConsol now includes sub-tab bar ────────────────────────
+// ── Mobile: render subtab bar into #mobileSubTabBar (outside mainContent)
+//    so it stays fixed at the top and doesn't scroll away ──────────────────
 const _origMobBuildConsol = mobBuildConsol;
 mobBuildConsol = function(term) {
-  const subBar = buildSignalsSubTabBar().replace(/style="[^"]*"/g, s => s); // keep styles
-  let content = '';
-  if (activeSignalsSubTab === 'trade') {
-    content = mobBuildTrade();
-  } else if (activeSignalsSubTab === 'invest') {
-    content = mobBuildInvest();
-  } else {
-    content = _origMobBuildConsol(term);
+  // Inject subtab bar into the external placeholder — outside the scroll container
+  const subBarEl = document.getElementById('mobileSubTabBar');
+  if (subBarEl) {
+    subBarEl.innerHTML = buildSignalsSubTabBar();
+    subBarEl.style.display = 'block';
+    // Shrink mainContent by subtab bar height so nothing is hidden under it
+    const mc = document.getElementById('mainContent');
+    if (mc) {
+      const barH = subBarEl.offsetHeight || 42;
+      mc.style.marginTop = '0';
+      // Adjust height: subtract subtab bar height from the base calc
+      mc.style.height = 'calc(100vh - 48px - 58px - ' + barH + 'px - 62px)';
+    }
   }
-  return subBar + content;
+  // Return only the content — no subBar prepended
+  if (activeSignalsSubTab === 'trade') {
+    return mobBuildTrade();
+  } else if (activeSignalsSubTab === 'invest') {
+    return mobBuildInvest();
+  } else {
+    return _origMobBuildConsol(term);
+  }
 };
 
 // ── mobSyncBadges: only 5 tabs now ────────────────────────────────────────
@@ -7579,7 +7609,7 @@ body.light-theme #bcs-alert-banner { background:#fff; border-color:rgba(249,115,
   .mob-ti-sym { font-size: 0.84rem; }
   .mob-stock-chip { min-height: 48px; padding: 8px 10px; }
   .mob-cat-name { font-size: 0.72rem; }
-  body.mobile-view #mainContent { height: calc(100vh - 48px - 38px - 56px); }
+  body.mobile-view #mainContent { height: calc(100vh - 48px - 58px - 56px); }
   body.mobile-view #mobileBottomNav { height: 56px; }
   .ti-combo-bar { grid-template-columns: repeat(2,1fr); }
 }
@@ -7673,12 +7703,12 @@ body.light-theme .ti-combo-summary { background:#f8f9fb; }
 body.light-theme .ti-row.dual-combo td { background:rgba(249,115,22,0.03); }
 body.light-theme .ti-row.above-r4-row td { background:rgba(251,191,36,0.03); }
 
-/* ── SIGNALS SUB-TAB BAR ───────────────────────────────────── */
+/* ── SIGNALS SUB-TAB BAR (desktop — inside mainContent, sticky) ── */
 .signals-subtab-bar {
   display:flex; align-items:center; justify-content:flex-start; gap:0;
   background:var(--surface); border-bottom:2px solid var(--border2);
   padding:0 14px; overflow-x:auto; scrollbar-width:none;
-  position:sticky; top:98px; z-index:190;
+  position:sticky; top:0; z-index:190;
   flex-shrink:0; width:100%; box-sizing:border-box;
 }
 .signals-subtab-bar::-webkit-scrollbar { display:none; }
@@ -7689,30 +7719,35 @@ body.light-theme .ti-row.above-r4-row td { background:rgba(251,191,36,0.03); }
   padding:9px 16px; flex-shrink:0; text-align:left;
 }
 
-/* ── Mobile: bar sticks below 48px header + 38px index strip ── */
+/* ── Mobile: the bar lives in #mobileSubTabBar (outside mainContent)
+   so NO sticky/top needed — it's normal block flow in the right position ── */
 body.mobile-view .signals-subtab-bar,
 html.mobile-view .signals-subtab-bar {
-  top: 86px;
+  position: relative; top: auto;
   padding: 0;
 }
-/* Mobile buttons: equal-width, centred text, fills full bar width */
 body.mobile-view .sstab-btn,
 html.mobile-view .sstab-btn {
-  flex: 1 1 0;
-  text-align: center;
+  flex: 1 1 0; text-align: center;
   padding: 11px 4px;
-  font-size: 0.72rem;
-  letter-spacing: 0.03em;
-  min-width: 0;
+  font-size: 0.72rem; letter-spacing: 0.03em; min-width: 0;
 }
-
-/* Also cover the narrow-screen case via media query (belt-and-suspenders) */
 @media (max-width: 600px) {
-  .signals-subtab-bar { top:86px; padding:0; }
-  .sstab-btn {
+  body.mobile-view .signals-subtab-bar,
+  html.mobile-view .signals-subtab-bar { position:relative; top:auto; padding:0; }
+  body.mobile-view .sstab-btn,
+  html.mobile-view .sstab-btn {
     flex:1 1 0; text-align:center; padding:11px 4px;
     font-size:0.72rem; letter-spacing:0.03em; min-width:0;
   }
+}
+
+/* ── #mobileSubTabBar: lives between index strip and mainContent ── */
+#mobileSubTabBar {
+  display: none; /* shown by JS only when Signals tab is active */
+  width: 100%; flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border2);
 }
 .signals-content { min-height:0; }
 .sig-sub-count {
