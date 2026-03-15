@@ -3470,7 +3470,147 @@ function buildConsolidated(term) {
       ` : ''}
     </div>` : '';
 
-  return signalBar + `
+  // ── TREND STRUCTURE PANEL ──────────────────────────────────────────────────
+  // Collects every unique symbol across all masterTFs, maps which key
+  // trend levels it appears in, then groups by structure.
+  const _trendSymMap = {};
+  masterTFs.forEach(tf => {
+    tf.cols.forEach(col => col.forEach(sym => {
+      if (!sym) return;
+      const k = sym.toUpperCase();
+      if (!_trendSymMap[k]) _trendSymMap[k] = { lt:false, st:false, mt:false, s4:false, ltR2:false, stR2:false };
+      if (tf.label === 'Monthly R4') _trendSymMap[k].lt   = true;  // Long-term bullish
+      if (tf.label === 'Monthly R2') _trendSymMap[k].ltR2 = true;  // LT resistance zone
+      if (tf.label === 'Daily R4')   _trendSymMap[k].st   = true;  // Short-term bullish
+      if (tf.label === 'Daily R2')   _trendSymMap[k].stR2 = true;  // ST resistance zone
+      if (tf.label === '1 Hour R4')  _trendSymMap[k].mt   = true;  // Minor-term bullish
+      if (tf.label === '15 Min R4')  _trendSymMap[k].min  = true;  // Entry momentum
+      if (tf.label === 'Monthly S4') _trendSymMap[k].s4   = true;  // Accumulation zone
+    }));
+  });
+
+  // Also pull from consolidatedTFs for cross-TF stocks
+  consolidatedTFs.forEach(tf => {
+    tf.cols.forEach(col => col.forEach(sym => {
+      if (!sym) return;
+      const k = sym.toUpperCase();
+      if (!_trendSymMap[k]) _trendSymMap[k] = { lt:false, st:false, mt:false, s4:false };
+    }));
+  });
+
+  // Group stocks by trend alignment
+  const _tGroups = {
+    full:   [], // LT + ST + MT all confirmed
+    ltSt:   [], // LT + ST only
+    ltMt:   [], // LT + MT only
+    ltOnly: [], // LT only
+    stMt:   [], // ST + MT (no LT yet)
+    stOnly: [], // ST only
+    mtOnly: [], // MT only (minor bounce)
+    s4:     [], // Accumulation — no R4 yet
+    none:   [], // In some other zone
+  };
+
+  Object.entries(_trendSymMap).forEach(([sym, t]) => {
+    const fd2 = fundCache[sym] || {};
+    const pct52 = (fd2.price != null && fd2.high52 != null && fd2.low52 != null && fd2.high52 > fd2.low52)
+      ? Math.round((fd2.price - fd2.low52) / (fd2.high52 - fd2.low52) * 100) : null;
+    const entry = { sym, pct52, lt:t.lt, st:t.st, mt:t.mt, s4:t.s4, ltR2:t.ltR2, stR2:t.stR2, min:t.min };
+    if      (t.lt && t.st && t.mt)  _tGroups.full.push(entry);
+    else if (t.lt && t.st)          _tGroups.ltSt.push(entry);
+    else if (t.lt && t.mt)          _tGroups.ltMt.push(entry);
+    else if (t.lt && !t.st && !t.mt)_tGroups.ltOnly.push(entry);
+    else if (!t.lt && t.st && t.mt) _tGroups.stMt.push(entry);
+    else if (!t.lt && t.st)         _tGroups.stOnly.push(entry);
+    else if (!t.lt && !t.st && t.mt)_tGroups.mtOnly.push(entry);
+    else if (t.s4)                  _tGroups.s4.push(entry);
+    else                            _tGroups.none.push(entry);
+  });
+
+  // Sort each group by pct52 descending (strongest momentum first)
+  Object.values(_tGroups).forEach(g => g.sort((a,b) => (b.pct52||0) - (a.pct52||0)));
+
+  // Helper: render a stock pill with trend dots + 52W bar
+  function _trendPill(e) {
+    const ltDot  = e.lt  ? '<span style="color:#f472b6" title="Monthly R4 — Long-term bullish">●</span>'
+                         : e.s4 ? '<span style="color:#34d399" title="Monthly S4 — Accumulation">●</span>'
+                         : e.ltR2 ? '<span style="color:#a78bfa" title="Monthly R2 — LT resistance">●</span>'
+                         : '<span style="color:#2a3550" title="No Monthly signal">●</span>';
+    const stDot  = e.st  ? '<span style="color:#fb7185" title="Daily R4 — Short-term bullish">●</span>'
+                         : e.stR2 ? '<span style="color:#fbbf24" title="Daily R2 — ST resistance">●</span>'
+                         : '<span style="color:#2a3550" title="No Daily signal">●</span>';
+    const mtDot  = e.mt  ? '<span style="color:#38bdf8" title="1Hr R4 — Minor-term bullish">●</span>'
+                         : e.min ? '<span style="color:#00e5a0" title="15Min R4 — Entry momentum">●</span>'
+                         : '<span style="color:#2a3550" title="No Hourly signal">●</span>';
+    const w52bar = e.pct52 != null
+      ? `<div style="width:100%;height:2px;background:var(--border2);border-radius:1px;margin-top:2px">
+           <div style="width:${e.pct52}%;height:100%;border-radius:1px;background:${
+             e.pct52>=80?'#f472b6':e.pct52>=60?'#38bdf8':e.pct52>=40?'#fbbf24':'#34d399'
+           }"></div></div>` : '';
+    const w52txt = e.pct52 != null
+      ? `<div style="font-size:0.48rem;color:var(--muted);text-align:center;margin-top:1px">${e.pct52}%</div>` : '';
+    return `<div class="ts-pill" title="${e.sym} · LT:${e.lt?'R4':e.s4?'S4':'—'} ST:${e.st?'R4':'—'} MT:${e.mt?'R4':'—'} · 52W:${e.pct52!=null?e.pct52+'%':'—'}">
+      <div style="font-family:Oxanium,sans-serif;font-size:0.65rem;font-weight:800;color:var(--text);white-space:nowrap">${e.sym}</div>
+      <div style="display:flex;gap:2px;justify-content:center;font-size:0.65rem;margin-top:1px">${ltDot}${stDot}${mtDot}</div>
+      ${w52bar}${w52txt}
+    </div>`;
+  }
+
+  // Helper: render a group section
+  function _trendGroup(label, color, bgColor, entries, description) {
+    if (!entries.length) return '';
+    const pills = entries.map(_trendPill).join('');
+    return `<div class="ts-group">
+      <div class="ts-group-hd" style="border-left:3px solid ${color};background:${bgColor}">
+        <span class="ts-group-label" style="color:${color}">${label}</span>
+        <span class="ts-group-count" style="color:${color}">${entries.length}</span>
+        <span class="ts-group-desc">${description}</span>
+      </div>
+      <div class="ts-pills">${pills}</div>
+    </div>`;
+  }
+
+  // Restore collapsed state
+  let _tsCollapsed = false;
+  try { _tsCollapsed = localStorage.getItem('nse-trend-struct-collapsed') === '1'; } catch(e) {}
+
+  const trendStructPanel = `
+    <div class="ts-panel" id="trendStructPanel">
+      <div class="ts-header">
+        <div>
+          <div class="ts-title">📐 TREND STRUCTURE</div>
+          <div class="ts-subtitle">
+            <span style="color:#f472b6">●</span> LT = Monthly R4 &nbsp;
+            <span style="color:#fb7185">●</span> ST = Daily R4 &nbsp;
+            <span style="color:#38bdf8">●</span> MT = 1Hr R4 &nbsp;
+            <span style="color:#34d399">●</span> Accum = Monthly S4 &nbsp;
+            <span style="color:#2a3550">●</span> Not in that zone
+            &nbsp;·&nbsp; Bar = 52W position
+          </div>
+        </div>
+        <button onclick="toggleTrendStruct()" id="tsTglBtn" class="ts-toggle-btn">${_tsCollapsed ? '▼ Show' : '▲ Hide'}</button>
+      </div>
+      <div id="trendStructBody" style="${_tsCollapsed ? 'display:none' : ''}">
+        ${_trendGroup('⚡ FULL CONFLUENCE', '#f97316', 'rgba(249,115,22,0.06)', _tGroups.full,
+          'Monthly R4 + Daily R4 + 1Hr R4 — all 3 trend levels confirmed bullish')}
+        ${_trendGroup('🟢 LT + ST', '#f472b6', 'rgba(244,114,182,0.05)', _tGroups.ltSt,
+          'Monthly R4 + Daily R4 — long & short term bullish, awaiting minor entry')}
+        ${_trendGroup('🔵 LT + MT', '#818cf8', 'rgba(129,140,248,0.05)', _tGroups.ltMt,
+          'Monthly R4 + 1Hr R4 — long-term bullish with intraday signal')}
+        ${_trendGroup('🟡 LT ONLY', '#a78bfa', 'rgba(167,139,250,0.05)', _tGroups.ltOnly,
+          'Monthly R4 only — long-term structure confirmed, short/minor not yet')}
+        ${_trendGroup('⚡ ST + MT', '#fb7185', 'rgba(251,113,133,0.05)', _tGroups.stMt,
+          'Daily R4 + 1Hr R4 — short-term momentum building, LT not confirmed yet')}
+        ${_trendGroup('📈 ST ONLY', '#fbbf24', 'rgba(251,191,36,0.05)', _tGroups.stOnly,
+          'Daily R4 only — short-term bounce, no long-term confirmation')}
+        ${_trendGroup('⚡ MT ONLY', '#38bdf8', 'rgba(56,189,248,0.04)', _tGroups.mtOnly,
+          '1Hr R4 only — minor term entry signal, no broader trend confirmation')}
+        ${_trendGroup('🌱 ACCUMULATION', '#34d399', 'rgba(52,211,153,0.05)', _tGroups.s4,
+          'Monthly S4 — deeply corrected, base building. Watch for LT + ST + MT to confirm reversal')}
+      </div>
+    </div>`;
+
+  return signalBar + trendStructPanel + `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
       <button class="col-collapse-all" onclick="toggleCollapseAll()">
         ${collapsedCats.size > 0 ? '⊞ Expand All' : '⊟ Collapse All'}
@@ -4639,28 +4779,16 @@ function mobBuildInvest() {
       tf.cols.forEach(col => col.forEach(sym => { if (sym && sym.trim()) s4Stocks.add(sym.toUpperCase()); }));
     }
   });
-  const aboveR4 = new Set();
-  masterTFs.forEach(tf => {
-    if (tf.label === 'Monthly R4' || tf.label === 'Monthly R2') {
-      tf.cols.forEach(col => col.forEach(sym => { if (sym) aboveR4.add(sym.toUpperCase()); }));
-    }
-  });
-
   if (!s4Stocks.size) {
     return `<div style="padding:48px 20px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif;font-size:0.85rem">
       No stocks in Monthly S4 yet</div>`;
   }
 
   const rows = [...s4Stocks]
-    .map(sym => ({ sym, bcs: allScores[sym] || computeBCS(sym), isAboveR4: aboveR4.has(sym) }))
-    .sort((a, b) => {
-      if (!a.isAboveR4 && b.isAboveR4) return -1;
-      if (a.isAboveR4 && !b.isAboveR4) return 1;
-      return b.bcs.total - a.bcs.total;
-    });
+    .map(sym => ({ sym, bcs: allScores[sym] || computeBCS(sym) }))
+    .sort((a, b) => b.bcs.total - a.bcs.total);
 
-  const pureCount = rows.filter(r => !r.isAboveR4).length;
-  const r4Count   = rows.filter(r => r.isAboveR4).length;
+  const pureCount = rows.length;
 
   const cards = rows.map(r => {
     const fd = Object.assign({}, fundCache[r.sym] || {}, { pct52: r.bcs.pct52 });
@@ -4675,23 +4803,29 @@ function mobBuildInvest() {
     const de   = fd.debtToEquity != null ? fd.debtToEquity.toFixed(2) : '—';
     const pe   = fd.pe    != null ? fd.pe.toFixed(1) : '—';
     const earnBadge = getEarnBadge(r.sym);
-    const statusBadge = r.isAboveR4
-      ? `<span style="font-family:Oxanium,sans-serif;font-size:0.52rem;font-weight:800;background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.35);border-radius:3px;padding:1px 5px">↑ R4</span>`
-      : `<span style="font-family:Oxanium,sans-serif;font-size:0.52rem;font-weight:800;background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.35);border-radius:3px;padding:1px 5px">M-S4</span>`;
+    // Always show M-S4 badge — these stocks are in Monthly S4 accumulation zone
+    const statusBadge = `<span style="font-family:Oxanium,sans-serif;font-size:0.52rem;font-weight:800;background:rgba(52,211,153,0.15);color:#34d399;border:1px solid rgba(52,211,153,0.35);border-radius:3px;padding:1px 5px">M-S4</span>`;
     const bcs = r.bcs;
     const barColor = bcs.total >= 70 ? '#f97316' : bcs.total >= 50 ? '#fbbf24' : '#34d399';
     const roeGood  = fd.roe  != null && fd.roe  * 100 >= 15;
     const roceGood = fd.roce != null && fd.roce * 100 >= 16;
     const deGood   = fd.debtToEquity != null && fd.debtToEquity < 0.5;
 
-    // Risk flags
+    // Risk flags — from your sheet data only, no external beta
     const sec = (fd.sector || '').toLowerCase();
     const isB = /bank|financial/i.test(sec);
     const flags = [];
-    if (fd.beta != null && fd.beta > 1.5) flags.push(`<span style="font-size:0.5rem;background:rgba(251,113,133,0.15);color:#fb7185;border-radius:3px;padding:1px 4px">β${fd.beta.toFixed(1)}</span>`);
-    if (!isB && fd.debtToEquity != null && fd.debtToEquity > 2) flags.push(`<span style="font-size:0.5rem;background:rgba(251,113,133,0.15);color:#fb7185;border-radius:3px;padding:1px 4px">High D/E</span>`);
+    if (!isB && fd.debtToEquity != null && fd.debtToEquity > 2)
+      flags.push(`<span style="font-size:0.5rem;background:rgba(251,113,133,0.15);color:#fb7185;border-radius:3px;padding:1px 4px">High D/E</span>`);
+    if (fd.freeCashFlow != null && fd.freeCashFlow < 0)
+      flags.push(`<span style="font-size:0.5rem;background:rgba(251,113,133,0.15);color:#fb7185;border-radius:3px;padding:1px 4px">−FCF</span>`);
+    const p52 = r.bcs.pct52;
+    if (p52 != null && p52 <= 25)
+      flags.push(`<span style="font-size:0.5rem;background:rgba(52,211,153,0.12);color:#34d399;border-radius:3px;padding:1px 4px">Deep value</span>`);
+    else if (p52 != null && p52 >= 80)
+      flags.push(`<span style="font-size:0.5rem;background:rgba(251,191,36,0.12);color:#fbbf24;border-radius:3px;padding:1px 4px">Near 52W high</span>`);
 
-    return `<div class="mob-ti-card${r.isAboveR4 ? ' above-r4' : ' s4-zone'}" onclick="openSymbolModal('${r.sym}')">
+    return `<div class="mob-ti-card s4-zone" onclick="openSymbolModal('${r.sym}')">
       <div class="mob-ti-card-top">
         <div>
           <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
@@ -4709,6 +4843,7 @@ function mobBuildInvest() {
         <span class="mob-ti-fl">ROCE</span><span class="${roceGood ? 'mob-ti-fv-good' : 'mob-ti-fv'}">${roce}</span>
         <span class="mob-ti-fl">D/E</span><span class="${deGood ? 'mob-ti-fv-good' : 'mob-ti-fv'}">${de}</span>
         <span class="mob-ti-fl">PE</span><span class="mob-ti-fv">${pe}</span>
+        <span class="mob-ti-fl">FCF</span><span class="mob-ti-fv">${fd.freeCashFlow != null ? (() => { const raw = fmtCap(fd.freeCashFlow).replace(/<[^>]+>/g,''); return fd.freeCashFlow >= 0 ? '<span style="color:#34d399">+' + raw + '</span>' : '<span style="color:#fb7185">' + raw + '</span>'; })() : '—'}</span>
       </div>
       <div class="mob-ti-bcs-row">
         <div style="flex:1;height:4px;background:var(--border2);border-radius:2px;overflow:hidden">
@@ -4725,26 +4860,66 @@ function mobBuildInvest() {
   }).join('');
 
   const positionNote = `<div style="margin:8px 2px 10px;padding:8px 10px;background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.15);border-radius:7px;font-size:0.62rem;color:var(--muted);line-height:1.5">
-    <strong style="color:#34d399">Monthly S4</strong> = accumulation zone. 
-    <span style="color:#fbbf24">↑ R4</span> = already broken above R4.
+    <strong style="color:#34d399">Monthly S4</strong> = long-term accumulation zone — deeply corrected stocks building a base.
+    Suggested size = Nifty 50 sector weight ÷ 4, scaled by BCS · 52W entry zone · D/E · FCF quality. Educational only.
     Tap any card to view full fundamentals.
+  </div>`;
+
+  // ── Mobile sector allocation panel ──
+  const mobSectorBuckets = {};
+  rows.forEach(r => {
+    const fd2 = fundCache[r.sym] || {};
+    const rawSec = fd2.sector || fundSector[r.sym] || 'Other';
+    if (!mobSectorBuckets[rawSec]) mobSectorBuckets[rawSec] = { label: rawSec, count: 0, weight: _sectorWeight(rawSec) || 0 };
+    mobSectorBuckets[rawSec].count++;
+  });
+  const mobSortedSectors = Object.values(mobSectorBuckets).sort((a,b) => b.count - a.count);
+  let _mobSaC = false;
+  try { _mobSaC = localStorage.getItem('nse-sector-alloc-collapsed') === '1'; } catch(e) {}
+
+  const mobSectorPanel = `<div style="margin:0 0 10px;padding:10px 12px;
+    background:var(--surface);border:1px solid var(--border2);border-radius:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${_mobSaC ? '0' : '8px'}">
+      <div>
+        <div style="font-family:Oxanium,sans-serif;font-size:0.65rem;font-weight:800;letter-spacing:0.08em;color:var(--text)">📊 NIFTY 50 SECTOR ALLOCATION</div>
+        <div style="font-size:0.55rem;color:var(--muted);margin-top:2px">Sector weight ÷ 4 × BCS × 52W × D/E × FCF</div>
+      </div>
+      <button onclick="toggleSectorAlloc()" id="sectorAllocToggle"
+        style="font-family:Oxanium,sans-serif;font-size:0.55rem;font-weight:700;background:transparent;
+        border:1px solid var(--border2);color:var(--muted);padding:2px 7px;border-radius:4px;cursor:pointer">
+        ${_mobSaC ? '▼ Show' : '▲ Hide'}</button>
+    </div>
+    <div id="sectorAllocBody" style="${_mobSaC ? 'display:none' : ''}">
+      ${mobSortedSectors.map(s => {
+        const color = s.weight >= 10 ? '#38bdf8' : s.weight >= 5 ? '#818cf8' : s.weight >= 2 ? '#34d399' : '#fbbf24';
+        const wPct  = Math.min(100, s.weight);
+        const suggested = s.weight > 0 ? (s.weight / 4).toFixed(2) : '—';
+        return `<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border)">
+          <div style="min-width:110px;font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:700;
+            color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.label}</div>
+          <div style="flex:1;height:5px;background:var(--border2);border-radius:3px;overflow:hidden;min-width:40px">
+            <div style="width:${wPct}%;height:100%;background:${color};opacity:0.6;border-radius:3px"></div>
+          </div>
+          <div style="font-family:Oxanium,sans-serif;font-size:0.6rem;font-weight:800;color:${color};min-width:32px;text-align:right">${s.weight > 0 ? s.weight+'%' : '—'}</div>
+          <div style="font-size:0.58rem;color:var(--muted);min-width:14px;text-align:center">${s.count}</div>
+          <div style="font-size:0.55rem;color:var(--muted);min-width:50px;text-align:right">~${suggested}%/stk</div>
+        </div>`;
+      }).join('')}
+    </div>
   </div>`;
 
   return `<div style="padding:10px 8px;overflow-y:auto;-webkit-overflow-scrolling:touch">
     <div style="display:flex;gap:7px;margin-bottom:8px">
       <div style="flex:1;padding:8px 10px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:8px;text-align:center">
         <div style="font-family:Oxanium,sans-serif;font-size:1.2rem;font-weight:800;color:#34d399">${pureCount}</div>
-        <div style="font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif">In S4</div>
+        <div style="font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif">In S4 Zone</div>
       </div>
-      ${r4Count > 0 ? `<div style="flex:1;padding:8px 10px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:8px;text-align:center">
-        <div style="font-family:Oxanium,sans-serif;font-size:1.2rem;font-weight:800;color:#fbbf24">${r4Count}</div>
-        <div style="font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif">Above R4</div>
-      </div>` : ''}
       <div style="flex:1;padding:8px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;text-align:center">
         <div style="font-family:Oxanium,sans-serif;font-size:1.2rem;font-weight:800;color:var(--text)">${rows.length}</div>
         <div style="font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif">Total</div>
       </div>
     </div>
+    ${mobSectorPanel}
     ${positionNote}
     ${cards}
   </div>`;
@@ -6119,6 +6294,16 @@ function toggleSectorAlloc() {
   try { localStorage.setItem('nse-sector-alloc-collapsed', collapsed ? '0' : '1'); } catch(e) {}
 }
 
+function toggleTrendStruct() {
+  const body = document.getElementById('trendStructBody');
+  const btn  = document.getElementById('tsTglBtn');
+  if (!body || !btn) return;
+  const collapsed = body.style.display === 'none';
+  body.style.display = collapsed ? '' : 'none';
+  btn.textContent    = collapsed ? '▲ Hide' : '▼ Show';
+  try { localStorage.setItem('nse-trend-struct-collapsed', collapsed ? '0' : '1'); } catch(e) {}
+}
+
 function hmSetSort(key) {
   hmSort = key;
   const grid = document.getElementById('hmGrid');
@@ -7072,20 +7257,20 @@ function buildInvestTab() {
     const earnBadge = getEarnBadge(r.sym);
 
     // Status badge: still in S4 zone vs moved above R4
-    const statusBadge = r.isAboveR4
-      ? `<span class="ti-above-r4-badge" title="Stock has moved above Monthly R4 — momentum confirmed, reassess entry">↑ Above R4</span>`
-      : `<span class="ti-s4-badge">M-S4</span>`;
+    const statusBadge = `<span class="ti-s4-badge">M-S4</span>`;
 
     // Risk flags
     const riskFlags = [];
     const sec = (fd.sector || '').toLowerCase();
     const isB = /bank|financial/i.test(sec);
-    if (fd.beta != null && fd.beta > 1.5) riskFlags.push(`<span class="ti-risk-flag">β${fd.beta.toFixed(1)}</span>`);
     if (!isB && fd.debtToEquity != null && fd.debtToEquity > 2) riskFlags.push('<span class="ti-risk-flag">High D/E</span>');
+    if (fd.freeCashFlow != null && fd.freeCashFlow < 0) riskFlags.push('<span class="ti-risk-flag">−FCF</span>');
+    if (r.bcs.pct52 != null && r.bcs.pct52 <= 25) riskFlags.push('<span class="ti-risk-good">Deep value</span>');
+    else if (r.bcs.pct52 != null && r.bcs.pct52 >= 80) riskFlags.push('<span class="ti-risk-warn">Near 52W high</span>');
     if (earnDays != null && earnDays >= 0 && earnDays <= 5) riskFlags.push('<span class="ti-risk-warn">Earn Risk</span>');
 
     return `
-      <tr class="ti-row${r.isAboveR4 ? ' above-r4-row' : ' s4-highlight'}" onclick="openSymbolModal('${r.sym}')">
+      <tr class="ti-row s4-highlight" onclick="openSymbolModal('${r.sym}')">
         <td class="ti-sym-cell">
           <div style="display:flex;align-items:center;gap:5px">
             <span class="ti-sym">${r.sym}${earnBadge}</span>${statusBadge}
@@ -7161,9 +7346,9 @@ function buildInvestTab() {
           <div style="font-family:Oxanium,sans-serif;font-size:0.72rem;font-weight:800;letter-spacing:0.1em;color:var(--text);text-transform:uppercase">📊 Nifty 50 Sector Allocation</div>
           <div style="font-size:0.62rem;color:var(--muted);margin-top:2px">Sector weights from Nifty 50 index · Size = sector weight ÷ 4 × BCS quality × 52W entry zone × D/E risk × FCF quality</div>
         </div>
-        <button onclick="toggleSectorAlloc()" id="sectorAllocToggle" style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:700;background:transparent;border:1px solid var(--border2);color:var(--muted);padding:2px 8px;border-radius:4px;cursor:pointer;white-space:nowrap">\${_sAllocCollapsed ? '▼ Show' : '▲ Hide'}</button>
+        <button onclick="toggleSectorAlloc()" id="sectorAllocToggle" style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:700;background:transparent;border:1px solid var(--border2);color:var(--muted);padding:2px 8px;border-radius:4px;cursor:pointer;white-space:nowrap">${_sAllocCollapsed ? '▼ Show' : '▲ Hide'}</button>
       </div>
-      <div id="sectorAllocBody" style="\${_sAllocCollapsed ? 'display:none' : ''}">
+      <div id="sectorAllocBody" style="${_sAllocCollapsed ? 'display:none' : ''}">
       <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
         <span style="font-size:0.58rem;padding:2px 8px;border-radius:4px;background:rgba(56,189,248,0.1);color:#38bdf8;font-family:Oxanium,sans-serif;font-weight:700">■ Heavy ≥10%</span>
         <span style="font-size:0.58rem;padding:2px 8px;border-radius:4px;background:rgba(129,140,248,0.1);color:#818cf8;font-family:Oxanium,sans-serif;font-weight:700">■ Mid 5–10%</span>
@@ -7185,19 +7370,18 @@ function buildInvestTab() {
     <div class="ti-header-row">
       <div>
         <h2 class="ti-title" style="color:#34d399">🌱 INVEST SIGNALS</h2>
-        <p class="ti-sub">All stocks in Monthly S4 accumulation zone · Stocks above R4 flagged · Sorted by BCS</p>
+        <p class="ti-sub">Deeply corrected stocks in Monthly S4 accumulation zone · Sorted by BCS quality</p>
       </div>
       <div class="ti-stat-chips">
         <span class="ti-stat" style="color:#34d399;background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.3)">📌 ${pureS4Count} in S4</span>
-        ${promotedCount > 0 ? `<span class="ti-stat" style="color:#f97316;background:rgba(249,115,22,0.1);border-color:rgba(249,115,22,0.25)">↑ ${promotedCount} above R4</span>` : ''}
+
         <span class="ti-stat" style="color:var(--muted);background:var(--surface2);border-color:var(--border2)">${rows.length} total</span>
       </div>
     </div>
     ${sectorPanel}
     <div style="margin:0 0 12px;padding:10px 14px;background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.18);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.7">
-      <strong style="color:#34d399">Monthly S4</strong> = long-term accumulation zone.
-      <span style="color:#f97316">↑ Above R4</span> = stock has broken out above Monthly R4 — momentum confirmed but entry timing needs reassessment.
-      Green = fundamental strength. <strong style="color:var(--text)">Suggested size</strong> = Nifty 50 sector weight ÷ 4, adjusted by: BCS quality score · 52-week entry zone · D/E financial risk · FCF + margin quality. No external data used — all factors from your NSE sheet. Educational only, not financial advice.
+      <strong style="color:#34d399">Monthly S4</strong> = long-term accumulation zone — deeply corrected stocks building a base.
+      Green = fundamental strength. <strong style="color:var(--text)">Suggested size</strong> = Nifty 50 sector weight ÷ 4, adjusted by BCS quality · 52W entry zone · D/E financial risk · FCF + margin quality. All factors from your NSE sheet — no external data. Educational only, not financial advice.
     </div>
     <div class="ti-table-wrap">
       <table class="ti-table">
@@ -7692,9 +7876,130 @@ mobBuildConsol = function(term) {
   } else if (activeSignalsSubTab === 'invest') {
     return mobBuildInvest();
   } else {
-    return _origMobBuildConsol(term);
+    // Timeframe sub-tab: prepend mobile trend structure panel
+    return mobBuildTrendPanel() + _origMobBuildConsol(term);
   }
 };
+
+// ── Mobile Trend Structure Panel ──────────────────────────────────────────
+function mobBuildTrendPanel() {
+  // Build sym → TF presence map from masterTFs
+  const tmap = {};
+  masterTFs.forEach(tf => {
+    tf.cols.forEach(col => col.forEach(sym => {
+      if (!sym) return;
+      const k = sym.toUpperCase();
+      if (!tmap[k]) tmap[k] = { lt:false, st:false, mt:false, s4:false, ltR2:false, stR2:false, min:false };
+      if (tf.label === 'Monthly R4') tmap[k].lt   = true;
+      if (tf.label === 'Monthly R2') tmap[k].ltR2 = true;
+      if (tf.label === 'Daily R4')   tmap[k].st   = true;
+      if (tf.label === 'Daily R2')   tmap[k].stR2 = true;
+      if (tf.label === '1 Hour R4')  tmap[k].mt   = true;
+      if (tf.label === '15 Min R4')  tmap[k].min  = true;
+      if (tf.label === 'Monthly S4') tmap[k].s4   = true;
+    }));
+  });
+
+  // Group by trend alignment
+  const groups = { full:[], ltSt:[], ltMt:[], ltOnly:[], stMt:[], stOnly:[], mtOnly:[], s4:[] };
+  Object.entries(tmap).forEach(([sym, t]) => {
+    const fd2 = fundCache[sym] || {};
+    const pct52 = (fd2.price != null && fd2.high52 != null && fd2.low52 != null && fd2.high52 > fd2.low52)
+      ? Math.round((fd2.price - fd2.low52) / (fd2.high52 - fd2.low52) * 100) : null;
+    const e = { sym, pct52, ...t };
+    if      (t.lt && t.st && t.mt)   groups.full.push(e);
+    else if (t.lt && t.st)           groups.ltSt.push(e);
+    else if (t.lt && t.mt)           groups.ltMt.push(e);
+    else if (t.lt)                   groups.ltOnly.push(e);
+    else if (t.st && t.mt)           groups.stMt.push(e);
+    else if (t.st)                   groups.stOnly.push(e);
+    else if (t.mt)                   groups.mtOnly.push(e);
+    else if (t.s4)                   groups.s4.push(e);
+  });
+  Object.values(groups).forEach(g => g.sort((a,b) => (b.pct52||0) - (a.pct52||0)));
+
+  // Pill renderer — compact for mobile
+  function mPill(e) {
+    const ltDot = e.lt  ? '<span style="color:#f472b6">●</span>'
+                : e.s4  ? '<span style="color:#34d399">●</span>'
+                : '<span style="color:#2a3550">●</span>';
+    const stDot = e.st  ? '<span style="color:#fb7185">●</span>'
+                : '<span style="color:#2a3550">●</span>';
+    const mtDot = e.mt  ? '<span style="color:#38bdf8">●</span>'
+                : e.min ? '<span style="color:#00e5a0">●</span>'
+                : '<span style="color:#2a3550">●</span>';
+    const bar = e.pct52 != null
+      ? `<div style="width:100%;height:2px;background:#1e2535;border-radius:1px;margin-top:2px">
+           <div style="width:${e.pct52}%;height:100%;border-radius:1px;background:${
+             e.pct52>=80?'#f472b6':e.pct52>=60?'#38bdf8':e.pct52>=40?'#fbbf24':'#34d399'}"></div></div>` : '';
+    return `<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;
+      padding:5px 7px;min-width:52px;text-align:center;flex-shrink:0"
+      onclick="openSymbolModal('${e.sym}')">
+      <div style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;color:var(--text)">${e.sym}</div>
+      <div style="display:flex;gap:2px;justify-content:center;font-size:0.6rem;margin-top:1px">${ltDot}${stDot}${mtDot}</div>
+      ${bar}
+      ${e.pct52!=null?`<div style="font-size:0.45rem;color:var(--muted);text-align:center;margin-top:1px">${e.pct52}%</div>`:''}
+    </div>`;
+  }
+
+  // Group row renderer
+  function mGroup(icon, label, color, bgColor, entries, desc) {
+    if (!entries.length) return '';
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;
+        border-radius:5px;background:${bgColor};border-left:3px solid ${color};margin-bottom:5px">
+        <span style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;color:${color}">${icon} ${label}</span>
+        <span style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;
+          background:rgba(255,255,255,0.07);border-radius:8px;padding:0 6px;color:${color}">${entries.length}</span>
+        <span style="font-size:0.55rem;color:var(--muted);flex:1;line-height:1.3">${desc}</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;padding:0 2px">
+        ${entries.map(mPill).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Collapsed state
+  let _tsC = false;
+  try { _tsC = localStorage.getItem('nse-trend-struct-collapsed') === '1'; } catch(e) {}
+
+  const legend = `<div style="font-size:0.55rem;color:var(--muted);line-height:1.8;margin-bottom:8px">
+    <span style="color:#f472b6">●</span> LT=Monthly R4 &nbsp;
+    <span style="color:#fb7185">●</span> ST=Daily R4 &nbsp;
+    <span style="color:#38bdf8">●</span> MT=1Hr R4 &nbsp;
+    <span style="color:#34d399">●</span> S4=Accum &nbsp;
+    <span style="color:#2a3550">●</span> Not in zone &nbsp;· Bar=52W pos
+  </div>`;
+
+  const body = `
+    ${legend}
+    ${mGroup('⚡','FULL CONFLUENCE','#f97316','rgba(249,115,22,0.06)', groups.full,   'LT+ST+MT all confirmed')}
+    ${mGroup('🟢','LT + ST',        '#f472b6','rgba(244,114,182,0.05)',groups.ltSt,   'Monthly R4 + Daily R4')}
+    ${mGroup('🔵','LT + MT',        '#818cf8','rgba(129,140,248,0.05)',groups.ltMt,   'Monthly R4 + 1Hr R4')}
+    ${mGroup('🟡','LT ONLY',        '#a78bfa','rgba(167,139,250,0.05)',groups.ltOnly, 'Monthly R4 only')}
+    ${mGroup('⚡','ST + MT',         '#fb7185','rgba(251,113,133,0.05)',groups.stMt,   'Daily R4 + 1Hr R4')}
+    ${mGroup('📈','ST ONLY',        '#fbbf24','rgba(251,191,36,0.05)', groups.stOnly, 'Daily R4 only')}
+    ${mGroup('⚡','MT ONLY',         '#38bdf8','rgba(56,189,248,0.04)', groups.mtOnly, '1Hr R4 only')}
+    ${mGroup('🌱','ACCUMULATION',   '#34d399','rgba(52,211,153,0.05)', groups.s4,     'Monthly S4 — base building')}
+  `;
+
+  return `<div style="padding:10px 8px 0">
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;
+      padding:10px 12px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${_tsC?'0':'8px'}">
+        <span style="font-family:Oxanium,sans-serif;font-size:0.68rem;font-weight:800;
+          letter-spacing:0.08em;color:var(--text)">📐 TREND STRUCTURE</span>
+        <button onclick="toggleTrendStruct()" id="tsTglBtn"
+          style="font-family:Oxanium,sans-serif;font-size:0.55rem;font-weight:700;
+          background:transparent;border:1px solid var(--border2);color:var(--muted);
+          padding:2px 7px;border-radius:4px;cursor:pointer">${_tsC ? '▼ Show' : '▲ Hide'}</button>
+      </div>
+      <div id="trendStructBody" style="${_tsC ? 'display:none' : ''}">
+        ${body}
+      </div>
+    </div>
+  </div>`;
+}
 
 // ── mobSyncBadges: only 5 tabs now ────────────────────────────────────────
 mobSyncBadges = function() {
@@ -7786,6 +8091,9 @@ mobSyncBadges = function() {
 .ti-risk-warn { font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
   background:rgba(251,191,36,0.15); color:#fbbf24; border-radius:3px; padding:1px 5px;
   border:1px solid rgba(251,191,36,0.3); }
+.ti-risk-good { font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
+  background:rgba(52,211,153,0.12); color:#34d399; border-radius:3px; padding:1px 5px;
+  border:1px solid rgba(52,211,153,0.3); }
 .ti-fund-grid { display:grid; grid-template-columns:32px auto 32px auto 32px auto;
   gap:2px 8px; align-items:center; font-size:0.72rem; min-width:200px; }
 .ti-fund-lbl { color:var(--muted); font-size:0.62rem; }
@@ -7835,7 +8143,7 @@ body.light-theme #bcs-alert-banner { background:#fff; border-color:rgba(249,115,
   display:flex; align-items:center; gap:6px; margin-top:6px;
 }
 .mob-ti-fund-row {
-  display:grid; grid-template-columns:28px auto 28px auto 28px auto 28px auto;
+  display:grid; grid-template-columns:28px auto 28px auto 28px auto 28px auto 28px auto;
   gap:2px 6px; margin:6px 0 4px; font-size:0.68rem; align-items:center;
 }
 .mob-ti-fl  { color:var(--muted); font-size:0.58rem; }
@@ -8008,6 +8316,62 @@ html.mobile-view .sstab-btn {
 }
 body.light-theme .signals-subtab-bar { background:#f0f2f5; border-color:#c8d0e0; }
 body.light-theme .sig-sub-count { background:rgba(0,0,0,0.06); }
+
+/* ── TREND STRUCTURE PANEL ─────────────────────────────────── */
+.ts-panel {
+  margin:0 0 14px; padding:12px 14px;
+  background:var(--surface); border:1px solid var(--border2); border-radius:10px;
+}
+.ts-header {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:10px; margin-bottom:10px; flex-wrap:wrap;
+}
+.ts-title {
+  font-family:'Oxanium',sans-serif; font-size:0.72rem; font-weight:800;
+  letter-spacing:0.1em; color:var(--text); text-transform:uppercase;
+}
+.ts-subtitle {
+  font-size:0.6rem; color:var(--muted); margin-top:3px; line-height:1.6;
+}
+.ts-toggle-btn {
+  font-family:'Oxanium',sans-serif; font-size:0.58rem; font-weight:700;
+  background:transparent; border:1px solid var(--border2); color:var(--muted);
+  padding:2px 8px; border-radius:4px; cursor:pointer; white-space:nowrap;
+  flex-shrink:0;
+}
+.ts-toggle-btn:hover { color:var(--accent); border-color:var(--accent); }
+.ts-group { margin-bottom:10px; }
+.ts-group:last-child { margin-bottom:0; }
+.ts-group-hd {
+  display:flex; align-items:center; gap:8px;
+  padding:5px 10px; border-radius:5px; margin-bottom:6px;
+}
+.ts-group-label {
+  font-family:'Oxanium',sans-serif; font-size:0.65rem; font-weight:800;
+  letter-spacing:0.07em; text-transform:uppercase; white-space:nowrap;
+}
+.ts-group-count {
+  font-family:'Oxanium',sans-serif; font-size:0.72rem; font-weight:800;
+  background:rgba(255,255,255,0.07); border-radius:10px; padding:0 7px;
+}
+.ts-group-desc {
+  font-size:0.6rem; color:var(--muted); flex:1; line-height:1.3;
+}
+.ts-pills {
+  display:flex; flex-wrap:wrap; gap:6px; padding:0 4px;
+}
+.ts-pill {
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:6px; padding:5px 8px; cursor:default;
+  min-width:56px; text-align:center;
+  transition:border-color 0.15s;
+}
+.ts-pill:hover { border-color:var(--border2); background:var(--surface); }
+
+/* Light theme */
+body.light-theme .ts-panel { background:#fffefb; border-color:#c8d0e0; }
+body.light-theme .ts-group-count { background:rgba(0,0,0,0.05); }
+body.light-theme .ts-pill { background:#f5f0e8; border-color:#e0d6c8; }
 .price-card .fund-card-hd { align-items: flex-start; }
 .price-card .fund-card-sym { font-size: 1.05rem; }
 .price-card .fund-card-price { font-size: 1.28rem; font-weight: 800; color: var(--text); }
