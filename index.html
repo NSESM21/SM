@@ -4663,7 +4663,7 @@ function mobBuildInvest() {
   const r4Count   = rows.filter(r => r.isAboveR4).length;
 
   const cards = rows.map(r => {
-    const fd = fundCache[r.sym] || {};
+    const fd = Object.assign({}, fundCache[r.sym] || {}, { pct52: r.bcs.pct52 });
     const price    = fd.price;
     const chgPct = _getChgPct(fd);
     const priceTxt = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
@@ -4718,7 +4718,7 @@ function mobBuildInvest() {
         ${flags.join('')}
       </div>
       <div style="font-size:0.58rem;color:var(--muted);margin-top:4px">
-        Size: <span style="color:var(--text);font-weight:700">${_posSizeLabel(bcs.total, fd.beta)}</span>
+        Size: <span style="color:var(--text);font-weight:700">${_posSizeLabel(bcs.total, null, sector, fd)}</span>
         <span style="opacity:0.5"> · educational only</span>
       </div>
     </div>`;
@@ -6109,6 +6109,16 @@ function toggleSectorRadar() {
   btn.textContent = collapsed ? '▲ Hide' : '▼ Show';
 }
 
+function toggleSectorAlloc() {
+  const body = document.getElementById('sectorAllocBody');
+  const btn  = document.getElementById('sectorAllocToggle');
+  if (!body || !btn) return;
+  const collapsed = body.style.display === 'none';
+  body.style.display = collapsed ? '' : 'none';
+  btn.textContent    = collapsed ? '▲ Hide' : '▼ Show';
+  try { localStorage.setItem('nse-sector-alloc-collapsed', collapsed ? '0' : '1'); } catch(e) {}
+}
+
 function hmSetSort(key) {
   hmSort = key;
   const grid = document.getElementById('hmGrid');
@@ -7033,7 +7043,7 @@ function buildInvestTab() {
   const promotedCount  = rows.filter(r => r.isAboveR4).length;
 
   const tableRows = rows.map(r => {
-    const fd = fundCache[r.sym] || {};
+    const fd = Object.assign({}, fundCache[r.sym] || {}, { pct52: r.bcs.pct52 });
     const price    = fd.price;
     const priceStr = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
     const chgPct = _getChgPct(fd);
@@ -7097,7 +7107,7 @@ function buildInvestTab() {
         <td>
           ${bcsPill(r.bcs, false)}
           <div style="margin-top:5px;padding:4px 6px;background:var(--surface2);border-radius:5px;font-size:0.6rem;color:var(--muted)">
-            <span style="color:var(--text);font-family:Oxanium,sans-serif;font-weight:700">${_posSizeLabel(r.bcs.total, fd.beta)}</span>
+            <span style="color:var(--text);font-family:Oxanium,sans-serif;font-weight:700">${_posSizeLabel(r.bcs.total, null, fd.sector || fundSector[r.sym] || '', fd)}</span>
             <span style="opacity:0.6"> suggested size</span>
           </div>
           <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px">${riskFlags.join('')}</div>
@@ -7112,6 +7122,65 @@ function buildInvestTab() {
     badge.style.color = pureS4Count > 0 ? '#34d399' : '';
   }
 
+  // ── Build sector allocation summary ──────────────────────────────────────
+  const sectorBuckets = {};
+  rows.forEach(r => {
+    const fd2 = fundCache[r.sym] || {};
+    const rawSec = fd2.sector || fundSector[r.sym] || 'Other';
+    const key2 = rawSec.split(' ')[0]; // short label
+    if (!sectorBuckets[rawSec]) sectorBuckets[rawSec] = { label: rawSec, short: key2, count: 0, weight: _sectorWeight(rawSec) || 0 };
+    sectorBuckets[rawSec].count++;
+  });
+  const sortedSectors = Object.values(sectorBuckets).sort((a,b) => b.count - a.count);
+
+  const sectorBars = sortedSectors.map(s => {
+    const w = s.weight;
+    const suggested = w > 0 ? (w / 4).toFixed(2) : '—';
+    const barPct = Math.min(100, (s.count / rows.length) * 100);
+    const wPct   = Math.min(100, w);
+    const color  = w >= 10 ? '#38bdf8' : w >= 5 ? '#818cf8' : w >= 2 ? '#34d399' : '#fbbf24';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <div style="min-width:150px;font-family:Oxanium,sans-serif;font-size:0.68rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${s.label}">${s.label}</div>
+      <div style="flex:1;height:6px;background:var(--border2);border-radius:3px;overflow:hidden;min-width:60px">
+        <div style="width:${wPct}%;height:100%;background:${color};border-radius:3px;opacity:0.5"></div>
+      </div>
+      <div style="min-width:38px;text-align:right;font-family:Oxanium,sans-serif;font-size:0.65rem;font-weight:800;color:${color}">${w > 0 ? w+'%' : '—'}</div>
+      <div style="min-width:20px;text-align:center;font-family:Oxanium,sans-serif;font-size:0.65rem;font-weight:700;color:var(--muted)">${s.count} stk</div>
+      <div style="min-width:70px;text-align:right;font-size:0.62rem;color:var(--muted)">~${suggested}% / stock</div>
+    </div>`;
+  }).join('');
+
+  // Restore collapsed state from localStorage
+  let _sAllocCollapsed = false;
+  try { _sAllocCollapsed = localStorage.getItem('nse-sector-alloc-collapsed') === '1'; } catch(e) {}
+
+  const sectorPanel = `
+    <div style="margin:0 0 14px;padding:12px 14px;background:var(--surface);border:1px solid var(--border2);border-radius:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+        <div>
+          <div style="font-family:Oxanium,sans-serif;font-size:0.72rem;font-weight:800;letter-spacing:0.1em;color:var(--text);text-transform:uppercase">📊 Nifty 50 Sector Allocation</div>
+          <div style="font-size:0.62rem;color:var(--muted);margin-top:2px">Sector weights from Nifty 50 index · Size = sector weight ÷ 4 × BCS quality × 52W entry zone × D/E risk × FCF quality</div>
+        </div>
+        <button onclick="toggleSectorAlloc()" id="sectorAllocToggle" style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:700;background:transparent;border:1px solid var(--border2);color:var(--muted);padding:2px 8px;border-radius:4px;cursor:pointer;white-space:nowrap">\${_sAllocCollapsed ? '▼ Show' : '▲ Hide'}</button>
+      </div>
+      <div id="sectorAllocBody" style="\${_sAllocCollapsed ? 'display:none' : ''}">
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:0.58rem;padding:2px 8px;border-radius:4px;background:rgba(56,189,248,0.1);color:#38bdf8;font-family:Oxanium,sans-serif;font-weight:700">■ Heavy ≥10%</span>
+        <span style="font-size:0.58rem;padding:2px 8px;border-radius:4px;background:rgba(129,140,248,0.1);color:#818cf8;font-family:Oxanium,sans-serif;font-weight:700">■ Mid 5–10%</span>
+        <span style="font-size:0.58rem;padding:2px 8px;border-radius:4px;background:rgba(52,211,153,0.1);color:#34d399;font-family:Oxanium,sans-serif;font-weight:700">■ Light 2–5%</span>
+        <span style="font-size:0.58rem;padding:2px 8px;border-radius:4px;background:rgba(251,191,36,0.1);color:#fbbf24;font-family:Oxanium,sans-serif;font-weight:700">■ Minor &lt;2%</span>
+      </div>
+      <div style="display:flex;gap:4px;padding-bottom:6px;border-bottom:1px solid var(--border2);margin-bottom:4px">
+        <div style="min-width:150px;font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif;font-weight:700;text-transform:uppercase">Sector</div>
+        <div style="flex:1;font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif;font-weight:700;text-transform:uppercase">Nifty Weight</div>
+        <div style="min-width:38px;text-align:right;font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif;font-weight:700">Weight</div>
+        <div style="min-width:20px;text-align:center;font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif;font-weight:700">Stks</div>
+        <div style="min-width:70px;text-align:right;font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif;font-weight:700">Suggested/stk</div>
+      </div>
+      ${sectorBars}
+      </div>
+    </div>`;
+
   return `<div class="trade-invest-panel">
     <div class="ti-header-row">
       <div>
@@ -7124,10 +7193,11 @@ function buildInvestTab() {
         <span class="ti-stat" style="color:var(--muted);background:var(--surface2);border-color:var(--border2)">${rows.length} total</span>
       </div>
     </div>
+    ${sectorPanel}
     <div style="margin:0 0 12px;padding:10px 14px;background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.18);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.7">
       <strong style="color:#34d399">Monthly S4</strong> = long-term accumulation zone.
-      <span style="color:#f97316">↑ Above R4</span> = stock has broken out above Monthly R4 (e.g. COALINDIA) — momentum confirmed but entry timing needs reassessment.
-      Green = fundamental strength. <strong style="color:var(--text)">Suggested size</strong> = educational position sizing based on BCS + Beta — not financial advice. Click any row for full fundamentals popup.
+      <span style="color:#f97316">↑ Above R4</span> = stock has broken out above Monthly R4 — momentum confirmed but entry timing needs reassessment.
+      Green = fundamental strength. <strong style="color:var(--text)">Suggested size</strong> = Nifty 50 sector weight ÷ 4, adjusted by: BCS quality score · 52-week entry zone · D/E financial risk · FCF + margin quality. No external data used — all factors from your NSE sheet. Educational only, not financial advice.
     </div>
     <div class="ti-table-wrap">
       <table class="ti-table">
@@ -7143,13 +7213,189 @@ function buildInvestTab() {
 // ── Position size suggestion (Phase 5) ───────────────────────────────────
 // Educational only — based on BCS + Beta. Not financial advice.
 // 1% = high conviction, low volatility; 0.25% = lower conviction or high beta
-function _posSizeLabel(bcsTotal, beta) {
-  const b = beta != null ? beta : 1.0;
-  if (bcsTotal >= 70 && b <= 1.0)  return '1.0% of portfolio';
-  if (bcsTotal >= 70 && b <= 1.5)  return '0.75% of portfolio';
-  if (bcsTotal >= 55 && b <= 1.2)  return '0.5% of portfolio';
-  if (bcsTotal >= 45)               return '0.25% of portfolio';
-  return '0.25% of portfolio';
+// ── Nifty 50 approximate sector weights (as of 2024-25) ──────────────────
+// Source: NSE index methodology — used for sector-proportionate position sizing
+const NIFTY_SECTOR_WEIGHTS = {
+  'Financial Services':              33.0,
+  'Information Technology':          13.5,
+  'Oil Gas & Consumable Fuels':       5.5,
+  'Fast Moving Consumer Goods':       9.0,
+  'Automobile And Auto Components':   5.5,
+  'Healthcare':                       4.5,
+  'Metals & Mining':                  3.5,
+  'Power':                            3.0,
+  'Realty':                           1.5,
+  'Telecommunication':                2.5,
+  'Consumer Durables':                2.0,
+  'Capital Goods':                    4.5,
+  'Construction':                     2.0,
+  'Media Entertainment & Publication':0.5,
+  'Services':                         2.0,
+  'Chemicals':                        1.5,
+  'Utilities':                        3.0,
+  'Energy':                           5.5,
+  'Industrials':                      4.5,
+  'Consumer Discretionary':           3.5,
+  'Commodities':                      3.0,
+};
+
+// Map the sheet sector names → canonical Nifty sector bucket
+const SECTOR_ALIAS = {
+  'banking':                          'Financial Services',
+  'bank':                             'Financial Services',
+  'finance':                          'Financial Services',
+  'financial services':               'Financial Services',
+  'nbfc':                             'Financial Services',
+  'insurance':                        'Financial Services',
+  'it':                               'Information Technology',
+  'technology':                       'Information Technology',
+  'information technology':           'Information Technology',
+  'software':                         'Information Technology',
+  'fmcg':                             'Fast Moving Consumer Goods',
+  'fast moving consumer goods':       'Fast Moving Consumer Goods',
+  'consumer staples':                 'Fast Moving Consumer Goods',
+  'auto':                             'Automobile And Auto Components',
+  'automobile':                       'Automobile And Auto Components',
+  'automobile and auto components':   'Automobile And Auto Components',
+  'pharma':                           'Healthcare',
+  'healthcare':                       'Healthcare',
+  'pharmaceuticals':                  'Healthcare',
+  'metals':                           'Metals & Mining',
+  'metals & mining':                  'Metals & Mining',
+  'mining':                           'Metals & Mining',
+  'steel':                            'Metals & Mining',
+  'power':                            'Power',
+  'utilities':                        'Utilities',
+  'energy':                           'Energy',
+  'oil':                              'Oil Gas & Consumable Fuels',
+  'oil gas & consumable fuels':       'Oil Gas & Consumable Fuels',
+  'oil & gas':                        'Oil Gas & Consumable Fuels',
+  'realty':                           'Realty',
+  'real estate':                      'Realty',
+  'telecom':                          'Telecommunication',
+  'telecommunication':                'Telecommunication',
+  'consumer durables':                'Consumer Durables',
+  'capital goods':                    'Capital Goods',
+  'construction':                     'Construction',
+  'cement':                           'Construction',
+  'media':                            'Media Entertainment & Publication',
+  'services':                         'Services',
+  'chemicals':                        'Chemicals',
+  'industrials':                      'Industrials',
+  'consumer discretionary':           'Consumer Discretionary',
+  'commodities':                      'Commodities',
+};
+
+function _sectorWeight(sectorRaw) {
+  if (!sectorRaw) return null;
+  const key = sectorRaw.toLowerCase().trim();
+  const canonical = SECTOR_ALIAS[key] || sectorRaw;
+  return NIFTY_SECTOR_WEIGHTS[canonical] || null;
+}
+
+// ── Position size: sector-weighted allocation ─────────────────────────────
+// Uses only data sourced directly from your NSE sheet — no external beta.
+//
+// RISK MODEL (3 factors, all from your own data):
+//
+// 1. ENTRY RISK — 52W position % (price/high52/low52 from sheet)
+//    Near 52W high → momentum confirmed but less upside room → smaller size
+//    Near 52W low  → Monthly S4 accumulation zone → more room to add
+//
+// 2. FINANCIAL RISK — D/E ratio (debtToEquity from sheet)
+//    High debt companies need smaller allocation regardless of technicals
+//    Banks/financials exempt (D/E not meaningful for them)
+//
+// 3. EARNINGS QUALITY — Net Profit Margin + FCF (from sheet)
+//    Strong margins + positive FCF → can sustain larger position
+//    Weak margins or negative FCF → reduce size
+//
+// Final formula:
+//   base  = Nifty50 sector weight ÷ 4 (avg stocks per sector in portfolio)
+//   size  = base × BCS quality multiplier × entry risk × financial risk × quality boost
+//
+function _posSizeLabel(bcsTotal, beta, sectorRaw, fd) {
+  // fd = fundCache entry for this stock (passed from call sites)
+  const fundData = fd || {};
+  const sw = _sectorWeight(sectorRaw);
+
+  // ── Base from Nifty 50 sector weight ──────────────────────────────────
+  let base;
+  if (sw != null) {
+    base = sw / 4;
+    base = Math.max(0.25, Math.min(base, 4.0));
+  } else {
+    base = 0.5;
+  }
+
+  // ── Factor 1: BCS quality (0–1.0) ─────────────────────────────────────
+  const qMult = bcsTotal >= 70 ? 1.00
+              : bcsTotal >= 60 ? 0.80
+              : bcsTotal >= 50 ? 0.60
+              : bcsTotal >= 40 ? 0.40
+              : 0.25;
+
+  // ── Factor 2: Entry risk from 52W position ─────────────────────────────
+  // pct52: 0% = at 52W low (best entry), 100% = at 52W high (risk of buying top)
+  // For Monthly S4 stocks: near low = better entry = larger size
+  const pct52 = fundData.pct52 != null ? fundData.pct52
+    : (fundData.price != null && fundData.high52 != null && fundData.low52 != null && fundData.high52 > fundData.low52)
+      ? Math.round((fundData.price - fundData.low52) / (fundData.high52 - fundData.low52) * 100)
+      : null;
+
+  const entryMult = pct52 == null ? 0.8   // unknown — be conservative
+    : pct52 <= 20  ? 1.20   // deep value zone — strong buy zone
+    : pct52 <= 40  ? 1.10   // lower half — good entry
+    : pct52 <= 60  ? 0.90   // mid range — neutral
+    : pct52 <= 80  ? 0.70   // upper range — momentum but stretched
+    : 0.50;                  // near 52W high — reassess entry
+
+  // ── Factor 3: Financial risk from D/E ─────────────────────────────────
+  const sec = (fundData.sector || sectorRaw || '').toLowerCase();
+  const isBank = /bank|financial service|nbfc|finance/i.test(sec);
+  const de = fundData.debtToEquity;
+  let debtMult = 1.0;
+  if (!isBank && de != null) {
+    debtMult = de < 0.3  ? 1.10   // very low debt — reward
+             : de < 0.8  ? 1.00   // healthy
+             : de < 1.5  ? 0.85   // moderate debt — caution
+             : de < 2.5  ? 0.65   // high debt — reduce
+             : 0.45;               // very high — minimal position
+  }
+
+  // ── Factor 4: Earnings quality boost ──────────────────────────────────
+  const npm = fundData.netProfitMargin != null ? fundData.netProfitMargin * 100 : null;
+  const fcf = fundData.freeCashFlow;
+  let qualBoost = 1.0;
+  if (npm != null && npm >= 20 && fcf != null && fcf > 0) qualBoost = 1.15; // strong margins + FCF
+  else if (npm != null && npm >= 12 && fcf != null && fcf > 0) qualBoost = 1.05;
+  else if (npm != null && npm < 5)  qualBoost = 0.85; // thin margins
+  else if (fcf != null && fcf < 0)  qualBoost = 0.80; // cash burn
+
+  // ── Compute final size ─────────────────────────────────────────────────
+  const raw = base * qMult * entryMult * debtMult * qualBoost;
+
+  // Round to nearest clean step
+  const steps = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0];
+  const rounded = steps.reduce((a, b) => Math.abs(b - raw) < Math.abs(a - raw) ? b : a);
+
+  // ── Tooltip breakdown ──────────────────────────────────────────────────
+  const sectorLabel = sw != null
+    ? ` <span style="color:var(--muted);font-size:0.58rem">(${sectorRaw ? sectorRaw.split(' ')[0] : ''} ${sw}% of N50)</span>`
+    : '';
+
+  // Entry zone description
+  const entryDesc = pct52 == null ? ''
+    : pct52 <= 20 ? ' · <span style="color:#34d399;font-size:0.58rem">Deep value zone</span>'
+    : pct52 <= 40 ? ' · <span style="color:#34d399;font-size:0.58rem">Good entry</span>'
+    : pct52 <= 60 ? ''
+    : pct52 <= 80 ? ' · <span style="color:#fbbf24;font-size:0.58rem">Stretched entry</span>'
+    : ' · <span style="color:#fb7185;font-size:0.58rem">Near 52W high</span>';
+
+  const debtDesc = (!isBank && de != null && de > 1.5)
+    ? ' · <span style="color:#fb7185;font-size:0.58rem">High D/E</span>' : '';
+
+  return `${rounded}% of portfolio${sectorLabel}${entryDesc}${debtDesc}`;
 }
 
 // ── _getChgPct: resolve change% from whatever is available in fd ──────────
