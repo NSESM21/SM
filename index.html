@@ -1846,7 +1846,8 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
   try {
     var s = localStorage.getItem('nse-view-mode');
     if (!s) s = (window.innerWidth <= 900) ? 'mobile' : 'desktop';
-    document.body.className = s + '-view';
+    document.body.classList.remove('desktop-view', 'mobile-view');
+    document.body.classList.add(s + '-view');
     // Immediately hide desktop-only elements on mobile
     if (s === 'mobile') {
       document.addEventListener('DOMContentLoaded', function() {
@@ -1858,7 +1859,9 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
       });
     }
   } catch(e) {
-    document.body.className = (window.innerWidth <= 900) ? 'mobile-view' : 'desktop-view';
+    var _em = (window.innerWidth <= 900) ? 'mobile' : 'desktop';
+    document.body.classList.remove('desktop-view', 'mobile-view');
+    document.body.classList.add(_em + '-view');
   }
 })();
 </script>
@@ -2796,6 +2799,63 @@ async function loadSheet() {
 
     render();
 
+    // ── Background price fetch for Trade + Invest tab symbols ─────────────────
+    // Runs after every loadSheet() so Trade/Invest tabs always show live LTP and
+    // Chg% without requiring the user to open a modal or visit the Heatmap first.
+    // Results are written directly into fundCache (keyed uppercase) so _getLiveFd
+    // can read them immediately on the next render.
+    setTimeout(async () => {
+      try {
+        // Collect Trade symbols (from BCS_CONSOL_LABELS console combinations)
+        const _ti_consolLabels = ['M-D-H: R4','D-H: R4','H-15m: R4','D:R2 & H:R4'];
+        const _ti_syms = new Set();
+        consolidatedTFs.forEach(tf => {
+          if (!_ti_consolLabels.includes(tf.label)) return;
+          tf.cols.forEach(col => col.forEach(s => { if (s) _ti_syms.add(s.toUpperCase()); }));
+        });
+        // Add Invest symbols (Monthly S4)
+        masterTFs.forEach(tf => {
+          if (tf.label === 'Monthly S4') tf.cols.forEach(col => col.forEach(s => { if (s && s.trim()) _ti_syms.add(s.toUpperCase()); }));
+        });
+        if (!_ti_syms.size) return;
+        const _ti_symArr = [..._ti_syms];
+        console.log('[TI-Price] Fetching live prices for', _ti_symArr.length, 'Trade/Invest symbols');
+        const _ti_url = `${APPS_SCRIPT_URL}?action=prices&symbols=${_ti_symArr.join(',')}&t=${Date.now()}`;
+        const _ti_ctrl = new AbortController();
+        const _ti_timer = setTimeout(() => _ti_ctrl.abort(), 25000);
+        const _ti_res = await fetch(_ti_url, { signal: _ti_ctrl.signal, redirect: 'follow', cache: 'no-store' });
+        clearTimeout(_ti_timer);
+        if (!_ti_res.ok) return;
+        const _ti_json = await _ti_res.json();
+        const _ti_data = _ti_json.data || {};
+        let _ti_updated = 0;
+        Object.entries(_ti_data).forEach(([sym, q]) => {
+          if (!q || !q.price) return;
+          const key = sym.toUpperCase();
+          // Merge live price fields into fundCache — preserve existing fundamentals
+          fundCache[key] = Object.assign(fundCache[key] || {}, {
+            price:           q.price,
+            prevClose:       q.prevClose,
+            open:            q.open,
+            high:            q.high,
+            low:             q.low,
+            chgPctFromClose: q.chgPctFromClose,
+            chgFromClose:    q.chgFromClose,
+            high52:          q.high52  != null ? q.high52  : (fundCache[key] || {}).high52,
+            low52:           q.low52   != null ? q.low52   : (fundCache[key] || {}).low52,
+          });
+          _ti_updated++;
+        });
+        console.log('[TI-Price] Updated', _ti_updated, '/', _ti_symArr.length, 'symbols in fundCache');
+        // Re-render if Signals/Trade/Invest tab is currently active so prices appear immediately
+        if (activeTab === 'consolidated' || activeTab === 'trade' || activeTab === 'invest') {
+          render();
+        }
+      } catch(e) {
+        console.warn('[TI-Price] Background price fetch failed:', e.message);
+      }
+    }, 1200); // 1.2s — after initial render but before the 2s auto-sync
+
     // ── Background auto-sync: add any Master symbols missing from FUNDAMENTALS ──
     // Runs silently on page load — handles stocks added to MASTER after last build
     setTimeout(() => {
@@ -3325,6 +3385,12 @@ function buildTable(tfs, term) {
 // ═══════════════════════════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════════════════════════
+
+// Module-level reference to the consolidated-tab click handler.
+// Stored here so we can remove the previous one before adding a new one,
+// preventing the handler from stacking up on #mainContent across renders.
+let _conClickHandler = null;
+
 function render() {
   // ── Mobile view intercept — delegate to mobile renderer ──
   const isMobile = document.body.classList.contains('mobile-view') ||
@@ -3358,13 +3424,15 @@ function render() {
   } else {
     mc.innerHTML = buildConsolidated(term);
     if (sfBar) { sfBar.classList.remove('hidden'); populateSectorFilter(); }
-    mc.addEventListener('click', e => {
+    if (_conClickHandler) mc.removeEventListener('click', _conClickHandler);
+    _conClickHandler = e => {
       const cell = e.target.closest('.clickable-cell');
       if (!cell) return;
       const key = cell.dataset.storeKey;
       const entry = window._conClickStore && window._conClickStore[key];
       if (entry) openModal(entry.tfLabel, entry.catLabel, entry.stocks);
-    });
+    };
+    mc.addEventListener('click', _conClickHandler);
   }
 
   document.querySelectorAll('.stab').forEach(b => {
@@ -4463,6 +4531,10 @@ function mobRender() {
     subBarEl.style.display = 'none';
     mc.style.height = ''; // reset to CSS default
   }
+  // Always strip any stray inline sub-tab bar that desktop render may have injected
+  // into mainContent (happens during view-mode race on resize)
+  const strayBar = mc.querySelector('.signals-subtab-bar');
+  if (strayBar) strayBar.remove();
 
   // sync bottom nav
   document.querySelectorAll('.mbn-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
@@ -4710,7 +4782,7 @@ function mobBuildTrade() {
   }).join('');
 
   const cards = rows.map(r => {
-    const fd = fundCache[r.sym] || {};
+    const fd = _getLiveFd(r.sym);
     const price   = fd.price;
     const chgPct = _getChgPct(fd);
     const priceTxt = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
@@ -4791,7 +4863,7 @@ function mobBuildInvest() {
   const pureCount = rows.length;
 
   const cards = rows.map(r => {
-    const fd = Object.assign({}, fundCache[r.sym] || {}, { pct52: r.bcs.pct52 });
+    const fd = Object.assign({}, _getLiveFd(r.sym), { pct52: r.bcs.pct52 });
     const price    = fd.price;
     const chgPct = _getChgPct(fd);
     const priceTxt = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
@@ -5163,7 +5235,7 @@ async function fetchStockPricesBatched(stocks) {
   if (cached) {
     console.log('[Cache] HIT — instant load for', stocks.length, 'stocks');
     // Merge cached fund data then render immediately
-    Object.entries(cached).forEach(([sym, q]) => { modalPriceData[sym] = q; });
+    Object.entries(cached).forEach(([sym, q]) => { modalPriceData[sym.toUpperCase()] = q; });
     renderModalRows(modalPriceData);
     apply52WTints(modalPriceData);
 
@@ -5247,8 +5319,8 @@ async function fetchStockPricesBatched(stocks) {
             if (!merged.sector       && fundSector[symKey])   merged.sector       = fundSector[symKey];
             if (!merged.industry     && fundIndustry[symKey]) merged.industry     = fundIndustry[symKey];
             if (!merged.earningsDate && fundEarnings[symKey]) merged.earningsDate = fundEarnings[symKey];
-            modalPriceData[symbol] = merged;
-            allPriceData[symbol]   = merged;
+            modalPriceData[symKey] = merged;
+            allPriceData[symKey]   = merged;
 
             // Render this row immediately — don't wait for all batches
             renderModalRows({ [symbol]: merged });
@@ -5309,7 +5381,16 @@ async function fetchStockPricesBatched(stocks) {
       clearTimeout(sTimer);
       if (sRes.ok) {
         const sJson = await sRes.json();
-        if (sJson.data) Object.assign(fundCache, sJson.data);
+        if (sJson.data) {
+          // Merge per-key so existing live price fields (price, prevClose,
+          // chgPctFromClose, high52, low52) written by the TI-Price fetch
+          // are preserved — NOT overwritten by fundamentals-only data.
+          Object.entries(sJson.data).forEach(([sym, fd]) => {
+            if (!fd) return;
+            const k = sym.toUpperCase();
+            fundCache[k] = Object.assign(fundCache[k] || {}, fd);
+          });
+        }
         if (syncStatusEl) syncStatusEl.innerHTML = `<span style="color:#00e5a0">✓ Added ${missingSymbols.length} stock${missingSymbols.length>1?'s':''} — fetching prices…</span>`;
         // Re-fetch prices for just the missing symbols
         const reUrl = `${APPS_SCRIPT_URL}?action=prices&symbols=${missingSymbols.join(',')}&t=${Date.now()}`;
@@ -5331,7 +5412,7 @@ async function fetchStockPricesBatched(stocks) {
                'totalAssets','totalLiab','totalEquity','cashFromOps','freeCashFlow',
                'marketCap','high52','low52','sharesOutstand','sector','industry','earningsDate'
               ].forEach(k => { if (cached[k] != null) merged[k] = cached[k]; });
-              modalPriceData[symbol] = merged;
+              modalPriceData[symbol.toUpperCase()] = merged;
               renderModalRows({ [symbol]: merged });
             } else if (priceRow) {
               // Formulas need a moment to calculate — show helpful message
@@ -5402,7 +5483,14 @@ async function _syncFundamentals(stocks, silent) {
     if (sRes.ok) {
       const sJson = await sRes.json();
       if (sJson.data) {
-        Object.assign(fundCache, sJson.data);
+        // Merge per-key so existing live price fields (price, prevClose,
+        // chgPctFromClose, high52, low52) written by the TI-Price fetch
+        // are preserved — NOT overwritten by fundamentals-only sync data.
+        Object.entries(sJson.data).forEach(([sym, fd]) => {
+          if (!fd) return;
+          const key = sym.toUpperCase();
+          fundCache[key] = Object.assign(fundCache[key] || {}, fd);
+        });
         // Populate sector/earnings maps from fundCache
         Object.entries(sJson.data).forEach(([sym, fd]) => {
           if (!fd) return;
@@ -5583,7 +5671,13 @@ function checkMobileAutoMode() {
   }
 }
 checkMobileAutoMode();
-window.addEventListener('resize', checkMobileAutoMode);
+// Debounce resize to prevent rapid mobile↔desktop toggling when DevTools
+// or browser chrome resizes push innerWidth through the 900px threshold.
+let _mobileResizeTimer = null;
+window.addEventListener('resize', function() {
+  clearTimeout(_mobileResizeTimer);
+  _mobileResizeTimer = setTimeout(checkMobileAutoMode, 150);
+});
 
 // ═══════════════════════════════════════════════════════════
 // EVENTS
@@ -5690,7 +5784,7 @@ function startAutoRefresh() {
   countdownTimer = setInterval(() => {
     secondsLeft--;
     updateCountdown();
-    if (secondsLeft <= 0) { secondsLeft = AUTO_REFRESH_MINS * 60; loadSheet(); }
+    if (secondsLeft <= 0) { secondsLeft = AUTO_REFRESH_MINS * 60; _patchedLoad(); }
   }, 1000);
 }
 
@@ -6718,7 +6812,7 @@ async function fetchCompareData(syms) {
       const sk = sym.toUpperCase();
       if (!merged.sector       && fundSector[sk])   merged.sector       = fundSector[sk];
       if (!merged.earningsDate && fundEarnings[sk]) merged.earningsDate = fundEarnings[sk];
-      modalPriceData[sym] = merged;
+      modalPriceData[sym.toUpperCase()] = merged;
     });
     if (activeTab==='compare') render();
   } catch(e) { console.warn('fetchCompareData:', e); }
@@ -6996,14 +7090,6 @@ function _showAlertBanner(alerts) {
   setTimeout(() => { if (el.parentNode) el.remove(); }, 12000);
 }
 
-// Hook alerts into loadSheet completion (after r4NewEntries are fresh)
-const _origRender = render;
-let _bcsAlertHooked = false;
-if (!_bcsAlertHooked) {
-  _bcsAlertHooked = true;
-  const _origLS = loadSheet;
-}
-
 // Run alerts after every render (checks only if masterTFs populated)
 function _maybeRunAlerts() {
   if (masterTFs.length || consolidatedTFs.length) {
@@ -7075,7 +7161,7 @@ function buildTradeTab() {
   const multiComboCount = rows.filter(r => r.consolLabels.length >= 2).length;
 
   const tableRows = rows.map(r => {
-    const fd = fundCache[r.sym] || {};
+    const fd = _getLiveFd(r.sym);
     const price    = fd.price;
     const chgPct = _getChgPct(fd);
     const priceStr = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
@@ -7228,7 +7314,7 @@ function buildInvestTab() {
   const promotedCount  = rows.filter(r => r.isAboveR4).length;
 
   const tableRows = rows.map(r => {
-    const fd = Object.assign({}, fundCache[r.sym] || {}, { pct52: r.bcs.pct52 });
+    const fd = Object.assign({}, _getLiveFd(r.sym), { pct52: r.bcs.pct52 });
     const price    = fd.price;
     const priceStr = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
     const chgPct = _getChgPct(fd);
@@ -7603,6 +7689,15 @@ function _getChgPct(fd) {
   }
   return null;
 }
+
+// ── Patch: resolve live price for a symbol using all available caches ────
+// Trade/Invest tabs read from fundCache which is now populated with live prices
+// by the background TI-Price fetch that runs after every loadSheet(). This
+// function returns the fundCache entry directly — no modal dependency needed.
+function _getLiveFd(sym) {
+  const key = (sym || '').toUpperCase();
+  return fundCache[key] || {};
+}
 function openSymbolModal(sym) {
   // Find the symbol in any TF and open modal (reuse existing openModal)
   for (const tf of [...masterTFs, ...consolidatedTFs]) {
@@ -7641,13 +7736,15 @@ function setSignalsSubTab(tab) {
   mc.innerHTML = buildSignalsWrapper(searchTerm.toLowerCase());
   // Re-attach consolidated click handler if on timeframe
   if (tab === 'timeframe') {
-    mc.addEventListener('click', e => {
+    if (_conClickHandler) mc.removeEventListener('click', _conClickHandler);
+    _conClickHandler = e => {
       const cell = e.target.closest('.clickable-cell');
       if (!cell) return;
       const key = cell.dataset.storeKey;
       const entry = window._conClickStore && window._conClickStore[key];
       if (entry) openModal(entry.tfLabel, entry.catLabel, entry.stocks);
-    });
+    };
+    mc.addEventListener('click', _conClickHandler);
   }
 }
 
@@ -7694,6 +7791,40 @@ function buildSignalsSubTabBar() {
   </div>`;
 }
 
+// ── Inner-only variant: updates badge counts without replacing the wrapper div.
+// Use this for live badge refreshes so the element reference stays stable
+// and no listeners are lost. buildSignalsSubTabBar() is used for initial renders.
+function buildSignalsSubTabBarInner() {
+  const consolLabels = ['M-D-H: R4','D-H: R4','H-15m: R4','D:R2 & H:R4'];
+  const tradeSet = new Set();
+  consolidatedTFs.forEach(tf => {
+    if (!consolLabels.includes(tf.label)) return;
+    tf.cols.forEach(col => col.forEach(sym => tradeSet.add(sym.toUpperCase())));
+  });
+  const tradeCount = tradeSet.size;
+  const s4Set = new Set();
+  masterTFs.forEach(tf => {
+    if (tf.label === 'Monthly S4') tf.cols.forEach(col => col.forEach(sym => { if (sym) s4Set.add(sym.toUpperCase()); }));
+  });
+  const investCount = s4Set.size;
+  const tfCount = consolidatedTFs.reduce((a, tf) => a + tf.cols.reduce((b, col) => b + col.length, 0), 0);
+  const hasNew = [...r4NewEntries].some(k => consolLabels.some(l => k.endsWith('|' + l)));
+  const base = `font-family:Oxanium,sans-serif;font-weight:700;border:none;cursor:pointer;transition:all 0.15s;white-space:nowrap;`;
+  const st = (key, color) => activeSignalsSubTab === key
+    ? `border-bottom:2px solid ${color};color:${color};background:transparent;`
+    : `border-bottom:2px solid transparent;color:var(--muted);background:transparent;`;
+  return `
+    <button class="sstab-btn" style="${base}${st('timeframe','#818cf8')}" onclick="setSignalsSubTab('timeframe')">
+      ⚡ Timeframe <span class="sig-sub-count" style="color:#818cf8">${tfCount||'—'}</span>
+    </button>
+    <button class="sstab-btn" style="${base}${st('trade','#f97316')}" onclick="setSignalsSubTab('trade')">
+      ⚡ <u>T</u>rade <span class="sig-sub-count" style="color:#f97316">${tradeCount||'—'}</span>${hasNew?'<span class="sig-new-dot"></span>':''}
+    </button>
+    <button class="sstab-btn" style="${base}${st('invest','#34d399')}" onclick="setSignalsSubTab('invest')">
+      🌱 <u>I</u>nvest <span class="sig-sub-count" style="color:#34d399">${investCount||'—'}</span>
+    </button>`;
+}
+
 // ── Master wrapper: sub-tab bar + content ─────────────────────────────────
 function buildSignalsWrapper(term) {
   const subBar = buildSignalsSubTabBar();
@@ -7714,19 +7845,21 @@ render = function() {
   const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
 
   // For consolidated tab override entirely to inject sub-tab wrapper
-  if (activeTab === 'consolidated' && !isMob) {
+  if (activeTab === 'consolidated' && !isMob && !document.getElementById('mobileSubTabBar')?.offsetParent) {
     const mc    = document.getElementById('mainContent');
     const sfBar = document.getElementById('sectorFilterBar');
     if (sfBar) { sfBar.classList.remove('hidden'); populateSectorFilter(); }
     mc.innerHTML = buildSignalsWrapper(searchTerm.toLowerCase());
     // Re-attach consolidated click handler for timeframe sub-tab
-    mc.addEventListener('click', e => {
+    if (_conClickHandler) mc.removeEventListener('click', _conClickHandler);
+    _conClickHandler = e => {
       const cell = e.target.closest('.clickable-cell');
       if (!cell) return;
       const key = cell.dataset.storeKey;
       const entry = window._conClickStore && window._conClickStore[key];
       if (entry) openModal(entry.tfLabel, entry.catLabel, entry.stocks);
-    });
+    };
+    mc.addEventListener('click', _conClickHandler);
     document.querySelectorAll('.stab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'consolidated'));
     updateTabBadges();
     return;
@@ -7798,9 +7931,10 @@ updateTabBadges = function() {
     if (!bi) { bi = document.createElement('span'); bi.id = 'badge-invest'; bi.style.display = 'none'; document.body.appendChild(bi); }
     bi.textContent = investCount || '—';
 
-    // Refresh sub-tab bar counts if signals tab is active
+    // Refresh sub-tab bar counts if signals tab is active — update innerHTML only,
+    // so the wrapper div element reference stays stable and no listeners are orphaned.
     const stBar = document.getElementById('signalsSubTabBar');
-    if (stBar) stBar.outerHTML = buildSignalsSubTabBar();
+    if (stBar) stBar.innerHTML = buildSignalsSubTabBarInner();
 
     // Mobile badges
     mobSyncBadges();
@@ -7859,7 +7993,7 @@ mobBuildConsol = function(term) {
   // Inject subtab bar into the external placeholder — outside the scroll container
   const subBarEl = document.getElementById('mobileSubTabBar');
   if (subBarEl) {
-    subBarEl.innerHTML = buildSignalsSubTabBar();
+    subBarEl.innerHTML = buildSignalsSubTabBarInner();
     subBarEl.style.display = 'block';
     // Shrink mainContent by subtab bar height so nothing is hidden under it
     const mc = document.getElementById('mainContent');
