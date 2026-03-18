@@ -1882,7 +1882,7 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     <span id="countdownDisplay">5:00</span>
   </div>
-  <button class="icon-btn" id="refreshBtn" onclick="loadSheet()" title="Refresh data">
+  <button class="icon-btn" id="refreshBtn" onclick="_patchedLoad ? _patchedLoad() : loadSheet()" title="Refresh data">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
     </svg>
@@ -1929,7 +1929,7 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
     <button class="mha-btn" onclick="setViewMode('desktop')" title="Switch to Desktop view">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
     </button>
-    <button class="mha-btn" onclick="loadSheet()" title="Refresh">
+    <button class="mha-btn" onclick="_patchedLoad ? _patchedLoad() : loadSheet()" title="Refresh">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
     </button>
   </div>
@@ -4819,6 +4819,7 @@ function mobBuildTrade() {
         <div style="text-align:right">
           <div style="font-family:Oxanium,sans-serif;font-size:0.85rem;font-weight:800;color:var(--text)">${priceTxt}</div>
           ${pctTxt ? `<div class="mob-stock-pct ${pctCls}" style="margin-top:1px">${pctTxt}</div>` : ''}
+          ${trendCacheLoaded ? (_tsBadgeCompact(r.sym) || '') : ''}
         </div>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:3px;margin:6px 0">${consolPills}</div>
@@ -4908,6 +4909,7 @@ function mobBuildInvest() {
         <div style="text-align:right">
           <div style="font-family:Oxanium,sans-serif;font-size:0.85rem;font-weight:800;color:var(--text)">${priceTxt}</div>
           ${pctTxt ? `<div class="mob-stock-pct ${pctCls}" style="margin-top:1px">${pctTxt}</div>` : ''}
+          ${trendCacheLoaded ? (_tsBadgeCompact(r.sym) || '') : ''}
         </div>
       </div>
       <div class="mob-ti-fund-row">
@@ -5697,7 +5699,10 @@ document.getElementById('gSearch').addEventListener('input', e => {
 // ═══════════════════════════════════════════════════════════
 // INIT — Load on page open
 // ═══════════════════════════════════════════════════════════
-loadSheet();
+loadSheet().then(function() {
+  // Fetch trend structure 3s after initial load (after TI-Price fetch at 1.2s)
+  setTimeout(function() { if (typeof fetchTrendCache === 'function') fetchTrendCache(); }, 3000);
+});
 
 // ═══════════════════════════════════════════════════════════
 // AUTO REFRESH — every 5 minutes
@@ -5803,6 +5808,8 @@ const _origLoadSheet = loadSheet;
 const _patchedLoad = async function() {
   await _origLoadSheet();
   startAutoRefresh();
+  // Re-fetch trend structure 3s after every refresh cycle
+  setTimeout(function() { if (typeof fetchTrendCache === 'function') fetchTrendCache(); }, 3000);
 };
 
 // Override the refresh button
@@ -7197,7 +7204,7 @@ function buildTradeTab() {
           </div>
           <span class="ti-sector">${sector}</span>
         </td>
-        <td class="ti-price">${priceStr}<br>${pctStr}</td>
+        <td class="ti-price">${priceStr}<br>${pctStr}${trendCacheLoaded ? (_tsBadgeRow(r.sym) || '') : ''}</td>
         <td>${w52}</td>
         <td class="ti-combos-cell">${consolPills}</td>
         <td>${bcsPill(r.bcs, false)}</td>
@@ -7363,7 +7370,7 @@ function buildInvestTab() {
           </div>
           <span class="ti-sector">${sector}</span>
         </td>
-        <td class="ti-price">${priceStr}<br>${pctStr}</td>
+        <td class="ti-price">${priceStr}<br>${pctStr}${trendCacheLoaded ? (_tsBadgeRow(r.sym) || '') : ''}</td>
         <td>${w52}</td>
         <td>
           <div class="ti-fund-grid">
@@ -7745,6 +7752,10 @@ function setSignalsSubTab(tab) {
       if (entry) openModal(entry.tfLabel, entry.catLabel, entry.stocks);
     };
     mc.addEventListener('click', _conClickHandler);
+  }
+  // Inject trend badges into DOM after tab content is rendered
+  if ((tab === 'trade' || tab === 'invest') && typeof _tsInjectIntoDom === 'function') {
+    requestAnimationFrame(_tsInjectIntoDom);
   }
 }
 
@@ -8147,6 +8158,364 @@ mobSyncBadges = function() {
   });
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  TREND STRUCTURE — Phase 2 Dashboard Integration
+//  trendCache + alignment badges + modal pivot panel
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── Cache ──────────────────────────────────────────────────────────────────
+let trendCache       = {};  // 'SYM_1H' | 'SYM_1D' | 'SYM_1M' → { trend, strength, lastType, lastPrice, ... }
+let trendAlignCache  = {};  // 'SYM' → 'ALL_UP' | 'ALL_DOWN' | 'MTF_UP' | 'MTF_DOWN' | 'DIVERGED'
+let trendCacheLoaded = false;
+
+async function fetchTrendCache() {
+  try {
+    const url  = `${APPS_SCRIPT_URL}?action=trendsummary&t=${Date.now()}`;
+    console.log('[TrendCache] Fetching:', url);
+    const ctrl = new AbortController();
+    const tmr  = setTimeout(() => ctrl.abort(), 20000);
+    const res  = await fetch(url, { signal:ctrl.signal, redirect:'follow', cache:'no-store' });
+    clearTimeout(tmr);
+    if (!res.ok) {
+      console.warn('[TrendCache] HTTP', res.status, '— sheet may not be deployed');
+      return;
+    }
+
+    let json;
+    try { json = await res.json(); }
+    catch(pe) { console.warn('[TrendCache] JSON parse failed:', pe.message); return; }
+
+    console.log('[TrendCache] Response status:', json.status,
+                '| entries:', json.data ? Object.keys(json.data).length : 0);
+
+    // CRITICAL: 'empty' means TREND_STRUCTURE sheet has never been computed.
+    // Trigger the first-time compute on the server, then poll for results.
+    if (json.status === 'empty' || (json.status === 'ok' && json.data && Object.keys(json.data).length === 0)) {
+      console.log('[TrendCache] Sheet empty — triggering computetrend for all watchlist symbols…');
+      _triggerTrendCompute();
+      return;
+    }
+
+    if (json.status !== 'ok' || !json.data) {
+      console.warn('[TrendCache] Unexpected response:', json.status, json.msg || '');
+      return;
+    }
+
+    const symCount = Object.keys(json.data).length;
+    if (symCount === 0) {
+      console.warn('[TrendCache] Data object is empty — TREND_STRUCTURE sheet needs computing');
+      _triggerTrendCompute();
+      return;
+    }
+
+    // Flatten summary into per-TF cache and per-sym alignment cache
+    Object.entries(json.data).forEach(([sym, d]) => {
+      // Normalise to uppercase so it matches r.sym (which is always uppercase)
+      const k = sym.toUpperCase();
+      trendAlignCache[k] = d.alignment || 'DIVERGED';
+      ['1H','1D','1M'].forEach(tf => {
+        if (d[tf]) trendCache[k + '_' + tf] = d[tf];
+      });
+    });
+    trendCacheLoaded = true;
+    console.log('[TrendCache] Loaded', Object.keys(trendAlignCache).length,
+                'symbols. Sample:', Object.keys(trendAlignCache).slice(0,3).join(', '));
+
+    // Only re-render if the user is currently on Trade or Invest.
+    // Calling render() on other tabs resets scroll / closes the modal.
+    if (activeTab === 'consolidated' &&
+        (activeSignalsSubTab === 'trade' || activeSignalsSubTab === 'invest')) {
+      render();
+    }
+
+    // Belt-and-suspenders: inject into any already-rendered ti-price/modal cells
+    _tsInjectIntoDom();
+  } catch(e) {
+    console.warn('[TrendCache] fetch failed:', e.message);
+  }
+}
+
+// ── Trigger first-time trend compute via action=computetrend ─────────────────
+// Fires when TREND_STRUCTURE sheet is empty. Sends all watchlist symbols to
+// the server for Yahoo Finance OHLC fetch + pivot detection + sheet write.
+// Polls every 60s for up to 10 minutes, then stops.
+let _trendComputePolls = 0;
+async function _triggerTrendCompute() {
+  // Collect all unique symbols from the loaded watchlist
+  const syms = [...new Set(
+    [...(masterTFs || []), ...(consolidatedTFs || [])]
+      .flatMap(tf => tf.cols.flat())
+      .map(s => s.toUpperCase())
+      .filter(s => s && s.length >= 2 && s.length <= 20 && !/^(NIFTY|SENSEX|GOLD|BANKBEES|NIFTYBEES|JUNIORBEES|LIQUIDBEES)/.test(s))
+  )];
+
+  if (!syms.length) {
+    console.warn('[TrendCache] No symbols found for compute trigger');
+    return;
+  }
+
+  // Fire in batches of 10 — Apps Script has a 6-min execution limit
+  const BATCH = 10;
+  console.log('[TrendCache] Triggering compute for', syms.length, 'symbols in batches of', BATCH);
+
+  for (let i = 0; i < syms.length; i += BATCH) {
+    const batch = syms.slice(i, i + BATCH);
+    try {
+      const ctrl = new AbortController();
+      setTimeout(() => ctrl.abort(), 90000); // 90s per batch
+      const bUrl = `${APPS_SCRIPT_URL}?action=computetrend&symbols=${batch.join(',')}&t=${Date.now()}`;
+      const bRes = await fetch(bUrl, { signal: ctrl.signal, redirect: 'follow', cache: 'no-store' });
+      if (bRes.ok) {
+        const bJson = await bRes.json();
+        const computed = bJson.data ? Object.keys(bJson.data).filter(k => bJson.data[k]).length : 0;
+        console.log('[TrendCache] Batch', Math.floor(i/BATCH)+1, '— computed', computed, '/', batch.length);
+
+        // Immediately merge this batch into the cache
+        if (bJson.data) {
+          Object.entries(bJson.data).forEach(([key, d]) => {
+            if (!d) return;
+            // key is 'SYM_TF' from computeTrendOnDemand
+            const parts = key.split('_');
+            const tf  = parts[parts.length - 1];   // '1H', '1D', '1M'
+            const sym = parts.slice(0, -1).join('_').toUpperCase();
+            trendCache[sym + '_' + tf] = d;
+            if (!trendAlignCache[sym]) trendAlignCache[sym] = 'DIVERGED';
+          });
+        }
+      }
+    } catch(be) {
+      console.warn('[TrendCache] Batch compute failed for', batch, ':', be.message);
+    }
+    // Polite gap between batches to avoid Apps Script rate-limit
+    if (i + BATCH < syms.length) await new Promise(r => setTimeout(r, 2000));
+  }
+
+  // After all batches, recompute alignment for each sym and mark loaded
+  Object.keys(trendAlignCache).forEach(sym => {
+    const h = trendCache[sym + '_1H'];
+    const d = trendCache[sym + '_1D'];
+    const m = trendCache[sym + '_1M'];
+    const ht = h ? h.trend : null, dt = d ? d.trend : null, mt = m ? m.trend : null;
+    if (ht === 'UP'   && dt === 'UP'   && mt === 'UP')   trendAlignCache[sym] = 'ALL_UP';
+    else if (ht === 'DOWN' && dt === 'DOWN' && mt === 'DOWN') trendAlignCache[sym] = 'ALL_DOWN';
+    else if (dt === 'UP'   && mt === 'UP')               trendAlignCache[sym] = 'MTF_UP';
+    else if (dt === 'DOWN' && mt === 'DOWN')             trendAlignCache[sym] = 'MTF_DOWN';
+    else                                                 trendAlignCache[sym] = 'DIVERGED';
+  });
+
+  const total = Object.keys(trendAlignCache).length;
+  if (total > 0) {
+    trendCacheLoaded = true;
+    console.log('[TrendCache] Compute complete —', total, 'symbols loaded');
+    if (activeTab === 'consolidated' &&
+        (activeSignalsSubTab === 'trade' || activeSignalsSubTab === 'invest')) {
+      render();
+    }
+    _tsInjectIntoDom();
+  } else {
+    console.warn('[TrendCache] Compute returned no data — Yahoo Finance may be rate-limiting. Retry in 60s.');
+    // Retry once after 60s
+    if (_trendComputePolls < 3) {
+      _trendComputePolls++;
+      setTimeout(fetchTrendCache, 60000);
+    }
+  }
+}
+
+// ── Direct DOM injection ─────────────────────────────────────────────────────
+// Injects trend badges directly into already-rendered ti-price cells.
+// Called after trendCache loads — works even if render() didn't reach the
+// Trade/Invest tab content. Safe to call multiple times (idempotent).
+function _tsInjectIntoDom() {
+  // Find all rendered Trade/Invest table rows — they have onclick=openSymbolModal
+  document.querySelectorAll('tr[onclick*="openSymbolModal"]').forEach(function(tr) {
+    const onc = tr.getAttribute('onclick') || '';
+    const m   = onc.match(/openSymbolModal\('([^']+)'\)/);
+    if (!m) return;
+    const sym = m[1].toUpperCase();
+
+    // Find the ti-price cell in this row
+    const td = tr.querySelector('td.ti-price');
+    if (!td) return;
+
+    // Skip if badges already injected
+    if (td.querySelector('.ts-badge-row')) return;
+
+    const badges = _tsBadgeRow(sym);
+    if (badges) td.insertAdjacentHTML('beforeend', badges);
+  });
+
+  // Also inject into mobile mob-ti-card divs
+  document.querySelectorAll('div.mob-ti-card[onclick*="openSymbolModal"], div.mob-ti-card.s4-zone[onclick*="openSymbolModal"]').forEach(function(card) {
+    const onc = card.getAttribute('onclick') || '';
+    const m   = onc.match(/openSymbolModal\('([^']+)'\)/);
+    if (!m) return;
+    const sym = m[1].toUpperCase();
+
+    // Skip if already injected
+    if (card.querySelector('.ts-mob-row')) return;
+
+    const compact = _tsBadgeCompact(sym);
+    if (!compact) return;
+
+    // Insert after the price/pct div inside mob-ti-card-top
+    const topDiv = card.querySelector('.mob-ti-card-top');
+    if (topDiv) topDiv.insertAdjacentHTML('beforeend', compact);
+  });
+
+  // Also update the modal if it's open
+  const panel = document.getElementById('mpanel-price');
+  if (panel && !panel.querySelector('.ts-modal-panel')) {
+    // Find which symbol the modal is showing from price card IDs
+    const pcard = panel.querySelector('[id^="pcard-"]');
+    if (pcard) {
+      const sym = pcard.id.replace('pcard-', '').toUpperCase();
+      const html = _buildModalTrendPanel(sym);
+      if (html) {
+        const sortBar = panel.querySelector('#price-sort-bar');
+        if (sortBar) sortBar.insertAdjacentHTML('beforebegin', html);
+      }
+    }
+  }
+}
+
+
+// Returns full 3-TF badge row + alignment pill — used in desktop table rows
+function _tsBadgeRow(sym) {
+  if (!trendCacheLoaded) return '';
+  const map = { UP_STRONG:'up-s', UP_WEAK:'up-w', DOWN_STRONG:'dn-s', DOWN_WEAK:'dn-w', CHOPPY:'chop', CHOPPY_NEUTRAL:'chop', INSUFFICIENT:'insuf' };
+  const icon = { UP:'↑', DOWN:'↓', CHOPPY:'~', INSUFFICIENT:'?' };
+
+  const badges = ['1H','1D','1M'].map(tf => {
+    const d = trendCache[sym + '_' + tf];
+    if (!d) return `<span class="ts-badge insuf">${tf}:—</span>`;
+    const key = d.trend + (d.strength && d.strength !== 'NEUTRAL' ? '_' + d.strength : '');
+    const cls = map[key] || (d.trend === 'UP' ? 'up-w' : d.trend === 'DOWN' ? 'dn-w' : 'chop');
+    const ic  = icon[d.trend] || '?';
+    const rep = d.strength === 'STRONG' ? ic + ic : ic;
+    return `<span class="ts-badge ${cls}" title="${tf}: ${d.trend} ${d.strength||''} | last:${d.lastType}@${d.lastPrice != null ? '₹'+Number(d.lastPrice).toLocaleString('en-IN',{maximumFractionDigits:2}) : '—'}">${rep} ${tf}</span>`;
+  }).join('');
+
+  const a   = trendAlignCache[sym] || '';
+  const aMap = { ALL_UP:{cls:'all-up',t:'All ↑'}, ALL_DOWN:{cls:'all-dn',t:'All ↓'},
+                 MTF_UP:{cls:'mtf-up',t:'D+M ↑'}, MTF_DOWN:{cls:'mtf-dn',t:'D+M ↓'},
+                 DIVERGED:{cls:'div',t:'Mixed'} };
+  const am  = aMap[a];
+  const pill= am ? `<span class="ts-align ${am.cls}" title="Alignment: ${a}">${am.t}</span>` : '';
+
+  return `<div class="ts-badge-row">${badges}${pill ? ' ' + pill : ''}</div>`;
+}
+
+// Returns compact 1-line version — used in mobile cards
+function _tsBadgeCompact(sym) {
+  if (!trendCacheLoaded) return '';
+  const colr = { UP:'#00e5a0', DOWN:'#fb7185', CHOPPY:'#fbbf24', INSUFFICIENT:'#8a9ab0' };
+  const ic   = { UP:'↑', DOWN:'↓', CHOPPY:'~', INSUFFICIENT:'?' };
+  const parts = ['1H','1D','1M'].map(tf => {
+    const d = trendCache[sym + '_' + tf];
+    if (!d) return `<span style="color:var(--muted);font-size:0.55rem;font-family:Oxanium,sans-serif">${tf}:—</span>`;
+    const c  = colr[d.trend] || '#8a9ab0';
+    const i  = (d.strength === 'STRONG' ? ic[d.trend] + ic[d.trend] : ic[d.trend]) || '?';
+    return `<span class="ts-mob-tf" style="color:${c}">${tf}:${i}</span>`;
+  });
+  return `<div class="ts-mob-row">${parts.join('<span style="color:var(--muted);font-size:0.5rem">·</span>')}</div>`;
+}
+
+// ── NOTE: Trend badges are now baked directly into the template strings ──────
+// buildTradeTab  → badges in <td class="ti-price"> via ${trendCacheLoaded ? _tsBadgeRow(r.sym) : ''}
+// buildInvestTab → same pattern
+// mobBuildTrade  → compact badges via ${trendCacheLoaded ? _tsBadgeCompact(r.sym) : ''} in price div
+// mobBuildInvest → same pattern
+// _tsInjectIntoDom() still runs as a belt-and-suspenders pass for the modal.
+// The old string-regex patchers have been removed — they broke on HTML with
+// '>' inside cell content (ternary operators in template literals).
+
+// ── Modal trend panel ───────────────────────────────────────────────────────
+// Builds a "Trend Structure" section showing 3-TF pivot sequence.
+// Injected at the top of mpanel-price after price cards render.
+function _buildModalTrendPanel(sym) {
+  if (!trendCacheLoaded) return '';
+  const tfs  = [{ k:'1H', l:'Hourly' }, { k:'1D', l:'Daily' }, { k:'1M', l:'Monthly' }];
+  const pclr = { HH:'#00e5a0', HL:'#34d399', LH:'#fb7185', LL:'#f87171' };
+  const tclr = { UP:'#00e5a0', DOWN:'#fb7185', CHOPPY:'#fbbf24', INSUFFICIENT:'#8a9ab0' };
+  const tic  = { UP:'↑', DOWN:'↓', CHOPPY:'~', INSUFFICIENT:'?' };
+
+  const rows = tfs.map(({ k, l }) => {
+    const d = trendCache[sym + '_' + k];
+    if (!d) return `<div class="ts-tf-row"><span class="ts-tf-lbl">${k}</span><span style="color:var(--muted);font-size:0.62rem">No data yet</span></div>`;
+
+    const tc  = tclr[d.trend] || '#8a9ab0';
+    const ti  = (d.strength === 'STRONG' ? (tic[d.trend]||'') + (tic[d.trend]||'') : tic[d.trend] || '?');
+    const str = d.strength && d.strength !== 'NEUTRAL' ? ` · ${d.strength}` : '';
+    const fmt = p => p != null ? `₹${Number(p).toLocaleString('en-IN',{maximumFractionDigits:2})}` : '';
+
+    const prevDot = d.prevType ? `
+      <span class="ts-pdot ${d.prevType}" style="color:${pclr[d.prevType]||'var(--muted)'};background:${pclr[d.prevType]||'#888'}1a">${d.prevType}</span>
+      <span class="ts-pprice">${fmt(d.prevPrice)}</span>
+      <span class="ts-parrow">→</span>` : '';
+    const lastDot = d.lastType ? `
+      <span class="ts-pdot ${d.lastType}" style="color:${pclr[d.lastType]||'var(--muted)'};background:${pclr[d.lastType]||'#888'}1a">${d.lastType}</span>
+      <span class="ts-pprice">${fmt(d.lastPrice)}</span>` : '';
+    const meta = d.swingCount ? `<span style="margin-left:auto;font-size:0.52rem;color:var(--muted);white-space:nowrap">${d.swingCount} swings · ATR ${d.atr||'—'}</span>` : '';
+
+    return `<div class="ts-tf-row">
+      <span class="ts-tf-lbl">${k}</span>
+      <span style="color:${tc};font-family:Oxanium,sans-serif;font-size:0.68rem;font-weight:800;min-width:90px">${ti} ${d.trend}${str}</span>
+      <div class="ts-pivot-seq">${prevDot}${lastDot}${meta}</div>
+    </div>`;
+  }).join('');
+
+  const a   = trendAlignCache[sym] || 'DIVERGED';
+  const aMap = { ALL_UP:{cls:'all-up',t:'All TFs uptrend'}, ALL_DOWN:{cls:'all-dn',t:'All TFs downtrend'},
+                 MTF_UP:{cls:'mtf-up',t:'Daily + Monthly uptrend'}, MTF_DOWN:{cls:'mtf-dn',t:'Daily + Monthly downtrend'},
+                 DIVERGED:{cls:'div',t:'Mixed signals'} };
+  const am  = aMap[a] || aMap.DIVERGED;
+
+  return `<div class="ts-modal-panel">
+    <div class="ts-modal-hd">
+      Trend Structure
+      <span class="ts-align ${am.cls}">${am.t}</span>
+    </div>
+    ${rows}
+  </div>`;
+}
+
+// Hook renderModalRows to inject trend panel into the price tab
+const _origRenderModalRowsTS = renderModalRows;
+renderModalRows = function(priceData) {
+  _origRenderModalRowsTS.apply(this, arguments);
+  if (!trendCacheLoaded) return;
+
+  // Find the price tab panel
+  const panel = document.getElementById('mpanel-price');
+  if (!panel) return;
+  // Only inject once per modal open
+  if (panel.querySelector('.ts-modal-panel')) return;
+
+  // Get sym from priceData keys — use the first symbol that has price
+  const sym = Object.keys(priceData).find(k => priceData[k] && priceData[k].price);
+  if (!sym) return;
+
+  const html = _buildModalTrendPanel(sym.toUpperCase());
+  if (!html) return;
+
+  // Insert before the sort bar (top of price tab)
+  const sortBar = panel.querySelector('#price-sort-bar');
+  if (sortBar) sortBar.insertAdjacentHTML('beforebegin', html);
+  else         panel.insertAdjacentHTML('afterbegin', html);
+};
+
+// ── Manual refresh helper ───────────────────────────────────────────────────
+async function refreshTrendCache() {
+  trendCacheLoaded    = false;
+  trendCache          = {};
+  trendAlignCache     = {};
+  _trendComputePolls  = 0;
+  await fetchTrendCache();
+  // render() is called inside fetchTrendCache when trendCacheLoaded becomes true
+  showKbToast('✓ Trend structure refreshed');
+}
+
 </script>
 
 <style>
@@ -8529,5 +8898,78 @@ body.light-theme #price-sort-bar { background: #f0f2f5; border-color: #c8d0e0; }
 /* ── SECTOR FILTER — show correctly for trade/invest ───────── */
 /* The bar is sticky at top:98px normally.
    When Trade/Invest are active it sits below the sheet-bar just like Master/Console */
+
+/* ── TREND STRUCTURE BADGES ─────────────────────────────────────────────── */
+.ts-badge-row {
+  display:flex; align-items:center; gap:3px; margin-top:4px; flex-wrap:wrap;
+}
+.ts-badge {
+  font-family:'Oxanium',sans-serif; font-size:0.5rem; font-weight:800;
+  letter-spacing:0.05em; border-radius:4px; padding:1px 5px;
+  white-space:nowrap; border:1px solid transparent; line-height:1.6;
+}
+.ts-badge.up-s   { color:#00e5a0; background:rgba(0,229,160,0.12);   border-color:rgba(0,229,160,0.35);   }
+.ts-badge.up-w   { color:#34d399; background:rgba(52,211,153,0.10);  border-color:rgba(52,211,153,0.25);  }
+.ts-badge.dn-s   { color:#fb7185; background:rgba(251,113,133,0.12); border-color:rgba(251,113,133,0.35); }
+.ts-badge.dn-w   { color:#f87171; background:rgba(248,113,113,0.10); border-color:rgba(248,113,113,0.25); }
+.ts-badge.chop   { color:#fbbf24; background:rgba(251,191,36,0.10);  border-color:rgba(251,191,36,0.25);  }
+.ts-badge.insuf  { color:#8a9ab0; background:rgba(138,154,176,0.08); border-color:rgba(138,154,176,0.2);  }
+/* Alignment pill */
+.ts-align {
+  font-family:'Oxanium',sans-serif; font-size:0.5rem; font-weight:800;
+  letter-spacing:0.04em; border-radius:20px; padding:1px 7px;
+  white-space:nowrap; border:1px solid transparent;
+}
+.ts-align.all-up   { color:#00e5a0; background:rgba(0,229,160,0.15);   border-color:rgba(0,229,160,0.4);   }
+.ts-align.all-dn   { color:#fb7185; background:rgba(251,113,133,0.15); border-color:rgba(251,113,133,0.4); }
+.ts-align.mtf-up   { color:#34d399; background:rgba(52,211,153,0.12);  border-color:rgba(52,211,153,0.35); }
+.ts-align.mtf-dn   { color:#f87171; background:rgba(248,113,113,0.12); border-color:rgba(248,113,113,0.3); }
+.ts-align.div      { color:#8a9ab0; background:rgba(138,154,176,0.08); border-color:rgba(138,154,176,0.2); }
+/* Modal trend panel */
+.ts-modal-panel {
+  padding:12px 18px 14px; border-bottom:1px solid var(--border);
+}
+.ts-modal-hd {
+  font-family:'Oxanium',sans-serif; font-size:0.62rem; font-weight:800;
+  letter-spacing:0.12em; text-transform:uppercase; color:var(--muted);
+  margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.ts-tf-row {
+  display:flex; align-items:center; gap:10px; margin-bottom:7px; flex-wrap:wrap;
+}
+.ts-tf-lbl {
+  font-family:'Oxanium',sans-serif; font-size:0.6rem; font-weight:800;
+  letter-spacing:0.08em; color:var(--muted); min-width:22px;
+}
+.ts-pivot-seq {
+  display:flex; align-items:center; gap:5px; flex-wrap:wrap;
+  padding:4px 10px; background:var(--surface2); border-radius:7px;
+  border:1px solid var(--border2); flex:1;
+}
+.ts-pdot {
+  font-family:'Oxanium',sans-serif; font-size:0.6rem; font-weight:800;
+  border-radius:4px; padding:2px 6px;
+}
+.ts-pdot.HH { color:#00e5a0; background:rgba(0,229,160,0.14); }
+.ts-pdot.HL { color:#34d399; background:rgba(52,211,153,0.12); }
+.ts-pdot.LH { color:#fb7185; background:rgba(251,113,133,0.14); }
+.ts-pdot.LL { color:#f87171; background:rgba(248,113,113,0.12); }
+.ts-parrow { color:var(--muted); font-size:0.55rem; }
+.ts-pprice { font-size:0.56rem; color:var(--muted); font-family:Calibri,sans-serif; }
+/* Mobile compact trend row */
+.ts-mob-row {
+  display:flex; gap:5px; align-items:center; margin-top:3px; flex-wrap:wrap;
+}
+.ts-mob-tf {
+  font-family:'Oxanium',sans-serif; font-size:0.58rem; font-weight:800;
+}
+/* Light theme */
+body.light-theme .ts-badge.up-s  { color:#005c3e; background:rgba(0,140,100,0.10); border-color:rgba(0,140,100,0.4); }
+body.light-theme .ts-badge.up-w  { color:#0f6e56; background:rgba(15,110,86,0.08); border-color:rgba(15,110,86,0.3); }
+body.light-theme .ts-badge.dn-s  { color:#b01830; background:rgba(176,24,48,0.10); border-color:rgba(176,24,48,0.4); }
+body.light-theme .ts-badge.dn-w  { color:#993030; background:rgba(153,48,48,0.08); border-color:rgba(153,48,48,0.3); }
+body.light-theme .ts-badge.chop  { color:#8a6000; background:rgba(138,96,0,0.08);  border-color:rgba(138,96,0,0.3);  }
+body.light-theme .ts-pivot-seq, body.light-theme .ts-pivot-seq { background:#f5f0e8; border-color:#e0d6c8; }
+body.light-theme .ts-modal-panel { border-color:#e8ddd0; }
 </style>
 </body>
