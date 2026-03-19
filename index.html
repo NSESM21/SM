@@ -714,9 +714,9 @@ body.mobile-view .modal-title { font-size: 1.3rem; }
   .sort-btn { padding: 8px 14px !important; font-size: 0.78rem !important; min-height: 40px; }
   /* ── CRITICAL: Full-width scroll fix on mobile ── */
   main { padding: 6px !important; }
-  /* Preserve mobile mainContent top padding — overrides the 6px above */
-  body.mobile-view #mainContent { padding-top: 106px !important; }
-  body.mobile-view #mainContent.has-subtab-bar { padding-top: 148px !important; }
+  /* Preserve mobile mainContent positioning — margin-top not affected by padding override */
+  body.mobile-view #mainContent { margin-top: 106px !important; padding-top: 0 !important; height: calc(100vh - 106px - 62px) !important; }
+  body.mobile-view #mainContent.has-subtab-bar { margin-top: 148px !important; height: calc(100vh - 148px - 62px) !important; }
   .master-wrap {
     width: 100vw !important;
     max-width: 100vw !important;
@@ -1687,17 +1687,17 @@ body.light-theme .mix-item { border-color:#e8ddd0; }
 
 body.mobile-view #mainContent {
   padding: 0;
-  padding-top: 106px; /* 48px header + 58px index strip */
+  margin-top: 106px; /* push element start below fixed header(48px) + index strip(58px) */
   overflow-y: auto;
-  height: calc(100vh - 48px - 58px - 62px);
+  height: calc(100vh - 106px - 62px); /* viewport minus top offset minus bottom nav */
   -webkit-overflow-scrolling: touch;
   position: relative;
   z-index: 1;
 }
-/* Extra top padding when signals sub-tab bar is visible — use !important
-   to beat any inline style that may have been set by previous versions */
+/* When signals sub-tab bar is visible, push down further */
 body.mobile-view #mainContent.has-subtab-bar {
-  padding-top: 148px !important;
+  margin-top: 148px !important; /* 106px + 42px sub-tab bar */
+  height: calc(100vh - 148px - 62px) !important;
 }
 .mob-tf-bar {
   display: flex; align-items: center; overflow-x: auto; scrollbar-width: none;
@@ -2527,6 +2527,15 @@ function buildIdxZoneFilter() {
 // Populated from json.indexData (INDICES sheet) on every loadSheet()
 // Key = index symbol (uppercase), value = parsed object with all columns
 let indexCache = {};  // 'NIFTY_IT' → { ltp, pct, monthly, dR4, hR4, r15m, dPP, mR4, mR2, mS4, high52, low52, wHigh, wLow, wClose, open, high, low, prvClose, ... }
+
+// Symbols excluded from Invest tab — indices and ETFs can't be accumulated directly
+const INVEST_EXCLUDE = new Set([
+  'NIFTY50','NIFTY_50','GOLDBEES','NIFTYBEES','BANKBEES','JUNIORBEES',
+  'LIQUIDBEES','ICICIB22','MOM100','SETFNN50','INDIA_VIX','INDVIX',
+  'NIFTY_IT','NIFTY_FMCG','NIFTY_BANK','NIFTY_PHARMA','NIFTY_AUTO',
+  'NIFTY_METAL','NIFTY_ENERGY','NIFTY_REALTY','NIFTY_INFRA','NIFTY_MEDIA',
+  'NIFTY_NEXT_50','NIFTY_MIDCAP_50','NIFTY_MIDCAP50'
+]);
 
 // Column positions in INDICES sheet (0-indexed from raw row array)
 // Based on your sheet: A=0(INDEX) B=1(%Ch) C=2(LTP) D=3(D-R2) E=4(MONTHLY)
@@ -4962,6 +4971,7 @@ function setViewMode(mode) {
       if (stray) stray.remove();
       mc.style.height = '';
       mc.style.paddingTop = '';
+      mc.style.marginTop = '';
       mc.classList.remove('has-subtab-bar');
     }
   }
@@ -5042,7 +5052,7 @@ function mobRender() {
     subBarEl.innerHTML = '';
     subBarEl.style.display = 'none';
     mc.style.height = '';
-    mc.style.paddingTop = '';
+    mc.style.marginTop = '';
     mc.classList.remove('has-subtab-bar');
   }
   // Always strip any stray inline sub-tab bar that desktop render may have injected
@@ -5386,19 +5396,12 @@ function mobBuildTrade() {
 // ── Mobile Invest Tab — card-per-stock layout, Monthly S4 focused ──────────
 function mobBuildInvest() {
   const allScores = computeAllBCS();
-  // Same exclusion set as desktop buildInvestTab — indices can't be accumulated
-  const MOB_INVEST_EX = new Set([
-    'NIFTY50','NIFTY_50','GOLDBEES','NIFTYBEES','BANKBEES','JUNIORBEES',
-    'LIQUIDBEES','ICICIB22','MOM100','SETFNN50','INDIA_VIX','INDVIX',
-    'NIFTY_IT','NIFTY_FMCG','NIFTY_BANK','NIFTY_PHARMA','NIFTY_AUTO',
-    'NIFTY_METAL','NIFTY_ENERGY','NIFTY_REALTY','NIFTY_INFRA','NIFTY_MEDIA',
-    'NIFTY_NEXT_50','NIFTY_MIDCAP_50','NIFTY_MIDCAP50'
-  ]);
+  // Use global INVEST_EXCLUDE (defined at top of script)
   const s4Stocks = new Set();
   masterTFs.forEach(tf => {
     if (tf.label === 'Monthly S4') {
       tf.cols.forEach(col => col.forEach(sym => {
-        if (sym && sym.trim() && !MOB_INVEST_EX.has(sym.toUpperCase()))
+        if (sym && sym.trim() && !INVEST_EXCLUDE.has(sym.toUpperCase()))
           s4Stocks.add(sym.toUpperCase());
       }));
     }
@@ -8127,11 +8130,7 @@ function buildInvestTab() {
 
   // Show all S4 stocks, and also R4/R2 stocks if they previously appeared in S4
   // This means we always read Monthly S4 first, then optionally note R4 promotions
-  const HM_EX = new Set(['NIFTY50','NIFTY_50','GOLDBEES','NIFTYBEES','BANKBEES',
-    'JUNIORBEES','LIQUIDBEES','ICICIB22','MOM100','SETFNN50','INDIA_VIX','INDVIX',
-    'NIFTY_IT','NIFTY_FMCG','NIFTY_BANK','NIFTY_PHARMA','NIFTY_AUTO',
-    'NIFTY_METAL','NIFTY_ENERGY','NIFTY_REALTY','NIFTY_INFRA','NIFTY_MEDIA',
-    'NIFTY_NEXT_50','NIFTY_MIDCAP_50','NIFTY_MIDCAP50']);
+  const HM_EX = INVEST_EXCLUDE; // use global exclude set
 
   if (!s4Stocks.size) {
     return `<div class="trade-invest-panel"><div style="padding:60px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif">
@@ -8702,7 +8701,7 @@ function buildSignalsSubTabBar() {
 
   const s4Set = new Set();
   masterTFs.forEach(tf => {
-    if (tf.label === 'Monthly S4') tf.cols.forEach(col => col.forEach(sym => { if (sym) s4Set.add(sym.toUpperCase()); }));
+    if (tf.label === 'Monthly S4') tf.cols.forEach(col => col.forEach(sym => { if (sym && !INVEST_EXCLUDE.has(sym.toUpperCase())) s4Set.add(sym.toUpperCase()); }));
   });
   const investCount = s4Set.size;
 
@@ -8745,7 +8744,7 @@ function buildSignalsSubTabBarInner() {
   const tradeCount = tradeSet.size;
   const s4Set = new Set();
   masterTFs.forEach(tf => {
-    if (tf.label === 'Monthly S4') tf.cols.forEach(col => col.forEach(sym => { if (sym) s4Set.add(sym.toUpperCase()); }));
+    if (tf.label === 'Monthly S4') tf.cols.forEach(col => col.forEach(sym => { if (sym && !INVEST_EXCLUDE.has(sym.toUpperCase())) s4Set.add(sym.toUpperCase()); }));
   });
   const investCount = s4Set.size;
   const tfCount = consolidatedTFs.reduce((a, tf) => a + tf.cols.reduce((b, col) => b + col.length, 0), 0);
@@ -8841,7 +8840,7 @@ updateTabBadges = function() {
     // Invest count
     const s4Set = new Set();
     masterTFs.forEach(tf => {
-      if (tf.label === 'Monthly S4') tf.cols.forEach(col => col.forEach(sym => { if (sym && sym.trim()) s4Set.add(sym.toUpperCase()); }));
+      if (tf.label === 'Monthly S4') tf.cols.forEach(col => col.forEach(sym => { if (sym && sym.trim() && !INVEST_EXCLUDE.has(sym.toUpperCase())) s4Set.add(sym.toUpperCase()); }));
     });
     const investCount = s4Set.size;
 
@@ -9801,8 +9800,8 @@ body.light-theme #bcs-alert-banner { background:#fff; border-color:rgba(249,115,
   .mob-ti-sym { font-size: 0.84rem; }
   .mob-stock-chip { min-height: 48px; padding: 8px 10px; }
   .mob-cat-name { font-size: 0.72rem; }
-  body.mobile-view #mainContent { height: calc(100vh - 48px - 58px - 56px); padding-top: 106px; }
-  body.mobile-view #mainContent.has-subtab-bar { padding-top: 148px !important; }
+  body.mobile-view #mainContent { margin-top: 106px !important; height: calc(100vh - 106px - 56px) !important; padding-top: 0 !important; }
+  body.mobile-view #mainContent.has-subtab-bar { margin-top: 148px !important; height: calc(100vh - 148px - 56px) !important; }
   body.mobile-view #mobileBottomNav { height: 56px; }
   .ti-combo-bar { grid-template-columns: repeat(2,1fr); }
 }
