@@ -37,7 +37,7 @@
   %22display%22:%22standalone%22,
   %22background_color%22:%22%230a0c10%22,
   %22theme_color%22:%22%230a0c10%22,
-  %22orientation%22:%22landscape-primary%22,
+  %22orientation%22:%22portrait%22,
   %22icons%22:[
     {%22src%22:%22data:image/svg+xml,%3Csvg+xmlns='http://www.w3.org/2000/svg'+viewBox='0+0+512+512'%3E%3Crect+width='512'+height='512'+rx='80'+fill='%230a0c10'/%3E%3Ctext+x='256'+y='320'+font-size='260'+text-anchor='middle'+fill='%2300e5a0'+font-family='Arial'%3E%F0%9F%93%88%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22,%22purpose%22:%22any+maskable%22}
   ]
@@ -1683,11 +1683,18 @@ body.mobile-view #mobileIndexStrip::-webkit-scrollbar { display: none; }
 body.light-theme .mix-item { border-color:#e8ddd0; }
 
 body.mobile-view #mainContent {
-  padding: 0 !important;
-  padding-top: 58px !important;
+  padding: 0;
+  padding-top: 106px; /* 48px header + 58px index strip */
   overflow-y: auto;
   height: calc(100vh - 48px - 58px - 62px);
   -webkit-overflow-scrolling: touch;
+  position: relative;
+  z-index: 1;
+}
+/* Extra top padding when signals sub-tab bar is visible — use !important
+   to beat any inline style that may have been set by previous versions */
+body.mobile-view #mainContent.has-subtab-bar {
+  padding-top: 148px !important;
 }
 .mob-tf-bar {
   display: flex; align-items: center; overflow-x: auto; scrollbar-width: none;
@@ -3057,7 +3064,7 @@ function buildEarningsPanel() {
 
   return `
     <div class="earnings-panel">
-      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;scrollbar-width:none">
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;scrollbar-width:none;align-items:center">
         <button style="${isCorp?stActive:stInactive}" onclick="setEventsSubTab('corp')">
           📋 CORP ACTIONS <span style="font-size:10px;opacity:0.7">(${caUpcoming.length})</span>
         </button>
@@ -3067,6 +3074,7 @@ function buildEarningsPanel() {
         <button style="${isResults?stActive:stInactive}" onclick="setEventsSubTab('results')">
           📅 RESULTS &amp; NEWS <span style="font-size:10px;opacity:0.7">(${Object.keys(fundEarnings).length})</span>
         </button>
+        <span style="margin-left:auto;font-size:0.55rem;color:var(--muted);padding:0 10px;white-space:nowrap;opacity:0.6">← → swipe or arrow keys</span>
       </div>
       ${isCorp ? `
         <div class="ca-filter-bar">${filterBtns}</div>
@@ -4205,6 +4213,7 @@ function openModal(tfLabel, catLabel, stocks) {
       <div class="modal-tabs">
         <button class="modal-tab active" id="mtab-price" onclick="switchModalTab('price')">📈 Price & Range</button>
         <button class="modal-tab" id="mtab-fund" onclick="switchModalTab('fund')">🏦 Fundamentals</button>
+        <span style="margin-left:auto;font-size:0.52rem;color:var(--muted);padding:0 12px;opacity:0.5;align-self:center;white-space:nowrap">← → swipe</span>
       </div>
 
       <div id="fund-sync-status" style="display:none;padding:6px 22px;font-family:Oxanium,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.08em;background:rgba(0,0,0,0.3);border-bottom:1px solid var(--border);transition:all 0.3s"></div>
@@ -4923,6 +4932,24 @@ function setViewMode(mode) {
   });
   const refreshBtn = document.getElementById('refreshBtn');
   if (refreshBtn) refreshBtn.style.display = isMob ? 'none' : '';
+
+  // ── FIX BUG 3: When switching to desktop, clear the inline style that mobile
+  // JS sets on #mobileSubTabBar (style.display='block'). Without this the bar
+  // stays visible even in desktop mode, causing a double sub-tab bar.
+  if (mode === 'desktop') {
+    const mstb = document.getElementById('mobileSubTabBar');
+    if (mstb) { mstb.style.display = ''; mstb.innerHTML = ''; }
+    // Also remove any stray inline signals-subtab-bar left by mobile renders
+    const mc = document.getElementById('mainContent');
+    if (mc) {
+      const stray = mc.querySelector('.signals-subtab-bar');
+      if (stray) stray.remove();
+      mc.style.height = '';
+      mc.style.paddingTop = '';
+      mc.classList.remove('has-subtab-bar');
+    }
+  }
+
   try { localStorage.setItem('nse-view-mode', mode); } catch(e) {}
   if (mode === 'mobile') mobSyncIndexStrip();
   if (masterTFs.length || consolidatedTFs.length) render();
@@ -4995,7 +5022,9 @@ function mobRender() {
   if (subBarEl && activeTab !== 'consolidated') {
     subBarEl.innerHTML = '';
     subBarEl.style.display = 'none';
-    mc.style.height = ''; // reset to CSS default
+    mc.style.height = '';
+    mc.style.paddingTop = '';
+    mc.classList.remove('has-subtab-bar');
   }
   // Always strip any stray inline sub-tab bar that desktop render may have injected
   // into mainContent (happens during view-mode race on resize)
@@ -5338,10 +5367,21 @@ function mobBuildTrade() {
 // ── Mobile Invest Tab — card-per-stock layout, Monthly S4 focused ──────────
 function mobBuildInvest() {
   const allScores = computeAllBCS();
+  // Same exclusion set as desktop buildInvestTab — indices can't be accumulated
+  const MOB_INVEST_EX = new Set([
+    'NIFTY50','NIFTY_50','GOLDBEES','NIFTYBEES','BANKBEES','JUNIORBEES',
+    'LIQUIDBEES','ICICIB22','MOM100','SETFNN50','INDIA_VIX','INDVIX',
+    'NIFTY_IT','NIFTY_FMCG','NIFTY_BANK','NIFTY_PHARMA','NIFTY_AUTO',
+    'NIFTY_METAL','NIFTY_ENERGY','NIFTY_REALTY','NIFTY_INFRA','NIFTY_MEDIA',
+    'NIFTY_NEXT_50','NIFTY_MIDCAP_50','NIFTY_MIDCAP50'
+  ]);
   const s4Stocks = new Set();
   masterTFs.forEach(tf => {
     if (tf.label === 'Monthly S4') {
-      tf.cols.forEach(col => col.forEach(sym => { if (sym && sym.trim()) s4Stocks.add(sym.toUpperCase()); }));
+      tf.cols.forEach(col => col.forEach(sym => {
+        if (sym && sym.trim() && !MOB_INVEST_EX.has(sym.toUpperCase()))
+          s4Stocks.add(sym.toUpperCase());
+      }));
     }
   });
   if (!s4Stocks.size) {
@@ -8582,19 +8622,21 @@ function setSignalsSubTab(tab) {
     const stray = mc.querySelector('.signals-subtab-bar');
     if (stray) stray.remove();
 
-    // Update the external #mobileSubTabBar pill highlights
-    const subBarEl = document.getElementById('mobileSubTabBar');
-    if (subBarEl) subBarEl.innerHTML = buildSignalsSubTabBarInner();
-
-    // Render only the content — no inline sub-tab bar
+    // For timeframe sub-tab: call the full overridden mobBuildConsol which
+    // handles subTabBar injection, swipe hint, index panel and trend panel.
+    // Do NOT call _origMobBuildConsol directly — it bypasses all those additions.
     if (tab === 'trade') {
+      // Update external sub-tab bar highlights
+      const subBarEl = document.getElementById('mobileSubTabBar');
+      if (subBarEl) subBarEl.innerHTML = buildSignalsSubTabBarInner();
       mc.innerHTML = mobBuildTrade();
     } else if (tab === 'invest') {
+      const subBarEl = document.getElementById('mobileSubTabBar');
+      if (subBarEl) subBarEl.innerHTML = buildSignalsSubTabBarInner();
       mc.innerHTML = mobBuildInvest();
     } else {
-      mc.innerHTML = mobBuildTrendPanel() + (typeof _origMobBuildConsol === 'function'
-        ? _origMobBuildConsol(searchTerm.toLowerCase())
-        : '');
+      // Timeframe: call the full override — it handles everything correctly
+      mc.innerHTML = mobBuildConsol(searchTerm.toLowerCase());
       // Re-attach consolidated click handler
       if (_conClickHandler) mc.removeEventListener('click', _conClickHandler);
       _conClickHandler = e => {
@@ -8933,24 +8975,147 @@ document.addEventListener('touchend', e => {
   showKbToast(`${dx < 0 ? '→' : '←'} <strong>${activeSignalsSubTab.charAt(0).toUpperCase() + activeSignalsSubTab.slice(1)}</strong>`);
 }, { passive: true });
 
+// ── Mobile: swipe between Master TF pills ─────────────────────────────────
+// Allows left/right swipe on Master tab to move between Monthly R4, Daily R4 etc.
+let _masterSwipeX = 0, _masterSwipeY = 0, _masterSwipeActive = false;
+
+document.addEventListener('touchstart', e => {
+  const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
+  if (!isMob || activeTab !== 'master') return;
+  _masterSwipeX = e.touches[0].clientX;
+  _masterSwipeY = e.touches[0].clientY;
+  _masterSwipeActive = true;
+}, { passive: true });
+
+document.addEventListener('touchmove', e => {
+  if (!_masterSwipeActive) return;
+  const dy = Math.abs(e.touches[0].clientY - _masterSwipeY);
+  const dx = Math.abs(e.touches[0].clientX - _masterSwipeX);
+  // Cancel if mostly vertical — let natural scroll happen
+  if (dy > dx && dy > 15) _masterSwipeActive = false;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  if (!_masterSwipeActive) return;
+  _masterSwipeActive = false;
+  const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
+  if (!isMob || activeTab !== 'master' || !masterTFs.length) return;
+  const dx = e.changedTouches[0].clientX - _masterSwipeX;
+  const dy = Math.abs(e.changedTouches[0].clientY - _masterSwipeY);
+  if (Math.abs(dx) < 50 || dy > 60) return;
+  const cur = mobMasterTFIdx;
+  const next = dx < 0
+    ? (cur + 1) % masterTFs.length
+    : (cur - 1 + masterTFs.length) % masterTFs.length;
+  if (next === cur) return;
+  mobSwitchMasterTF(next);
+  showKbToast(`${dx < 0 ? '→' : '←'} <strong>${masterTFs[next].label}</strong>`);
+}, { passive: true });
+
+// ── Events tab: arrow keys (desktop) + swipe (mobile) ────────────────────
+const _evtSubOrder = ['corp', 'earnings', 'results'];
+let _evtSwipeX = 0, _evtSwipeActive = false;
+
+// Arrow key navigation for Events tab (desktop)
+document.addEventListener('keydown', e => {
+  if (activeTab !== 'earnings') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  e.preventDefault();
+  const cur = _evtSubOrder.indexOf(activeEventsSubTab);
+  const next = e.key === 'ArrowRight' ? cur + 1 : cur - 1;
+  if (next < 0 || next >= _evtSubOrder.length) return;
+  activeEventsSubTab = _evtSubOrder[next];
+  render();
+  showKbToast(`${e.key === 'ArrowRight' ? '→' : '←'} <strong>${_evtSubOrder[next].charAt(0).toUpperCase() + _evtSubOrder[next].slice(1)}</strong>`);
+});
+
+// Swipe for Events tab (mobile)
+document.addEventListener('touchstart', e => {
+  const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
+  if (!isMob || activeTab !== 'earnings') return;
+  _evtSwipeX = e.touches[0].clientX;
+  _evtSwipeActive = true;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  if (!_evtSwipeActive) return;
+  _evtSwipeActive = false;
+  const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
+  if (!isMob || activeTab !== 'earnings') return;
+  const dx = e.changedTouches[0].clientX - _evtSwipeX;
+  if (Math.abs(dx) < 50) return;
+  const cur = _evtSubOrder.indexOf(activeEventsSubTab);
+  let next = dx < 0 ? cur + 1 : cur - 1;
+  next = Math.max(0, Math.min(_evtSubOrder.length - 1, next));
+  if (next === cur) return;
+  activeEventsSubTab = _evtSubOrder[next];
+  render();
+  showKbToast(`${dx < 0 ? '→' : '←'} <strong>${_evtSubOrder[next].charAt(0).toUpperCase() + _evtSubOrder[next].slice(1)}</strong>`);
+}, { passive: true });
+
+// ── Modal Price/Fundamentals: arrow keys (desktop) + swipe (mobile) ──────
+const _modalTabOrder = ['price', 'fund'];
+let _modalSwipeX = 0, _modalSwipeActive = false;
+
+// Arrow key navigation for open modal
+document.addEventListener('keydown', e => {
+  const modal = document.getElementById('tv-modal');
+  if (!modal) return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  e.preventDefault();
+  const cur = _modalTabOrder.indexOf(activeModalTab);
+  const next = e.key === 'ArrowRight' ? cur + 1 : cur - 1;
+  if (next < 0 || next >= _modalTabOrder.length) return;
+  switchModalTab(_modalTabOrder[next]);
+  showKbToast(`${e.key === 'ArrowRight' ? '→' : '←'} <strong>${_modalTabOrder[next] === 'price' ? 'Price & Range' : 'Fundamentals'}</strong>`);
+});
+
+// Swipe inside modal for mobile
+document.addEventListener('touchstart', e => {
+  const modal = document.getElementById('tv-modal');
+  if (!modal) return;
+  if (!e.target.closest('.modal-tab-panel, .modal-tabs, .modal-body')) return;
+  _modalSwipeX = e.touches[0].clientX;
+  _modalSwipeActive = true;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  if (!_modalSwipeActive) return;
+  _modalSwipeActive = false;
+  const modal = document.getElementById('tv-modal');
+  if (!modal) return;
+  const dx = e.changedTouches[0].clientX - _modalSwipeX;
+  if (Math.abs(dx) < 50) return;
+  const cur = _modalTabOrder.indexOf(activeModalTab);
+  let next = dx < 0 ? cur + 1 : cur - 1;
+  next = Math.max(0, Math.min(_modalTabOrder.length - 1, next));
+  if (next === cur) return;
+  switchModalTab(_modalTabOrder[next]);
+  showKbToast(`${dx < 0 ? '→' : '←'} <strong>${_modalTabOrder[next] === 'price' ? 'Price & Range' : 'Fundamentals'}</strong>`);
+}, { passive: true });
+
 // ── Mobile: render subtab bar into #mobileSubTabBar (outside mainContent)
 //    so it stays fixed at the top and doesn't scroll away ──────────────────
 const _origMobBuildConsol = mobBuildConsol;
 mobBuildConsol = function(term) {
-  // Inject subtab bar into the external placeholder — outside the scroll container
+  const mc = document.getElementById('mainContent');
   const subBarEl = document.getElementById('mobileSubTabBar');
+
+  // Show sub-tab bar and apply class — CSS handles the padding
   if (subBarEl) {
     subBarEl.innerHTML = buildSignalsSubTabBarInner();
     subBarEl.style.display = 'block';
-    const mc = document.getElementById('mainContent');
-    if (mc) {
-      const barH = subBarEl.offsetHeight || 42;
-      mc.style.marginTop = '0';
-      mc.style.height = 'calc(100vh - 48px - 58px - ' + barH + 'px - 62px)';
-    }
+  }
+  if (mc) {
+    mc.classList.add('has-subtab-bar');
+    mc.style.height = '';
+    mc.style.paddingTop = '';
+    mc.style.marginTop = '';
   }
 
-  // Swipe hint — show once, never again after dismissal
+  // Swipe hint — show once
   let swipeHint = '';
   try {
     if (!localStorage.getItem('nse-swipe-hint-seen')) {
@@ -9617,7 +9782,8 @@ body.light-theme #bcs-alert-banner { background:#fff; border-color:rgba(249,115,
   .mob-ti-sym { font-size: 0.84rem; }
   .mob-stock-chip { min-height: 48px; padding: 8px 10px; }
   .mob-cat-name { font-size: 0.72rem; }
-  body.mobile-view #mainContent { height: calc(100vh - 48px - 58px - 56px); }
+  body.mobile-view #mainContent { height: calc(100vh - 48px - 58px - 56px); padding-top: 106px; }
+  body.mobile-view #mainContent.has-subtab-bar { padding-top: 148px !important; }
   body.mobile-view #mobileBottomNav { height: 56px; }
   .ti-combo-bar { grid-template-columns: repeat(2,1fr); }
 }
@@ -9750,14 +9916,15 @@ html.mobile-view .sstab-btn {
   }
 }
 
-/* ── #mobileSubTabBar: lives between index strip and mainContent ── */
+/* ── #mobileSubTabBar: fixed below index strip, above mainContent ── */
 #mobileSubTabBar {
   display: none; /* shown by JS only when Signals tab is active */
-  width: 100%; flex-shrink: 0;
+  width: 100%; 
   background: var(--surface);
   border-bottom: 2px solid var(--border2);
-  position: sticky;
+  position: fixed;
   top: 106px; /* 48px header + 58px index strip */
+  left: 0; right: 0;
   z-index: 250;
 }
 .signals-content { min-height:0; }
