@@ -714,6 +714,9 @@ body.mobile-view .modal-title { font-size: 1.3rem; }
   .sort-btn { padding: 8px 14px !important; font-size: 0.78rem !important; min-height: 40px; }
   /* ── CRITICAL: Full-width scroll fix on mobile ── */
   main { padding: 6px !important; }
+  /* Preserve mobile mainContent top padding — overrides the 6px above */
+  body.mobile-view #mainContent { padding-top: 106px !important; }
+  body.mobile-view #mainContent.has-subtab-bar { padding-top: 148px !important; }
   .master-wrap {
     width: 100vw !important;
     max-width: 100vw !important;
