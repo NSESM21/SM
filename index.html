@@ -1664,6 +1664,9 @@ body.mobile-view #mobileIndexStrip {
   background: var(--surface); border-bottom: 1px solid var(--border2);
   overflow-x: auto; scrollbar-width: none;
   height: 58px; flex-shrink: 0;
+  position: fixed;
+  top: 48px; left: 0; right: 0;
+  z-index: 260;
 }
 body.mobile-view #mobileIndexStrip::-webkit-scrollbar { display: none; }
 .mix-item {
@@ -1680,7 +1683,9 @@ body.mobile-view #mobileIndexStrip::-webkit-scrollbar { display: none; }
 body.light-theme .mix-item { border-color:#e8ddd0; }
 
 body.mobile-view #mainContent {
-  padding: 0 !important; overflow-y: auto;
+  padding: 0 !important;
+  padding-top: 58px !important;
+  overflow-y: auto;
   height: calc(100vh - 48px - 58px - 62px);
   -webkit-overflow-scrolling: touch;
 }
@@ -1923,6 +1928,9 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
     <button class="mha-btn" onclick="openMobileSearch()" title="Search">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
+    <button class="mha-btn" onclick="toggleOrientation()" id="orientBtn" title="Toggle landscape/portrait">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" id="orientIcon"><rect x="4" y="2" width="16" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+    </button>
     <button class="mha-btn" onclick="toggleTheme()" title="Theme">
       <span id="themeIconMobile">☀️</span>
     </button>
@@ -2134,6 +2142,79 @@ let consolidatedTFs = [];
 let r4NewEntries  = new Set();   // "SYM|TFLabel" — stocks NEW in this refresh
 let r4Confluence  = {};          // sym.toUpperCase() → number of TFs it appears in
 let _prevConsolSnap = {};        // sym.toUpperCase() → Set of tfLabels from LAST refresh
+
+// ── Signal Timestamp System ───────────────────────────────────────────────
+// Stores first-seen time for each SYM|ComboLabel in localStorage
+// Key: 'nse-sig-ts|SYM|COMBO'  Value: ISO timestamp string
+// Cleared when a signal exits the combination (sym no longer in that console TF)
+
+const _SIG_TS_PREFIX = 'nse-sig-ts|';
+
+// Called when a signal is newly detected — stores first-seen if not already stored
+function _sigTsRecord(sym, comboLabel) {
+  const key = _SIG_TS_PREFIX + sym.toUpperCase() + '|' + comboLabel;
+  try {
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, new Date().toISOString());
+    }
+  } catch(e) {}
+}
+
+// Called when a signal exits — clears stored timestamp
+function _sigTsClear(sym, comboLabel) {
+  try {
+    localStorage.removeItem(_SIG_TS_PREFIX + sym.toUpperCase() + '|' + comboLabel);
+  } catch(e) {}
+}
+
+// Returns { daysAgo, hoursAgo, firstSeen } or null
+function _sigTsGet(sym, comboLabel) {
+  try {
+    const val = localStorage.getItem(_SIG_TS_PREFIX + sym.toUpperCase() + '|' + comboLabel);
+    if (!val) return null;
+    const first = new Date(val);
+    const diffMs = Date.now() - first.getTime();
+    const diffH  = diffMs / 3600000;
+    const diffD  = Math.floor(diffH / 24);
+    return {
+      daysAgo:  diffD,
+      hoursAgo: Math.floor(diffH),
+      firstSeen: first,
+      label: diffD === 0 ? 'Today' : diffD === 1 ? 'Yesterday' : diffD + 'd ago',
+      time: first.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' })
+    };
+  } catch(e) { return null; }
+}
+
+// Get the best (earliest) timestamp across all combo labels for a symbol
+function _sigTsBest(sym, comboLabels) {
+  let best = null;
+  comboLabels.forEach(label => {
+    const ts = _sigTsGet(sym, label);
+    if (!ts) return;
+    if (!best || ts.firstSeen < best.firstSeen) best = ts;
+  });
+  return best;
+}
+
+// Build the signal age HTML row shown in Trade tab
+function _sigTsRow(sym, comboLabels) {
+  const ts = _sigTsBest(sym, comboLabels);
+  if (!ts) return '';
+  const dayNum = ts.daysAgo + 1; // Day 1 = today, Day 2 = yesterday, etc.
+  // Colour: Day 1 = green (fresh), Day 2 = yellow (still valid), Day 3+ = red (stale)
+  const col = dayNum === 1 ? '#00e5a0' : dayNum === 2 ? '#fbbf24' : '#fb7185';
+  const freshLabel = dayNum === 1 ? '🟢 Fresh signal' : dayNum === 2 ? '🟡 1 day old' : `🔴 ${ts.daysAgo}d old — stale`;
+  return `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:3px 6px;
+    background:${dayNum===1?'rgba(0,229,160,0.06)':dayNum===2?'rgba(251,191,36,0.06)':'rgba(251,113,133,0.06)'};
+    border-radius:4px;border-left:2px solid ${col}">
+    <span style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:800;color:${col}">⏱ Day ${dayNum}</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.55rem;color:var(--muted)">${freshLabel}</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.52rem;color:var(--muted);margin-left:auto">
+      ${ts.label} ${ts.time}
+    </span>
+  </div>`;
+}
 let activeTab = 'master';
 let activeMasterTF = 0; // index of currently selected master TF
 let searchTerm = '';
@@ -2148,6 +2229,364 @@ let corpActions      = [];   // [{symbol, type, details, exDate, recordDate}]
 let earningsReports  = [];   // [{symbol, resultDate, quarter, notes}] — from EARNINGS sheet
 let activeEventsSubTab = 'corp'; // 'corp' | 'earnings' | 'results'
 let activeSector = 'ALL';
+
+// ── INDEX PANEL HELPERS ───────────────────────────────────────────────────
+
+// Signal badge for one timeframe
+function _idxSigBadge(sig, label) {
+  const s = String(sig || '').trim().toUpperCase();
+  if (!s || s === '—' || s === '') return '';
+  let cls = 'idx-sig-neu', txt = s;
+  if (s === 'R4' || s.includes('R4')) { cls = 'idx-sig-r4'; txt = label ? label+':R4' : 'R4'; }
+  else if (s === 'R2' || s.includes('R2')) { cls = 'idx-sig-r2'; txt = label ? label+':R2' : 'R2'; }
+  else if (s === 'S4' || s.includes('S4')) { cls = 'idx-sig-s4'; txt = label ? label+':S4' : 'S4'; }
+  else if (s === 'WATCH' || s === 'BUY') { cls = 'idx-sig-wtch'; txt = label ? label+':'+s : s; }
+  else return '';
+  return `<span class="idx-sig-badge ${cls}">${txt}</span>`;
+}
+
+// 52W position bar for an index
+function _idx52wBar(ltp, high52, low52) {
+  if (!ltp || !high52 || !low52 || high52 <= low52) return '';
+  const pct = Math.round((ltp - low52) / (high52 - low52) * 100);
+  const pctClamped = Math.max(0, Math.min(100, pct));
+  const belowLow = pct < 0;
+
+  // Colour: green = deep value/low, yellow = mid, pink = near high, red = below 52W low
+  let col, label, labelCol;
+  if (belowLow) {
+    col      = '#fb7185'; // red — making new lows, below 52W low
+    label    = '⬇ New Low';
+    labelCol = '#fb7185';
+  } else if (pctClamped <= 20) {
+    col      = '#00e5a0'; // bright green — deep value
+    label    = `${pct}%`;
+    labelCol = '#00e5a0';
+  } else if (pctClamped <= 40) {
+    col      = '#34d399'; // green — good entry
+    label    = `${pct}%`;
+    labelCol = '#34d399';
+  } else if (pctClamped <= 65) {
+    col      = '#fbbf24'; // yellow — mid range
+    label    = `${pct}%`;
+    labelCol = '#fbbf24';
+  } else if (pctClamped <= 80) {
+    col      = '#38bdf8'; // blue — upper range
+    label    = `${pct}%`;
+    labelCol = '#38bdf8';
+  } else {
+    col      = '#f472b6'; // pink — near 52W high
+    label    = `${pct}%`;
+    labelCol = '#f472b6';
+  }
+
+  return `<div style="display:flex;align-items:center;gap:6px">
+    <span class="idx-52w-bar"><span class="idx-52w-fill" style="width:${pctClamped}%;background:${col}"></span></span>
+    <span style="font-size:0.68rem;font-weight:800;color:${labelCol};min-width:60px">${label}</span>
+  </div>`;
+}
+
+// Pivot chips row: D-PP · M-R4 · M-R2 · M-S4
+function _idxPivotChips(d) {
+  if (!d) return '';
+  const fmt = v => v != null ? `₹${Number(v).toLocaleString('en-IN',{maximumFractionDigits:1})}` : null;
+  const chips = [];
+  if (d.dPP)  chips.push(`<span class="idx-pivot-chip" style="background:rgba(129,140,248,0.1);color:#818cf8" title="Daily Pivot Point">PP:${fmt(d.dPP)}</span>`);
+  if (d.mR4)  chips.push(`<span class="idx-pivot-chip" style="background:rgba(249,115,22,0.1);color:#f97316" title="Monthly R4">M-R4:${fmt(d.mR4)}</span>`);
+  if (d.mR2)  chips.push(`<span class="idx-pivot-chip" style="background:rgba(167,139,250,0.1);color:#a78bfa" title="Monthly R2">M-R2:${fmt(d.mR2)}</span>`);
+  if (d.mS4)  chips.push(`<span class="idx-pivot-chip" style="background:rgba(52,211,153,0.1);color:#34d399" title="Monthly S4">M-S4:${fmt(d.mS4)}</span>`);
+  return chips.join(' ');
+}
+
+// Sector index badge for Trade/Invest rows
+function _sectorIdxBadge(sector) {
+  const idxSym = SECTOR_INDEX_MAP[sector] || SECTOR_INDEX_MAP[sector && sector.split(' ')[0]] || null;
+  if (!idxSym) return '';
+  const d = indexCache[idxSym];
+  if (!d) return '';
+  const mon = String(d.sigMon || '').trim().toUpperCase();
+  const dr4 = String(d.sigDR4 || '').trim().toUpperCase();
+  let zone = '', cls = '';
+  if (mon === 'S4')       { zone = 'S4';   cls = 'idx-sig-s4'; }
+  else if (dr4 === 'R4' || mon === 'R4') { zone = 'R4'; cls = 'idx-sig-r4'; }
+  else if (mon === 'R2' || mon === 'WATCH') { zone = 'R2'; cls = 'idx-sig-wtch'; }
+  else return '';
+  const shortName = idxSym.replace('NIFTY_','').replace('INDIA_','');
+  return `<span class="sector-idx-badge ${cls}" title="${idxSym}: Monthly=${d.sigMon || '—'} Daily=${d.sigDR4 || '—'}">${shortName}:${zone}</span>`;
+}
+
+// ── Active zone filter state ──────────────────────────────────────────────
+let _idxZoneFilter = 'ALL'; // 'ALL' | 'R4' | 'S4'
+
+function setIdxZoneFilter(zone) {
+  _idxZoneFilter = zone;
+  // Update pill active states
+  document.querySelectorAll('.idx-zone-pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.zone === zone);
+  });
+  // Re-render only the table content without full render
+  const mc = document.getElementById('mainContent');
+  if (!mc) return;
+  // Inline re-filter: hide/show rows in trade/invest table
+  mc.querySelectorAll('tr.ti-row').forEach(tr => {
+    if (zone === 'ALL') { tr.style.display = ''; return; }
+    const sector = tr.querySelector('.ti-sector');
+    if (!sector) { tr.style.display = ''; return; }
+    const idxSym = SECTOR_INDEX_MAP[sector.textContent.trim()] || null;
+    const d = idxSym ? indexCache[idxSym] : null;
+    if (!d) { tr.style.display = zone === 'ALL' ? '' : 'none'; return; }
+    const mon = String(d.sigMon || '').trim().toUpperCase();
+    const dr4 = String(d.sigDR4 || '').trim().toUpperCase();
+    const inR4 = dr4 === 'R4' || mon === 'R4';
+    const inS4 = mon === 'S4';
+    if (zone === 'R4') tr.style.display = inR4 ? '' : 'none';
+    else if (zone === 'S4') tr.style.display = inS4 ? '' : 'none';
+  });
+}
+
+// ── Desktop index panel HTML ──────────────────────────────────────────────
+function buildIndexPanel() {
+  if (!Object.keys(indexCache).length) return '';
+
+  // Define display order and short labels
+  const INDEX_ORDER = [
+    { sym:'NIFTY_50',      label:'NIFTY 50' },
+    { sym:'NIFTY_IT',      label:'IT' },
+    { sym:'NIFTY_BANK',    label:'BANK' },
+    { sym:'NIFTY_FMCG',    label:'FMCG' },
+    { sym:'NIFTY_PHARMA',  label:'PHARMA' },
+    { sym:'NIFTY_AUTO',    label:'AUTO' },
+    { sym:'NIFTY_METAL',   label:'METAL' },
+    { sym:'NIFTY_ENERGY',  label:'ENERGY' },
+    { sym:'NIFTY_REALTY',  label:'REALTY' },
+    { sym:'NIFTY_INFRA',   label:'INFRA' },
+    { sym:'NIFTY_FMCG',   label:'FMCG' },
+    { sym:'NIFTY_NEXT_50', label:'NEXT50' },
+    { sym:'INDIA_VIX',     label:'VIX' },
+  ];
+
+  // De-duplicate
+  const seen = new Set();
+  const rows = INDEX_ORDER.filter(e => {
+    if (seen.has(e.sym) || !indexCache[e.sym]) return false;
+    seen.add(e.sym); return true;
+  });
+
+  // Add any remaining indices not in ORDER
+  Object.keys(indexCache).forEach(sym => {
+    if (!seen.has(sym)) {
+      rows.push({ sym, label: sym.replace('NIFTY_','').replace('INDIA_','') });
+      seen.add(sym);
+    }
+  });
+
+  const tableRows = rows.map(({ sym, label }) => {
+    const d = indexCache[sym];
+    if (!d || d.ltp == null) return '';
+    const pct  = d.pct != null ? d.pct : null;
+    const pctCls = pct == null ? '' : pct > 0.05 ? 'val-green' : pct < -0.05 ? 'val-red' : 'val-yellow';
+    const pctTxt = pct != null ? `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%` : '—';
+    const ltpFmt = d.ltp.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+    // Signal badges: 15m · 1H · Daily · Monthly
+    const badges = [
+      _idxSigBadge(d.sig15m, '15m'),
+      _idxSigBadge(d.sigHR4, '1H'),
+      _idxSigBadge(d.sigDR4, 'D'),
+      _idxSigBadge(d.sigMon, 'M'),
+    ].filter(Boolean).join(' ');
+
+    // 52W position
+    const bar52 = _idx52wBar(d.ltp, d.high52, d.low52);
+
+    // Pivot chips
+    const pivots = _idxPivotChips(d);
+
+    // Row highlight based on monthly zone
+    const mon = String(d.sigMon || '').trim().toUpperCase();
+    const rowStyle = mon === 'S4' ? 'border-left:3px solid rgba(52,211,153,0.6)'
+                   : mon === 'R4' ? 'border-left:3px solid rgba(249,115,22,0.6)'
+                   : mon === 'R2' || mon === 'WATCH' ? 'border-left:3px solid rgba(167,139,250,0.5)'
+                   : 'border-left:3px solid transparent';
+
+    return `<tr style="${rowStyle}">
+      <td class="idx-name">${label}</td>
+      <td style="font-size:0.88rem;font-weight:800">₹${ltpFmt}</td>
+      <td class="${pctCls}" style="font-size:0.78rem;font-weight:800">${pctTxt}</td>
+      <td>${bar52}</td>
+      <td>${badges || '<span style="color:var(--muted);font-size:0.6rem">—</span>'}</td>
+      <td style="font-size:0.65rem">${pivots}</td>
+    </tr>`;
+  }).filter(Boolean).join('');
+
+  if (!tableRows) return '';
+
+  // Collapsed state
+  let collapsed = false;
+  try { collapsed = localStorage.getItem('nse-idx-panel-collapsed') === '1'; } catch(e) {}
+
+  return `<div class="idx-panel" id="idxPanel">
+    <div class="idx-panel-hd">
+      <span class="idx-panel-title">📊 Sector Index Overview</span>
+      <button onclick="toggleIdxPanel()" id="idxPanelBtn" style="font-family:Oxanium,sans-serif;font-size:0.55rem;font-weight:700;background:transparent;border:1px solid var(--border2);color:var(--muted);padding:2px 8px;border-radius:4px;cursor:pointer">${collapsed ? '▼ Show' : '▲ Hide'}</button>
+    </div>
+    <div id="idxPanelBody" style="${collapsed ? 'display:none' : ''}">
+      <table class="idx-table">
+        <thead><tr>
+          <th>Index</th><th>LTP</th><th>Chg%</th>
+          <th>52W Pos</th><th>Signals</th><th>Pivots (D-PP · M-R4 · M-R2 · M-S4)</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function toggleIdxPanel() {
+  const body = document.getElementById('idxPanelBody');
+  const btn  = document.getElementById('idxPanelBtn');
+  if (!body) return;
+  const hidden = body.style.display === 'none';
+  body.style.display = hidden ? '' : 'none';
+  if (btn) btn.textContent = hidden ? '▲ Hide' : '▼ Show';
+  try { localStorage.setItem('nse-idx-panel-collapsed', hidden ? '0' : '1'); } catch(e) {}
+}
+
+// ── Mobile index panel: horizontal scroll strip ───────────────────────────
+function buildMobIndexPanel() {
+  if (!Object.keys(indexCache).length) return '';
+  const ORDER = ['NIFTY_50','NIFTY_IT','NIFTY_BANK','NIFTY_FMCG','NIFTY_PHARMA',
+                 'NIFTY_AUTO','NIFTY_METAL','NIFTY_ENERGY','NIFTY_REALTY',
+                 'NIFTY_INFRA','NIFTY_NEXT_50','INDIA_VIX'];
+  const cards = ORDER.filter(sym => indexCache[sym] && indexCache[sym].ltp != null).map(sym => {
+    const d = indexCache[sym];
+    const label = sym.replace('NIFTY_','').replace('INDIA_','');
+    const pct = d.pct;
+    const pctCls = pct == null ? '' : pct > 0.05 ? '#00e5a0' : pct < -0.05 ? '#fb7185' : '#fbbf24';
+    const pctTxt = pct != null ? `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%` : '—';
+    const mon = String(d.sigMon || '').trim().toUpperCase();
+    const dr4 = String(d.sigDR4 || '').trim().toUpperCase();
+    const border = mon === 'S4' ? 'rgba(52,211,153,0.6)' : dr4 === 'R4' ? 'rgba(249,115,22,0.6)' : 'var(--border2)';
+    const badges = [
+      _idxSigBadge(d.sig15m,'15m'), _idxSigBadge(d.sigHR4,'1H'),
+      _idxSigBadge(d.sigDR4,'D'),   _idxSigBadge(d.sigMon,'M')
+    ].filter(Boolean).join(' ');
+    const ltpFmt = d.ltp.toLocaleString('en-IN',{maximumFractionDigits:1});
+    const pct52 = (d.ltp && d.high52 && d.low52 && d.high52 > d.low52)
+      ? Math.round((d.ltp - d.low52) / (d.high52 - d.low52) * 100) : null;
+    return `<div class="mob-idx-card" style="border-color:${border}">
+      <div class="mob-idx-name">${label}</div>
+      <div class="mob-idx-price">₹${ltpFmt}</div>
+      <div style="font-size:0.58rem;font-weight:800;color:${pctCls || 'var(--muted)'}">${pctTxt}</div>
+      <div style="margin-top:3px;display:flex;gap:3px;flex-wrap:wrap">${badges}</div>
+      ${pct52 != null ? `<div style="margin-top:4px">
+        <div class="idx-52w-bar" style="width:100%;height:4px"><div class="idx-52w-fill" style="width:${Math.max(0,pct52)}%;background:${pct52<0?'#fb7185':pct52<=20?'#00e5a0':pct52<=40?'#34d399':pct52<=65?'#fbbf24':pct52<=80?'#38bdf8':'#f472b6'}"></div></div>
+        <div style="font-size:0.5rem;font-weight:800;margin-top:1px;color:${pct52<0?'#fb7185':pct52<=20?'#00e5a0':pct52<=40?'#34d399':pct52<=65?'#fbbf24':pct52<=80?'#38bdf8':'#f472b6'}">${pct52<0?'⬇ New Low':pct52+'% of 52W'}</div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+  return `<div style="padding:8px 0 0">
+    <div style="font-family:Oxanium,sans-serif;font-size:0.6rem;font-weight:800;letter-spacing:0.08em;color:var(--text);padding:0 8px;margin-bottom:5px">📊 SECTOR INDICES</div>
+    <div class="mob-idx-strip">${cards}</div>
+  </div>`;
+}
+
+// ── Zone filter bar for Trade/Invest tabs ─────────────────────────────────
+function buildIdxZoneFilter() {
+  const pills = [
+    { zone:'ALL', label:'All Sectors',    cls:'pill-all' },
+    { zone:'R4',  label:'⚡ Sector R4',   cls:'pill-r4'  },
+    { zone:'S4',  label:'🌱 Sector S4',   cls:'pill-s4'  },
+  ].map(p => `<button class="idx-zone-pill ${p.cls}${_idxZoneFilter === p.zone ? ' active' : ''}"
+    data-zone="${p.zone}" onclick="setIdxZoneFilter('${p.zone}')">${p.label}</button>`).join('');
+  return `<div class="idx-zone-filter">${pills}</div>`;
+}
+// Populated from json.indexData (INDICES sheet) on every loadSheet()
+// Key = index symbol (uppercase), value = parsed object with all columns
+let indexCache = {};  // 'NIFTY_IT' → { ltp, pct, monthly, dR4, hR4, r15m, dPP, mR4, mR2, mS4, high52, low52, wHigh, wLow, wClose, open, high, low, prvClose, ... }
+
+// Column positions in INDICES sheet (0-indexed from raw row array)
+// Based on your sheet: A=0(INDEX) B=1(%Ch) C=2(LTP) D=3(D-R2) E=4(MONTHLY)
+// F=5(D-R4) G=6(H-R4) H=7(15M-R4) I=8(DAY'S) J=9(OHL) K=10(PRV CLOSE)
+// L=11(52W BO) M=12(CHART) N=13(M-High) O=14(M-Low) P=15(M-Close)
+// Q=16(D-R4val) R=17(D-R2val) S=18(D-PP) T=19(W-HIGH) U=20(W-LOW)
+// V=21(W-CLOSE) W=22(4H-R4) X=23(4H-R2) Y=24(OPEN) Z=25(HIGH)
+// AA=26(LOW) AB=27(PRV CLOSE) AC=28(52W HIGH) AD=29(15 R4)
+// AE=30(PRV Y CLS) AF=31(PRV Y HG) AG=32(PRV Y LW)
+// AH=33(M-R4) AI=34(M-R2) AJ=35(M-S4)
+const IDX_COL = {
+  name:     0,  pct:    1,  ltp:    2,
+  sigDR2:   3,  sigMon: 4,  sigDR4: 5,  sigHR4: 6, sig15m: 7,
+  days:     8,  ohl:    9,  prvCls: 10, bo52w:  11,
+  mHigh:   13,  mLow:  14,  mClose: 15,
+  dR4val:  16,  dR2val: 17, dPP:   18,
+  wHigh:   19,  wLow:  20,  wClose: 21,
+  h4R4:    22,  h4R2:  23,
+  open:    24,  high:  25,  low:    26, prvClose: 27,
+  high52:  28,  r15:   29,
+  prvYCls: 30,  prvYHg: 31, prvYLw: 32,
+  mR4:     33,  mR2:   34,  mS4:   35
+};
+
+// Sector → INDICES sheet symbol mapping
+const SECTOR_INDEX_MAP = {
+  'Information Technology':      'NIFTY_IT',
+  'Financial Services':          'NIFTY_BANK',
+  'Fast Moving Consumer Goods':  'NIFTY_FMCG',
+  'Healthcare':                  'NIFTY_PHARMA',
+  'Energy':                      'NIFTY_ENERGY',
+  'Industrials':                 'NIFTY_INFRA',
+  'Consumer Discretionary':      'NIFTY_AUTO',
+  'Commodities':                 'NIFTY_METAL',
+  'Utilities':                   'NIFTY_ENERGY',
+  'Services':                    'NIFTY_50',
+  'Telecommunication':           'NIFTY_50',
+  'Other':                       'NIFTY_50'
+};
+
+// Parse raw indexData rows into indexCache
+function _buildIndexCache(rows) {
+  if (!rows || !rows.length) return;
+  const header = rows[0];
+  // Skip header row (row 0), parse data rows
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const name = String(row[IDX_COL.name] || '').trim().toUpperCase();
+    if (!name) continue;
+    const pv = v => { const n = parseFloat(String(v||'').replace(/,/g,'')); return isNaN(n) ? null : n; };
+    const sv = v => String(v || '').trim();
+    indexCache[name] = {
+      ltp:      pv(row[IDX_COL.ltp]),
+      pct:      pv(row[IDX_COL.pct]),
+      sigMon:   sv(row[IDX_COL.sigMon]),   // Monthly zone: S4/R4/WATCH/—
+      sigDR4:   sv(row[IDX_COL.sigDR4]),   // Daily R4: R4/—
+      sigDR2:   sv(row[IDX_COL.sigDR2]),   // Daily R2
+      sigHR4:   sv(row[IDX_COL.sigHR4]),   // Hourly R4
+      sig15m:   sv(row[IDX_COL.sig15m]),   // 15-min R4
+      prvCls:   sv(row[IDX_COL.prvCls]),   // ABOVE/BELOW prev close
+      bo52w:    sv(row[IDX_COL.bo52w]),    // 52W breakout
+      mHigh:    pv(row[IDX_COL.mHigh]),
+      mLow:     pv(row[IDX_COL.mLow]),
+      mClose:   pv(row[IDX_COL.mClose]),
+      dPP:      pv(row[IDX_COL.dPP]),      // Daily Pivot Point
+      dR4val:   pv(row[IDX_COL.dR4val]),
+      dR2val:   pv(row[IDX_COL.dR2val]),
+      wHigh:    pv(row[IDX_COL.wHigh]),
+      wLow:     pv(row[IDX_COL.wLow]),
+      open:     pv(row[IDX_COL.open]),
+      high:     pv(row[IDX_COL.high]),
+      low:      pv(row[IDX_COL.low]),
+      prvClose: pv(row[IDX_COL.prvClose]),
+      high52:   pv(row[IDX_COL.high52]),
+      low52:    pv(row[IDX_COL.prvYLw]),   // 52W Low = Previous Year Low (best available proxy)
+      r15:      pv(row[IDX_COL.r15]),
+      mR4:      pv(row[IDX_COL.mR4]),      // Monthly R4 value
+      mR2:      pv(row[IDX_COL.mR2]),      // Monthly R2 value
+      mS4:      pv(row[IDX_COL.mS4]),      // Monthly S4 value
+    };
+  }
+  console.log('[IndexCache] Built', Object.keys(indexCache).length, 'index entries');
+}
 
 // ── Corp actions helpers ──────────────────────────────────────────────────
 function _caStatus(msg) {
@@ -2755,9 +3194,21 @@ async function loadSheet() {
       if (Object.keys(_prevConsolSnap).length > 0) {
         if (!_prevConsolSnap[k] || !_prevConsolSnap[k].has(tf.label)) {
           r4NewEntries.add(k + '|' + tf.label);
+          _sigTsRecord(k, tf.label); // ← record first-seen timestamp
         }
+      } else {
+        // First load — record timestamps for all existing signals without marking NEW
+        _sigTsRecord(k, tf.label);
       }
     })));
+    // Clear timestamps for signals that have now EXITED the console combinations
+    Object.keys(snapBefore).forEach(sym => {
+      const prevLabels = snapBefore[sym] || new Set();
+      const currLabels = _symTFSeen[sym] || new Set();
+      prevLabels.forEach(label => {
+        if (!currLabels.has(label)) _sigTsClear(sym, label); // signal exited → clear
+      });
+    });
     _prevConsolSnap = snapBefore;
     if (r4NewEntries.size > 0) console.log('[R4] New entries:', [...r4NewEntries].join(', '));
     // Load sector/industry/earnings from FUNDAMENTALS sheet (bundled in response)
@@ -2774,6 +3225,7 @@ async function loadSheet() {
       console.log('[Sector] Loaded', Object.keys(json.sectorData).length, 'sector entries from sheet');
     }
     if (json.indexData && json.indexData.length) {
+      _buildIndexCache(json.indexData);
       applyTickerRows(json.indexData);
     }
     // ── Purge stale symbols no longer present in the sheet ─────────────────
@@ -3541,19 +3993,31 @@ function buildConsolidated(term) {
   // ── TREND STRUCTURE PANEL ──────────────────────────────────────────────────
   // Collects every unique symbol across all masterTFs, maps which key
   // trend levels it appears in, then groups by structure.
+  // Index symbols — excluded from Trend Structure (they appear in Index Overview panel below)
+  // Yahoo Finance doesn't serve NSE index OHLC so trend arrows would always be blank
+  const _TS_INDEX_EXCLUDE = new Set([
+    'NIFTY_50','NIFTY50','NIFTY_IT','NIFTY_FMCG','NIFTY_BANK','NIFTY_PHARMA',
+    'NIFTY_AUTO','NIFTY_METAL','NIFTY_ENERGY','NIFTY_REALTY','NIFTY_INFRA',
+    'NIFTY_MEDIA','NIFTY_NEXT_50','NIFTY_MIDCAP_50','NIFTY_MIDCAP50',
+    'INDIA_VIX','INDVIX','NIFTY_PSU_BANK','NIFTY_HEALTHCARE',
+    'GOLDBEES','NIFTYBEES','BANKBEES','JUNIORBEES','LIQUIDBEES',
+    'ICICIB22','MOM100','SETFNN50'
+  ]);
+
   const _trendSymMap = {};
   masterTFs.forEach(tf => {
     tf.cols.forEach(col => col.forEach(sym => {
       if (!sym) return;
       const k = sym.toUpperCase();
+      if (_TS_INDEX_EXCLUDE.has(k)) return; // skip indices
       if (!_trendSymMap[k]) _trendSymMap[k] = { lt:false, st:false, mt:false, s4:false, ltR2:false, stR2:false };
-      if (tf.label === 'Monthly R4') _trendSymMap[k].lt   = true;  // Long-term bullish
-      if (tf.label === 'Monthly R2') _trendSymMap[k].ltR2 = true;  // LT resistance zone
-      if (tf.label === 'Daily R4')   _trendSymMap[k].st   = true;  // Short-term bullish
-      if (tf.label === 'Daily R2')   _trendSymMap[k].stR2 = true;  // ST resistance zone
-      if (tf.label === '1 Hour R4')  _trendSymMap[k].mt   = true;  // Minor-term bullish
-      if (tf.label === '15 Min R4')  _trendSymMap[k].min  = true;  // Entry momentum
-      if (tf.label === 'Monthly S4') _trendSymMap[k].s4   = true;  // Accumulation zone
+      if (tf.label === 'Monthly R4') _trendSymMap[k].lt   = true;
+      if (tf.label === 'Monthly R2') _trendSymMap[k].ltR2 = true;
+      if (tf.label === 'Daily R4')   _trendSymMap[k].st   = true;
+      if (tf.label === 'Daily R2')   _trendSymMap[k].stR2 = true;
+      if (tf.label === '1 Hour R4')  _trendSymMap[k].mt   = true;
+      if (tf.label === '15 Min R4')  _trendSymMap[k].min  = true;
+      if (tf.label === 'Monthly S4') _trendSymMap[k].s4   = true;
     }));
   });
 
@@ -3562,27 +4026,27 @@ function buildConsolidated(term) {
     tf.cols.forEach(col => col.forEach(sym => {
       if (!sym) return;
       const k = sym.toUpperCase();
+      if (_TS_INDEX_EXCLUDE.has(k)) return; // skip indices
       if (!_trendSymMap[k]) _trendSymMap[k] = { lt:false, st:false, mt:false, s4:false };
     }));
   });
 
   // Group stocks by trend alignment
   const _tGroups = {
-    full:   [], // LT + ST + MT all confirmed
-    ltSt:   [], // LT + ST only
-    ltMt:   [], // LT + MT only
-    ltOnly: [], // LT only
-    stMt:   [], // ST + MT (no LT yet)
-    stOnly: [], // ST only
-    mtOnly: [], // MT only (minor bounce)
-    s4:     [], // Accumulation — no R4 yet
-    none:   [], // In some other zone
+    full:   [], ltSt:   [], ltMt:   [], ltOnly: [],
+    stMt:   [], stOnly: [], mtOnly: [], s4:     [], none: [],
   };
 
   Object.entries(_trendSymMap).forEach(([sym, t]) => {
     const fd2 = fundCache[sym] || {};
-    const pct52 = (fd2.price != null && fd2.high52 != null && fd2.low52 != null && fd2.high52 > fd2.low52)
-      ? Math.round((fd2.price - fd2.low52) / (fd2.high52 - fd2.low52) * 100) : null;
+    // For index symbols that slipped through, use indexCache for 52W data
+    const idxD = indexCache[sym];
+    let pct52 = null;
+    if (fd2.price != null && fd2.high52 != null && fd2.low52 != null && fd2.high52 > fd2.low52) {
+      pct52 = Math.round((fd2.price - fd2.low52) / (fd2.high52 - fd2.low52) * 100);
+    } else if (idxD && idxD.ltp != null && idxD.high52 != null && idxD.low52 != null && idxD.high52 > idxD.low52) {
+      pct52 = Math.round((idxD.ltp - idxD.low52) / (idxD.high52 - idxD.low52) * 100);
+    }
     const entry = { sym, pct52, lt:t.lt, st:t.st, mt:t.mt, s4:t.s4, ltR2:t.ltR2, stR2:t.stR2, min:t.min };
     if      (t.lt && t.st && t.mt)  _tGroups.full.push(entry);
     else if (t.lt && t.st)          _tGroups.ltSt.push(entry);
@@ -3617,9 +4081,11 @@ function buildConsolidated(term) {
            }"></div></div>` : '';
     const w52txt = e.pct52 != null
       ? `<div style="font-size:0.48rem;color:var(--muted);text-align:center;margin-top:1px">${e.pct52}%</div>` : '';
-    return `<div class="ts-pill" title="${e.sym} · LT:${e.lt?'R4':e.s4?'S4':'—'} ST:${e.st?'R4':'—'} MT:${e.mt?'R4':'—'} · 52W:${e.pct52!=null?e.pct52+'%':'—'}">
+    return `<div class="ts-pill" title="${e.sym} · LT:${e.lt?'R4':e.s4?'S4':'—'} ST:${e.st?'R4':'—'} MT:${e.mt?'R4':'—'} · 52W:${e.pct52!=null?e.pct52+'%':'—'}"
+      onclick="openSymbolModal('${e.sym}')">
       <div style="font-family:Oxanium,sans-serif;font-size:0.65rem;font-weight:800;color:var(--text);white-space:nowrap">${e.sym}</div>
       <div style="display:flex;gap:2px;justify-content:center;font-size:0.65rem;margin-top:1px">${ltDot}${stDot}${mtDot}</div>
+      ${trendCacheLoaded ? `<div class="ts-pill-trend">${_trendArrows(e.sym)}</div>` : ''}
       ${w52bar}${w52txt}
     </div>`;
   }
@@ -3678,7 +4144,7 @@ function buildConsolidated(term) {
       </div>
     </div>`;
 
-  return signalBar + trendStructPanel + `
+  return signalBar + `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
       <button class="col-collapse-all" onclick="toggleCollapseAll()">
         ${collapsedCats.size > 0 ? '⊞ Expand All' : '⊟ Collapse All'}
@@ -3694,6 +4160,10 @@ function buildConsolidated(term) {
         </thead>
         <tbody>${bodyRows}</tbody>
       </table>
+    </div>
+    <div style="margin-top:18px">
+      ${buildIndexPanel()}
+      ${trendStructPanel}
     </div>`;
 }
 
@@ -4363,11 +4833,7 @@ document.addEventListener('keydown', e => {
     showKbToast(`<strong>${e.key === 'ArrowLeft' ? '←' : '→'}</strong> — ${masterTFs[activeMasterTF].label}`);
     return;
   }
-  if (e.key === '/' || e.key === 'f') {
-    e.preventDefault();
-    document.getElementById('gSearch').focus();
-    showKbToast('<strong>/</strong> — Search');
-  }
+  // '/' and 'f/F' are handled by the unified keydown listener below
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -4830,7 +5296,33 @@ function mobBuildTrade() {
         </div>
         <span style="font-family:Oxanium,sans-serif;font-size:0.65rem;font-weight:800;color:${barColor}">BCS ${bcs.total}</span>
         <span style="font-family:Oxanium,sans-serif;font-size:0.55rem;font-weight:800;background:${bcs.labelBg};color:${bcs.labelColor};border-radius:3px;padding:1px 5px">${bcs.label}</span>
+        ${(()=>{ const t=computeTBCS(r.sym,bcs.total); if(!t)return''; const dc=t.delta>0?'#00e5a0':t.delta<0?'#fb7185':'#8a9ab0'; return `<span style="font-family:Oxanium,sans-serif;font-size:0.6rem;font-weight:800;color:${dc};background:${t.delta>0?'rgba(0,229,160,0.1)':t.delta<0?'rgba(251,113,133,0.1)':'rgba(138,154,176,0.08)'};border-radius:3px;padding:1px 5px" title="T-BCS: trend-adjusted BCS">T${t.tbcs}</span>`; })()}
       </div>
+      ${(()=>{
+        const eq = _entryQuality(bcs.pct52);
+        const atr = _autoATR(r.sym, r.consolLabels, false);
+        const atrLabel = _autoATRLabel(r.sym, r.consolLabels, false);
+        const stop = (atr && fd.price) ? `₹${(fd.price - 1.5*atr).toLocaleString('en-IN',{maximumFractionDigits:1})}` : null;
+        const tgt  = (atr && fd.price) ? `₹${(fd.price + 2.5*atr).toLocaleString('en-IN',{maximumFractionDigits:1})}` : null;
+        return `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:3px 6px;background:var(--surface2);border-radius:4px;flex-wrap:wrap">
+          <span class="ti-setup-val ${eq.cls}" style="font-size:0.58rem">${eq.label}</span>
+          ${atr ? `<span style="color:var(--muted);font-size:0.52rem" title="${_allATRTooltip(r.sym)}">ATR(${atrLabel}) ₹${atr.toFixed(1)}</span>
+          <span class="entry-risky" style="font-size:0.52rem">Stop ${stop}</span>
+          <span class="entry-great" style="font-size:0.52rem">Tgt ${tgt}</span>` : ''}
+        </div>`;
+      })()}
+      ${(()=>{
+        const ts = _sigTsBest(r.sym, r.consolLabels);
+        if (!ts) return '';
+        const dayNum = ts.daysAgo + 1;
+        const col = dayNum===1?'#00e5a0':dayNum===2?'#fbbf24':'#fb7185';
+        const lbl = dayNum===1?'Fresh':dayNum===2?'1d old':`${ts.daysAgo}d old`;
+        return `<div style="display:flex;align-items:center;gap:5px;margin-top:4px;padding:2px 6px;background:${dayNum===1?'rgba(0,229,160,0.06)':dayNum===2?'rgba(251,191,36,0.06)':'rgba(251,113,133,0.06)'};border-radius:4px;border-left:2px solid ${col}">
+          <span style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:800;color:${col}">⏱ Day ${dayNum}</span>
+          <span style="font-family:Oxanium,sans-serif;font-size:0.52rem;color:var(--muted)">${lbl}</span>
+          <span style="font-family:Oxanium,sans-serif;font-size:0.5rem;color:var(--muted);margin-left:auto">${ts.time}</span>
+        </div>`;
+      })()}
     </div>`;
   }).join('');
 
@@ -4924,12 +5416,25 @@ function mobBuildInvest() {
           <div style="width:${bcs.total}%;height:100%;background:${barColor};border-radius:2px"></div>
         </div>
         <span style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;color:${barColor}">BCS ${bcs.total}</span>
+        ${(()=>{ const t=computeTBCS(r.sym,bcs.total); if(!t)return''; const dc=t.delta>0?'#00e5a0':t.delta<0?'#fb7185':'#8a9ab0'; return `<span style="font-family:Oxanium,sans-serif;font-size:0.6rem;font-weight:800;color:${dc};background:${t.delta>0?'rgba(0,229,160,0.1)':t.delta<0?'rgba(251,113,133,0.1)':'rgba(138,154,176,0.08)'};border-radius:3px;padding:1px 5px" title="T-BCS: trend-adjusted BCS">T${t.tbcs}</span>`; })()}
         ${flags.join('')}
       </div>
       <div style="font-size:0.58rem;color:var(--muted);margin-top:4px">
         Size: <span style="color:var(--text);font-weight:700">${_posSizeLabel(bcs.total, null, sector, fd)}</span>
         <span style="opacity:0.5"> · educational only</span>
       </div>
+      ${(()=>{
+        const atr = _autoATR(r.sym, null, true);
+        const atrLabel = _autoATRLabel(r.sym, null, true);
+        if (!atr || !fd.price) return '';
+        const stop = `₹${(fd.price - 1.5*atr).toLocaleString('en-IN',{maximumFractionDigits:1})}`;
+        const tgt  = `₹${(fd.price + 2.5*atr).toLocaleString('en-IN',{maximumFractionDigits:1})}`;
+        return `<div style="display:flex;gap:6px;margin-top:4px;padding:3px 6px;background:var(--surface2);border-radius:4px;flex-wrap:wrap">
+          <span style="color:var(--muted);font-size:0.52rem" title="${_allATRTooltip(r.sym)}">ATR(${atrLabel}) ₹${atr.toFixed(1)}</span>
+          <span class="entry-risky" style="font-size:0.52rem">Stop ${stop}</span>
+          <span class="entry-great" style="font-size:0.52rem">Tgt ${tgt}</span>
+        </div>`;
+      })()}
     </div>`;
   }).join('');
 
@@ -4993,6 +5498,31 @@ function mobBuildInvest() {
         <div style="font-size:0.58rem;color:var(--muted);font-family:Oxanium,sans-serif">Total</div>
       </div>
     </div>
+    ${(()=>{
+      const picks = _topInvestPicks(rows);
+      if (!picks.length) return '';
+      const rankIcons = ['🥇','🥈','🥉'];
+      const cards3 = picks.map((r, idx) => {
+        const eq = _entryQuality(r.bcs.pct52);
+        const t  = computeTBCS(r.sym, r.bcs.total);
+        return `<div class="top-pick-card-mob" onclick="openSymbolModal('${r.sym}')">
+          <div style="font-family:Oxanium,sans-serif;font-size:0.5rem;font-weight:800;color:#00e5a0;letter-spacing:0.1em">${rankIcons[idx]} TOP PICK</div>
+          <div style="font-family:Oxanium,sans-serif;font-size:0.88rem;font-weight:800;color:var(--text);margin:2px 0">${r.sym}</div>
+          <div style="font-size:0.58rem;font-weight:800;color:#00e5a0">BCS ${r.bcs.total}${t?` · T${t.tbcs}`:''}</div>
+          <div class="${eq.cls}" style="font-size:0.55rem;font-weight:700;margin-top:2px">${eq.label}</div>
+          ${trendCacheLoaded ? `<div style="margin-top:3px;font-size:0.6rem">${_trendArrows(r.sym)}</div>` : ''}
+          <div class="entry-quality-bar" style="margin-top:4px">
+            <div class="entry-quality-fill" style="width:100%"></div>
+            <div class="entry-quality-cursor" style="left:${r.bcs.pct52||0}%"></div>
+          </div>
+          <div style="font-size:0.45rem;color:var(--muted);margin-top:1px">${r.bcs.pct52}% of 52W</div>
+        </div>`;
+      }).join('');
+      return `<div style="margin-bottom:8px">
+        <div style="font-family:Oxanium,sans-serif;font-size:0.6rem;font-weight:800;color:#00e5a0;letter-spacing:0.08em;padding:0 2px;margin-bottom:6px">⭐ TOP ACCUMULATION PICKS</div>
+        <div class="top-picks-bar-mob">${cards3}</div>
+      </div>`;
+    })()}
     ${mobSectorPanel}
     ${positionNote}
     ${cards}
@@ -5811,6 +6341,37 @@ const _patchedLoad = async function() {
   // Re-fetch trend structure 3s after every refresh cycle
   setTimeout(function() { if (typeof fetchTrendCache === 'function') fetchTrendCache(); }, 3000);
 };
+
+// ── Trend-only auto-refresh every 30 minutes during market hours ──────────
+// Runs independently of the 5-min price refresh so 1H trend data stays
+// current after each hourly candle close without reloading all prices.
+(function() {
+  const TREND_REFRESH_MS = 30 * 60 * 1000; // 30 minutes
+
+  function _isMarketHours() {
+    const now = new Date();
+    const ist = new Date(now.getTime() + (5 * 60 + 30) * 60000);
+    const mins = ist.getUTCHours() * 60 + ist.getUTCMinutes();
+    return mins >= 540 && mins <= 930; // 9:00am – 3:30pm IST
+  }
+
+  function _trendAutoRefreshTick() {
+    if (!_isMarketHours()) return; // silent skip outside hours
+    if (typeof fetchTrendCache !== 'function') return;
+    fetchTrendCache();
+    // Show a subtle toast so user knows trend was refreshed
+    if (typeof showKbToast === 'function') {
+      showKbToast('🔄 Trend data refreshed');
+    }
+  }
+
+  // First tick: 30 minutes after page load
+  setTimeout(function() {
+    _trendAutoRefreshTick();
+    // Then repeat every 30 minutes
+    setInterval(_trendAutoRefreshTick, TREND_REFRESH_MS);
+  }, TREND_REFRESH_MS);
+})();
 
 // Override the refresh button
 document.getElementById('refreshBtn').onclick = () => _patchedLoad();
@@ -6996,6 +7557,205 @@ function computeAllBCS() {
 }
 
 // ── BCS Score pill HTML ────────────────────────────────────────────────────
+
+// ── Entry quality label from 52W position ────────────────────────────────
+function _entryQuality(pct52) {
+  if (pct52 == null) return { cls:'', label:'—', tip:'' };
+  if (pct52 <= 20)  return { cls:'entry-great', label:'🟢 Deep Value', tip:'Bottom 20% of 52W range — best entry zone' };
+  if (pct52 <= 40)  return { cls:'entry-good',  label:'✅ Good Entry', tip:'Lower half — solid accumulation zone' };
+  if (pct52 <= 65)  return { cls:'entry-ok',    label:'⚡ Fair',       tip:'Mid range — acceptable entry' };
+  if (pct52 <= 80)  return { cls:'entry-ok',    label:'⚠ Stretched',  tip:'Upper range — wait for pullback' };
+  return              { cls:'entry-risky',  label:'🔴 Near High',  tip:'Top 20% of 52W — high risk entry' };
+}
+
+// ── ATR from trendCache for a symbol ─────────────────────────────────────
+function _getATR(sym, tf) {
+  tf = tf || '1D';
+  const d = trendCache[(sym||'').toUpperCase() + '_' + tf];
+  return (d && d.atr && d.atr > 0) ? d.atr : null;
+}
+
+// ── Auto-select ATR timeframe based on Console signal label ───────────────
+// H-15m: R4 → intraday → use 1H ATR
+// All other Console signals → swing → use 1D ATR
+// Invest tab (positional) → use 1M ATR
+function _autoATR(sym, consolLabels, forInvest) {
+  if (forInvest) {
+    // Positional: prefer 1M, fall back to 1D
+    return _getATR(sym, '1M') || _getATR(sym, '1D');
+  }
+  // Check if the ONLY signal is H-15m: R4 (pure intraday)
+  const isIntradayOnly = consolLabels && consolLabels.length === 1
+    && (consolLabels[0] === 'H-15m: R4' || consolLabels[0] === 'H-15M: R4');
+  if (isIntradayOnly) {
+    return _getATR(sym, '1H') || _getATR(sym, '1D');
+  }
+  // Default: swing trade → 1D ATR
+  return _getATR(sym, '1D') || _getATR(sym, '1H');
+}
+
+// ── ATR label for auto-selected timeframe ────────────────────────────────
+function _autoATRLabel(sym, consolLabels, forInvest) {
+  if (forInvest) {
+    return _getATR(sym, '1M') ? '1M' : '1D';
+  }
+  const isIntradayOnly = consolLabels && consolLabels.length === 1
+    && (consolLabels[0] === 'H-15m: R4' || consolLabels[0] === 'H-15M: R4');
+  if (isIntradayOnly) return _getATR(sym, '1H') ? '1H' : '1D';
+  return _getATR(sym, '1D') ? '1D' : '1H';
+}
+
+// ── All 3 ATR values as tooltip string ───────────────────────────────────
+function _allATRTooltip(sym) {
+  const h = _getATR(sym, '1H');
+  const d = _getATR(sym, '1D');
+  const m = _getATR(sym, '1M');
+  return [
+    '1H ATR: ' + (h ? '₹' + h.toFixed(1) + ' (intraday stop)' : '—'),
+    '1D ATR: ' + (d ? '₹' + d.toFixed(1) + ' (swing stop)'    : '—'),
+    '1M ATR: ' + (m ? '₹' + m.toFixed(1) + ' (positional stop)': '—'),
+    '',
+    'Hover to see all 3. Auto-selected shown inline.'
+  ].join('\n');
+}
+
+// ── Trade setup row HTML — auto-selects ATR based on signal type ──────────
+function _tradeSetupRow(sym, pct52, price, consolLabels) {
+  const eq       = _entryQuality(pct52);
+  const atr      = _autoATR(sym, consolLabels, false);
+  const atrLabel = _autoATRLabel(sym, consolLabels, false);
+  const atrFmt   = atr ? `₹${atr.toFixed(1)}` : '—';
+  const stop     = (atr && price) ? (price - 1.5 * atr) : null;
+  const stopFmt  = stop ? `₹${stop.toLocaleString('en-IN',{maximumFractionDigits:1})}` : '—';
+  const tgt      = (atr && price) ? (price + 2.5 * atr) : null;
+  const tgtFmt   = tgt  ? `₹${tgt.toLocaleString('en-IN',{maximumFractionDigits:1})}` : '—';
+  const rrRatio  = atr  ? (2.5 / 1.5).toFixed(2) : null;
+  const tooltip  = _allATRTooltip(sym);
+  return `<div class="ti-setup-row">
+    <div class="ti-setup-item" title="${eq.tip}">
+      <span class="ti-setup-lbl">ENTRY</span>
+      <span class="ti-setup-val ${eq.cls}">${eq.label}</span>
+    </div>
+    ${atr ? `<div class="ti-setup-divider"></div>
+    <div class="ti-setup-item" title="${tooltip}" style="cursor:help">
+      <span class="ti-setup-lbl">ATR <span style="font-size:0.48rem;opacity:0.7">${atrLabel}</span></span>
+      <span class="ti-setup-val" style="color:var(--muted)">${atrFmt}</span>
+    </div>
+    <div class="ti-setup-divider"></div>
+    <div class="ti-setup-item" title="Stop loss = Price − 1.5×${atrLabel} ATR&#10;Exit immediately if broken">
+      <span class="ti-setup-lbl">STOP</span>
+      <span class="ti-setup-val entry-risky">${stopFmt}</span>
+    </div>
+    <div class="ti-setup-divider"></div>
+    <div class="ti-setup-item" title="Target = Price + 2.5×${atrLabel} ATR&#10;Risk:Reward = 1:${rrRatio}">
+      <span class="ti-setup-lbl">TGT</span>
+      <span class="ti-setup-val entry-great">${tgtFmt}</span>
+    </div>` : ''}
+  </div>`;
+}
+
+// ── Invest positional setup row (uses 1M ATR) ─────────────────────────────
+function _investSetupRow(sym, price) {
+  const atr      = _autoATR(sym, null, true);
+  const atrLabel = _autoATRLabel(sym, null, true);
+  if (!atr || !price) return '';
+  const stop    = price - 1.5 * atr;
+  const tgt     = price + 2.5 * atr;
+  const tooltip = _allATRTooltip(sym);
+  return `<div class="ti-setup-row" style="margin-top:5px">
+    <div class="ti-setup-item" title="${tooltip}" style="cursor:help">
+      <span class="ti-setup-lbl">ATR <span style="font-size:0.48rem;opacity:0.7">${atrLabel}</span></span>
+      <span class="ti-setup-val" style="color:var(--muted)">₹${atr.toFixed(1)}</span>
+    </div>
+    <div class="ti-setup-divider"></div>
+    <div class="ti-setup-item" title="Positional stop = Price − 1.5×${atrLabel} ATR">
+      <span class="ti-setup-lbl">STOP</span>
+      <span class="ti-setup-val entry-risky">₹${stop.toLocaleString('en-IN',{maximumFractionDigits:1})}</span>
+    </div>
+    <div class="ti-setup-divider"></div>
+    <div class="ti-setup-item" title="Positional target = Price + 2.5×${atrLabel} ATR">
+      <span class="ti-setup-lbl">TGT</span>
+      <span class="ti-setup-val entry-great">₹${tgt.toLocaleString('en-IN',{maximumFractionDigits:1})}</span>
+    </div>
+  </div>`;
+}
+
+// ── Top 3 Invest picks ────────────────────────────────────────────────────
+function _topInvestPicks(rows) {
+  return rows
+    .filter(r => r.bcs.pct52 != null && !r.isAboveR4)
+    .map(r => {
+      const t = computeTBCS(r.sym, r.bcs.total);
+      const tAdj = t ? t.delta : 0;
+      const score = r.bcs.total + (50 - (r.bcs.pct52 || 50)) * 0.5 + tAdj;
+      return { ...r, _score: score, _tAdj: tAdj };
+    })
+    .sort((a, b) => b._score - a._score)
+    .slice(0, 3);
+}
+
+// ── Trend direction arrows (M·D·H) from trendCache ────────────────────────
+function _trendArrows(sym) {
+  if (!trendCacheLoaded) return '';
+  const ic = { UP:'↑', DOWN:'↓', CHOPPY:'~', INSUFFICIENT:'?' };
+  const cl = { UP:'#00e5a0', DOWN:'#fb7185', CHOPPY:'#fbbf24', INSUFFICIENT:'#4a5a70' };
+  return ['1M','1D','1H'].map(tf => {
+    const d = trendCache[sym.toUpperCase() + '_' + tf];
+    if (!d) return `<span style="color:#2a3550;font-size:0.5rem">${tf[1]||tf}?</span>`;
+    const c = cl[d.trend] || '#4a5a70';
+    const i = d.strength === 'STRONG'
+      ? (ic[d.trend]||'?')+(ic[d.trend]||'?')
+      : (ic[d.trend]||'?');
+    return `<span style="color:${c};font-size:0.55rem;font-weight:800" title="${tf}: ${d.trend} ${d.strength||''}">${i}</span>`;
+  }).join('<span style="color:#2a3550;font-size:0.45rem">·</span>');
+}
+
+// ── T-BCS: BCS + trend alignment adjustment (−10 to +15, capped 0–100) ────
+function computeTBCS(sym, bcsTotal) {
+  if (!trendCacheLoaded) return null;
+  const a = trendAlignCache[sym.toUpperCase()];
+  if (!a) return null;
+  const adj = { ALL_UP:15, MTF_UP:10, DIVERGED:0, MTF_DOWN:-5, ALL_DOWN:-10 };
+  const delta = adj[a] != null ? adj[a] : 0;
+  return { tbcs: Math.max(0, Math.min(100, bcsTotal + delta)), delta, alignment: a };
+}
+
+// ── Trend age label: reads updatedAt from trendCache for a symbol ──────────
+function _trendAgeLabel(sym) {
+  const k = sym.toUpperCase();
+  const entry = trendCache[k + '_1D'] || trendCache[k + '_1H'] || trendCache[k + '_1M'];
+  if (!entry || !entry.updatedAt) return null;
+  try {
+    const d = new Date(entry.updatedAt);
+    const diffMs = Date.now() - d.getTime();
+    const diffH  = diffMs / 3600000;
+    if (diffH > 24) return { label: Math.floor(diffH / 24) + 'd ago', stale: true };
+    if (diffH > 1)  return { label: Math.floor(diffH) + 'h ago', stale: false };
+    return { label: Math.floor(diffMs / 60000) + 'm ago', stale: false };
+  } catch(e) { return null; }
+}
+
+// ── T-BCS pill HTML: shows BCS + T-BCS side by side ──────────────────────
+function tbcsPill(bcs, sym) {
+  const base = bcsPill(bcs, false);
+  if (!trendCacheLoaded) return base;
+  const t = computeTBCS(sym, bcs.total);
+  if (!t) return base;
+  const delta    = t.delta;
+  const adjCls   = delta > 0 ? 'pos' : delta < 0 ? 'neg' : 'neu';
+  const adjLabel = delta > 0 ? '+' + delta : String(delta);
+  const tbcsColor = t.tbcs >= 70 ? '#f97316' : t.tbcs >= 50 ? '#fbbf24' : t.tbcs >= 30 ? '#38bdf8' : '#4b5563';
+  const age = _trendAgeLabel(sym);
+  const staleWarn = (age && age.stale)
+    ? `<span class="ts-stale" title="Trend data is ${age.label} old — may be stale">⚠ ${age.label}</span>` : '';
+  return `${base}<div class="tbcs-block" title="T-BCS = BCS ${bcs.total} ${delta >= 0 ? '+' : ''}${delta} trend (${t.alignment})">
+    <span class="tbcs-label">T-BCS</span>
+    <span class="tbcs-score" style="color:${tbcsColor}">${t.tbcs}</span>
+    <span class="tbcs-adj ${adjCls}">${adjLabel}</span>
+    ${staleWarn}
+  </div>`;
+}
+
 function bcsPill(bcs, compact) {
   if (!bcs) return '';
   const s = bcs.total;
@@ -7154,6 +7914,7 @@ function buildTradeTab() {
       allTFCount: r4Confluence[sym] || 0
     }))
     .filter(r => activeSector === 'ALL' || (fundSector[r.sym] || '') === activeSector)
+    .filter(r => !searchTerm || r.sym.toUpperCase().includes(searchTerm.toUpperCase()))
     .sort((a, b) => {
       if (b.consolLabels.length !== a.consolLabels.length) return b.consolLabels.length - a.consolLabels.length;
       if (b.maxStrength !== a.maxStrength) return b.maxStrength - a.maxStrength;
@@ -7195,19 +7956,34 @@ function buildTradeTab() {
     const newBadge = r.consolLabels.some(l => r4NewEntries.has(r.sym + '|' + l))
       ? '<span class="ti-new-badge">NEW</span>' : '';
 
+    const alignCls = (() => {
+      if (!trendCacheLoaded) return '';
+      const a = trendAlignCache[r.sym] || '';
+      if (a === 'ALL_UP')   return ' talign-up';
+      if (a === 'MTF_UP')   return ' talign-mtfu';
+      if (a === 'ALL_DOWN') return ' talign-dn';
+      if (a === 'MTF_DOWN') return ' talign-mtfd';
+      return '';
+    })();
+
     return `
-      <tr class="ti-row${r.consolLabels.length >= 3 ? ' tri-combo' : r.consolLabels.length >= 2 ? ' dual-combo' : ''}"
+      <tr class="ti-row${r.consolLabels.length >= 3 ? ' tri-combo' : r.consolLabels.length >= 2 ? ' dual-combo' : ''}${alignCls}"
           onclick="openSymbolModal('${r.sym}')">
         <td class="ti-sym-cell">
           <div style="display:flex;align-items:center;gap:5px">
             <span class="ti-sym">${r.sym}${earnBadge}</span>${newBadge}${multibadge}
           </div>
-          <span class="ti-sector">${sector}</span>
+          <span class="ti-sector">${sector}${Object.keys(indexCache).length ? _sectorIdxBadge(sector) : ''}</span>
         </td>
-        <td class="ti-price">${priceStr}<br>${pctStr}${trendCacheLoaded ? (_tsBadgeRow(r.sym) || '') : ''}</td>
+        <td class="ti-price">
+          ${priceStr}<br>${pctStr}
+          ${trendCacheLoaded ? (_tsBadgeRow(r.sym) || '') : ''}
+          ${_tradeSetupRow(r.sym, r.bcs.pct52, fd.price, r.consolLabels)}
+          ${_sigTsRow(r.sym, r.consolLabels)}
+        </td>
         <td>${w52}</td>
         <td class="ti-combos-cell">${consolPills}</td>
-        <td>${bcsPill(r.bcs, false)}</td>
+        <td>${tbcsPill(r.bcs, r.sym)}</td>
       </tr>`;
   }).join('');
 
@@ -7233,7 +8009,7 @@ function buildTradeTab() {
     <div class="ti-header-row">
       <div>
         <h2 class="ti-title" style="color:#f97316">⚡ TRADE SIGNALS</h2>
-        <p class="ti-sub">Sourced from your 4 Console combinations · Sorted by convergence strength then BCS</p>
+        <p class="ti-sub">Sourced from your 4 Console combinations · Sorted by convergence strength then BCS${trendCacheLoaded ? ` · <span style="color:var(--muted);font-size:0.7rem">Trends: ${(()=>{const e=Object.values(trendCache)[0];if(!e||!e.updatedAt)return'—';const d=new Date(e.updatedAt);return d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});})()}</span>` : ''}</p>
       </div>
       <div class="ti-stat-chips">
         <span class="ti-stat" style="color:#a78bfa;background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.3)">🔥 ${multiComboCount} Multi-combo</span>
@@ -7242,12 +8018,12 @@ function buildTradeTab() {
     </div>
 
     <div class="ti-combo-bar">${comboSummary}</div>
-
+    ${buildIdxZoneFilter()}
     <div class="ti-table-wrap">
       <table class="ti-table">
         <thead><tr>
           <th>Symbol</th><th>Price / Chg%</th><th>52W Position</th>
-          <th>Console Combination(s)</th><th>BCS Score</th>
+          <th>Console Combination(s)</th><th>BCS · T-BCS</th>
         </tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
@@ -7293,7 +8069,10 @@ function buildInvestTab() {
   // Show all S4 stocks, and also R4/R2 stocks if they previously appeared in S4
   // This means we always read Monthly S4 first, then optionally note R4 promotions
   const HM_EX = new Set(['NIFTY50','NIFTY_50','GOLDBEES','NIFTYBEES','BANKBEES',
-    'JUNIORBEES','LIQUIDBEES','ICICIB22','MOM100','SETFNN50','INDIA_VIX','INDVIX']);
+    'JUNIORBEES','LIQUIDBEES','ICICIB22','MOM100','SETFNN50','INDIA_VIX','INDVIX',
+    'NIFTY_IT','NIFTY_FMCG','NIFTY_BANK','NIFTY_PHARMA','NIFTY_AUTO',
+    'NIFTY_METAL','NIFTY_ENERGY','NIFTY_REALTY','NIFTY_INFRA','NIFTY_MEDIA',
+    'NIFTY_NEXT_50','NIFTY_MIDCAP_50','NIFTY_MIDCAP50']);
 
   if (!s4Stocks.size) {
     return `<div class="trade-invest-panel"><div style="padding:60px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif">
@@ -7306,6 +8085,7 @@ function buildInvestTab() {
   const rows = [...s4Stocks]
     .filter(sym => !HM_EX.has(sym))
     .filter(sym => activeSector === 'ALL' || (fundSector[sym] || '') === activeSector)
+    .filter(sym => !searchTerm || sym.toUpperCase().includes(searchTerm.toUpperCase()))
     .map(sym => {
       const bcs       = allScores[sym] || computeBCS(sym);
       const isAboveR4 = aboveR4Stocks.has(sym);
@@ -7345,7 +8125,18 @@ function buildInvestTab() {
     const earnStr  = earnDays != null && earnDays >= 0
       ? `<span class="ti-earn-soon" title="${earnDate}">📅 ${earnDays}d</span>` : '—';
     const w52 = r.bcs.pct52 != null
-      ? `<div class="ti-52w-bar"><div class="ti-52w-fill" style="width:${r.bcs.pct52}%"></div></div><span style="font-size:10px;color:var(--muted)">${r.bcs.pct52}%</span>`
+      ? `<div>
+          <div class="entry-quality-bar" title="Entry zone: ${r.bcs.pct52}% of 52W range">
+            <div class="entry-quality-fill" style="width:100%"></div>
+            <div class="entry-quality-cursor" style="left:${r.bcs.pct52}%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:2px">
+            <span style="font-size:9px;color:#00e5a0">Low</span>
+            <span class="${_entryQuality(r.bcs.pct52).cls}" style="font-size:9px;font-weight:800">${r.bcs.pct52}%</span>
+            <span style="font-size:9px;color:#fb7185">High</span>
+          </div>
+          <div style="font-size:9px;color:var(--muted);margin-top:1px">${_entryQuality(r.bcs.pct52).label}</div>
+        </div>`
       : '—';
     const earnBadge = getEarnBadge(r.sym);
 
@@ -7362,13 +8153,23 @@ function buildInvestTab() {
     else if (r.bcs.pct52 != null && r.bcs.pct52 >= 80) riskFlags.push('<span class="ti-risk-warn">Near 52W high</span>');
     if (earnDays != null && earnDays >= 0 && earnDays <= 5) riskFlags.push('<span class="ti-risk-warn">Earn Risk</span>');
 
+    const alignClsI = (() => {
+      if (!trendCacheLoaded) return '';
+      const a = trendAlignCache[r.sym] || '';
+      if (a === 'ALL_UP')   return ' talign-up';
+      if (a === 'MTF_UP')   return ' talign-mtfu';
+      if (a === 'ALL_DOWN') return ' talign-dn';
+      if (a === 'MTF_DOWN') return ' talign-mtfd';
+      return '';
+    })();
+
     return `
-      <tr class="ti-row s4-highlight" onclick="openSymbolModal('${r.sym}')">
+      <tr class="ti-row s4-highlight${alignClsI}" onclick="openSymbolModal('${r.sym}')">
         <td class="ti-sym-cell">
           <div style="display:flex;align-items:center;gap:5px">
             <span class="ti-sym">${r.sym}${earnBadge}</span>${statusBadge}
           </div>
-          <span class="ti-sector">${sector}</span>
+          <span class="ti-sector">${sector}${Object.keys(indexCache).length ? _sectorIdxBadge(sector) : ''}</span>
         </td>
         <td class="ti-price">${priceStr}<br>${pctStr}${trendCacheLoaded ? (_tsBadgeRow(r.sym) || '') : ''}</td>
         <td>${w52}</td>
@@ -7383,7 +8184,8 @@ function buildInvestTab() {
           </div>
         </td>
         <td>
-          ${bcsPill(r.bcs, false)}
+          ${tbcsPill(r.bcs, r.sym)}
+          ${_investSetupRow(r.sym, fd.price)}
           <div style="margin-top:5px;padding:4px 6px;background:var(--surface2);border-radius:5px;font-size:0.6rem;color:var(--muted)">
             <span style="color:var(--text);font-family:Oxanium,sans-serif;font-weight:700">${_posSizeLabel(r.bcs.total, null, fd.sector || fundSector[r.sym] || '', fd)}</span>
             <span style="opacity:0.6"> suggested size</span>
@@ -7463,14 +8265,45 @@ function buildInvestTab() {
     <div class="ti-header-row">
       <div>
         <h2 class="ti-title" style="color:#34d399">🌱 INVEST SIGNALS</h2>
-        <p class="ti-sub">Deeply corrected stocks in Monthly S4 accumulation zone · Sorted by BCS quality</p>
+        <p class="ti-sub">Deeply corrected stocks in Monthly S4 accumulation zone · Sorted by BCS quality${trendCacheLoaded ? ` · <span style="color:var(--muted);font-size:0.7rem">Trends: ${(()=>{const e=Object.values(trendCache)[0];if(!e||!e.updatedAt)return'—';const d=new Date(e.updatedAt);return d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});})()}</span>` : ''}</p>
       </div>
       <div class="ti-stat-chips">
         <span class="ti-stat" style="color:#34d399;background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.3)">📌 ${pureS4Count} in S4</span>
-
         <span class="ti-stat" style="color:var(--muted);background:var(--surface2);border-color:var(--border2)">${rows.length} total</span>
       </div>
     </div>
+
+    ${(()=>{
+      const picks = _topInvestPicks(rows);
+      if (!picks.length) return '';
+      const cards = picks.map((r, idx) => {
+        const fd2 = _getLiveFd(r.sym);
+        const eq = _entryQuality(r.bcs.pct52);
+        const rankLabels = ['🥇 BEST PICK','🥈 2ND PICK','🥉 3RD PICK'];
+        const tArrows = _trendArrows(r.sym);
+        const t = computeTBCS(r.sym, r.bcs.total);
+        return `<div class="top-pick-card" onclick="openSymbolModal('${r.sym}')">
+          <div class="top-pick-rank">${rankLabels[idx]||''}</div>
+          <div class="top-pick-sym">${r.sym}</div>
+          <div style="font-size:0.6rem;color:var(--muted);margin-bottom:4px">${fd2.sector || fundSector[r.sym] || ''}</div>
+          <div class="top-pick-meta">
+            <span class="top-pick-stat" style="background:rgba(0,229,160,0.12);color:#00e5a0">BCS ${r.bcs.total}${t?` · T${t.tbcs}`:''}</span>
+            <span class="top-pick-stat ${eq.cls}" style="background:rgba(255,255,255,0.06)">${eq.label}</span>
+          </div>
+          ${trendCacheLoaded ? `<div style="margin-top:4px;font-size:0.58rem">${tArrows}</div>` : ''}
+          <div class="entry-quality-bar" title="${r.bcs.pct52}% of 52W range">
+            <div class="entry-quality-fill" style="width:100%"></div>
+            <div class="entry-quality-cursor" style="left:${r.bcs.pct52}%"></div>
+          </div>
+          <div style="font-size:0.5rem;color:var(--muted)">${r.bcs.pct52}% of 52W range</div>
+        </div>`;
+      }).join('');
+      return `<div style="margin-bottom:14px">
+        <div style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;letter-spacing:0.1em;color:#00e5a0;margin-bottom:8px;text-transform:uppercase">⭐ Top Accumulation Picks</div>
+        <div class="top-picks-bar">${cards}</div>
+      </div>`;
+    })()}
+
     ${sectorPanel}
     <div style="margin:0 0 12px;padding:10px 14px;background:rgba(52,211,153,0.05);border:1px solid rgba(52,211,153,0.18);border-radius:8px;font-size:11px;color:var(--muted);line-height:1.7">
       <strong style="color:#34d399">Monthly S4</strong> = long-term accumulation zone — deeply corrected stocks building a base.
@@ -7479,7 +8312,7 @@ function buildInvestTab() {
     <div class="ti-table-wrap">
       <table class="ti-table">
         <thead><tr>
-          <th>Symbol</th><th>Price / Chg%</th><th>52W Position</th><th>Fundamentals</th><th>BCS + Risk</th>
+          <th>Symbol</th><th>Price / Chg%</th><th>52W Position</th><th>Fundamentals</th><th>BCS · T-BCS + Risk</th>
         </tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
@@ -7737,23 +8570,59 @@ try {
 function setSignalsSubTab(tab) {
   activeSignalsSubTab = tab;
   try { localStorage.setItem('nse-signals-subtab', tab); } catch(e) {}
-  // Re-render the signals tab content only — no full render() needed
-  const mc = document.getElementById('mainContent');
+
+  const mc    = document.getElementById('mainContent');
   if (!mc) return;
-  mc.innerHTML = buildSignalsWrapper(searchTerm.toLowerCase());
-  // Re-attach consolidated click handler if on timeframe
-  if (tab === 'timeframe') {
-    if (_conClickHandler) mc.removeEventListener('click', _conClickHandler);
-    _conClickHandler = e => {
-      const cell = e.target.closest('.clickable-cell');
-      if (!cell) return;
-      const key = cell.dataset.storeKey;
-      const entry = window._conClickStore && window._conClickStore[key];
-      if (entry) openModal(entry.tfLabel, entry.catLabel, entry.stocks);
-    };
-    mc.addEventListener('click', _conClickHandler);
+  const isMob = document.body.classList.contains('mobile-view') ||
+                document.documentElement.classList.contains('mobile-view');
+
+  if (isMob) {
+    // ── MOBILE PATH ──────────────────────────────────────────────────────────
+    // Strip any stray inline desktop sub-tab bar first
+    const stray = mc.querySelector('.signals-subtab-bar');
+    if (stray) stray.remove();
+
+    // Update the external #mobileSubTabBar pill highlights
+    const subBarEl = document.getElementById('mobileSubTabBar');
+    if (subBarEl) subBarEl.innerHTML = buildSignalsSubTabBarInner();
+
+    // Render only the content — no inline sub-tab bar
+    if (tab === 'trade') {
+      mc.innerHTML = mobBuildTrade();
+    } else if (tab === 'invest') {
+      mc.innerHTML = mobBuildInvest();
+    } else {
+      mc.innerHTML = mobBuildTrendPanel() + (typeof _origMobBuildConsol === 'function'
+        ? _origMobBuildConsol(searchTerm.toLowerCase())
+        : '');
+      // Re-attach consolidated click handler
+      if (_conClickHandler) mc.removeEventListener('click', _conClickHandler);
+      _conClickHandler = e => {
+        const pill = e.target.closest('.mob-consol-pill');
+        if (!pill) return;
+        const entry = window._mobConStore && window._mobConStore[pill.dataset.key];
+        if (entry) openModal(entry.tf, entry.cat, entry.stocks);
+      };
+      mc.addEventListener('click', _conClickHandler);
+    }
+  } else {
+    // ── DESKTOP PATH ─────────────────────────────────────────────────────────
+    mc.innerHTML = buildSignalsWrapper(searchTerm.toLowerCase());
+    // Re-attach consolidated click handler if on timeframe
+    if (tab === 'timeframe') {
+      if (_conClickHandler) mc.removeEventListener('click', _conClickHandler);
+      _conClickHandler = e => {
+        const cell = e.target.closest('.clickable-cell');
+        if (!cell) return;
+        const key = cell.dataset.storeKey;
+        const entry = window._conClickStore && window._conClickStore[key];
+        if (entry) openModal(entry.tfLabel, entry.catLabel, entry.stocks);
+      };
+      mc.addEventListener('click', _conClickHandler);
+    }
   }
-  // Inject trend badges into DOM after tab content is rendered
+
+  // Inject trend badges after content is in DOM — both paths
   if ((tab === 'trade' || tab === 'invest') && typeof _tsInjectIntoDom === 'function') {
     requestAnimationFrame(_tsInjectIntoDom);
   }
@@ -7956,7 +8825,43 @@ updateTabBadges = function() {
 
 // ── Keyboard shortcuts ─────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  // Never intercept when typing in an input
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    // Only handle Escape inside inputs — to exit search
+    if (e.key === 'Escape') {
+      const gs = document.getElementById('gSearch');
+      const ms = document.getElementById('mobileSearchInput');
+      if (document.activeElement === gs) {
+        gs.blur();
+        if (!gs.value) { searchTerm = ''; if (masterTFs.length || consolidatedTFs.length) render(); }
+        showKbToast('Esc — search closed');
+      }
+      if (document.activeElement === ms) {
+        closeMobileSearch();
+        searchTerm = ''; render();
+      }
+    }
+    return;
+  }
+  // '/' — open search
+  if (e.key === '/') {
+    e.preventDefault();
+    const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
+    if (isMob) { openMobileSearch(); }
+    else { const gs = document.getElementById('gSearch'); if (gs) { gs.focus(); gs.select(); } }
+    return;
+  }
+  // Escape — also works outside inputs (e.g. close overlay)
+  if (e.key === 'Escape') {
+    const ov = document.getElementById('mobileSearchOverlay');
+    if (ov && ov.classList.contains('open')) { closeMobileSearch(); searchTerm = ''; render(); }
+    return;
+  }
+  if (e.key === 'f' || e.key === 'F') {
+    activeTab = 'consolidated'; activeSignalsSubTab = 'timeframe';
+    try { localStorage.setItem('nse-signals-subtab', 'timeframe'); } catch(e2) {}
+    render(); showKbToast('<strong>F</strong> — Signals: Timeframe');
+  }
   if (e.key === 't' || e.key === 'T') {
     activeTab = 'consolidated'; activeSignalsSubTab = 'trade';
     try { localStorage.setItem('nse-signals-subtab', 'trade'); } catch(e2) {}
@@ -7968,6 +8873,37 @@ document.addEventListener('keydown', e => {
     render(); showKbToast('<strong>I</strong> — Signals: Invest');
   }
 });
+
+// ── Orientation toggle ──────────────────────────────────────────────────────
+let _orientLocked = false;
+function toggleOrientation() {
+  const btn = document.getElementById('orientBtn');
+  const icon = document.getElementById('orientIcon');
+  if (!screen.orientation || !screen.orientation.lock) {
+    // No API support — just show a toast hint
+    showKbToast('Rotate device for landscape view');
+    return;
+  }
+  if (_orientLocked) {
+    screen.orientation.unlock();
+    _orientLocked = false;
+    // Restore portrait icon
+    if (icon) icon.innerHTML = '<rect x="4" y="2" width="16" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill="currentColor" stroke="none"/>';
+    if (btn) btn.style.color = '';
+    showKbToast('🔄 Orientation unlocked');
+  } else {
+    const target = (window.innerWidth > window.innerHeight) ? 'portrait' : 'landscape';
+    screen.orientation.lock(target).then(function() {
+      _orientLocked = true;
+      // Switch to landscape icon
+      if (icon) icon.innerHTML = '<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="18" cy="12" r="1" fill="currentColor" stroke="none"/>';
+      if (btn) btn.style.color = 'var(--accent)';
+      showKbToast('🔒 ' + target.charAt(0).toUpperCase() + target.slice(1) + ' locked');
+    }).catch(function() {
+      showKbToast('Rotate device manually');
+    });
+  }
+}
 
 // ── Mobile: swipe between Signals sub-tabs ────────────────────────────────
 const _sigSubOrder = ['timeframe', 'trade', 'invest'];
@@ -8006,34 +8942,43 @@ mobBuildConsol = function(term) {
   if (subBarEl) {
     subBarEl.innerHTML = buildSignalsSubTabBarInner();
     subBarEl.style.display = 'block';
-    // Shrink mainContent by subtab bar height so nothing is hidden under it
     const mc = document.getElementById('mainContent');
     if (mc) {
       const barH = subBarEl.offsetHeight || 42;
       mc.style.marginTop = '0';
-      // Adjust height: subtract subtab bar height from the base calc
       mc.style.height = 'calc(100vh - 48px - 58px - ' + barH + 'px - 62px)';
     }
   }
-  // Return only the content — no subBar prepended
+
+  // Swipe hint — show once, never again after dismissal
+  let swipeHint = '';
+  try {
+    if (!localStorage.getItem('nse-swipe-hint-seen')) {
+      swipeHint = '<div class="swipe-hint" id="swipeHint">← swipe between Timeframe · Trade · Invest →</div>';
+      setTimeout(function() {
+        try { localStorage.setItem('nse-swipe-hint-seen', '1'); } catch(e) {}
+      }, 3500);
+    }
+  } catch(e) {}
+
   if (activeSignalsSubTab === 'trade') {
-    return mobBuildTrade();
+    return swipeHint + mobBuildTrade();
   } else if (activeSignalsSubTab === 'invest') {
-    return mobBuildInvest();
+    return swipeHint + mobBuildInvest();
   } else {
-    // Timeframe sub-tab: prepend mobile trend structure panel
-    return mobBuildTrendPanel() + _origMobBuildConsol(term);
+    return swipeHint + mobBuildTrendPanel() + buildMobIndexPanel() + _origMobBuildConsol(term);
   }
 };
 
 // ── Mobile Trend Structure Panel ──────────────────────────────────────────
 function mobBuildTrendPanel() {
-  // Build sym → TF presence map from masterTFs
+  // Build sym → TF presence map from masterTFs — indices excluded
   const tmap = {};
   masterTFs.forEach(tf => {
     tf.cols.forEach(col => col.forEach(sym => {
       if (!sym) return;
       const k = sym.toUpperCase();
+      if (_TS_INDEX_EXCLUDE.has(k)) return; // skip indices — shown in Index Overview below
       if (!tmap[k]) tmap[k] = { lt:false, st:false, mt:false, s4:false, ltR2:false, stR2:false, min:false };
       if (tf.label === 'Monthly R4') tmap[k].lt   = true;
       if (tf.label === 'Monthly R2') tmap[k].ltR2 = true;
@@ -8049,8 +8994,13 @@ function mobBuildTrendPanel() {
   const groups = { full:[], ltSt:[], ltMt:[], ltOnly:[], stMt:[], stOnly:[], mtOnly:[], s4:[] };
   Object.entries(tmap).forEach(([sym, t]) => {
     const fd2 = fundCache[sym] || {};
-    const pct52 = (fd2.price != null && fd2.high52 != null && fd2.low52 != null && fd2.high52 > fd2.low52)
-      ? Math.round((fd2.price - fd2.low52) / (fd2.high52 - fd2.low52) * 100) : null;
+    const idxD = indexCache[sym];
+    let pct52 = null;
+    if (fd2.price != null && fd2.high52 != null && fd2.low52 != null && fd2.high52 > fd2.low52) {
+      pct52 = Math.round((fd2.price - fd2.low52) / (fd2.high52 - fd2.low52) * 100);
+    } else if (idxD && idxD.ltp != null && idxD.high52 != null && idxD.low52 != null && idxD.high52 > idxD.low52) {
+      pct52 = Math.round((idxD.ltp - idxD.low52) / (idxD.high52 - idxD.low52) * 100);
+    }
     const e = { sym, pct52, ...t };
     if      (t.lt && t.st && t.mt)   groups.full.push(e);
     else if (t.lt && t.st)           groups.ltSt.push(e);
@@ -8082,6 +9032,7 @@ function mobBuildTrendPanel() {
       onclick="openSymbolModal('${e.sym}')">
       <div style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;color:var(--text)">${e.sym}</div>
       <div style="display:flex;gap:2px;justify-content:center;font-size:0.6rem;margin-top:1px">${ltDot}${stDot}${mtDot}</div>
+      ${trendCacheLoaded ? `<div style="display:flex;gap:1px;justify-content:center;margin-top:2px">${_trendArrows(e.sym)}</div>` : ''}
       ${bar}
       ${e.pct52!=null?`<div style="font-size:0.45rem;color:var(--muted);text-align:center;margin-top:1px">${e.pct52}%</div>`:''}
     </div>`;
@@ -8805,6 +9756,9 @@ html.mobile-view .sstab-btn {
   width: 100%; flex-shrink: 0;
   background: var(--surface);
   border-bottom: 2px solid var(--border2);
+  position: sticky;
+  top: 106px; /* 48px header + 58px index strip */
+  z-index: 250;
 }
 .signals-content { min-height:0; }
 .sig-sub-count {
@@ -8820,7 +9774,178 @@ html.mobile-view .sstab-btn {
 body.light-theme .signals-subtab-bar { background:#f0f2f5; border-color:#c8d0e0; }
 body.light-theme .sig-sub-count { background:rgba(0,0,0,0.06); }
 
-/* ── TREND STRUCTURE PANEL ─────────────────────────────────── */
+/* ── TRADE SETUP ROW ─────────────────────────────────────────────────────── */
+.ti-setup-row {
+  display:flex; align-items:center; gap:8px; margin-top:5px;
+  padding:4px 8px; border-radius:5px;
+  background:var(--surface2); border:1px solid var(--border);
+  flex-wrap:wrap; font-family:'Oxanium',sans-serif;
+}
+.ti-setup-item {
+  display:flex; align-items:center; gap:4px;
+  font-size:0.58rem; white-space:nowrap;
+}
+.ti-setup-lbl {
+  color:var(--muted); font-weight:600; letter-spacing:0.04em;
+}
+.ti-setup-val {
+  font-weight:800; font-size:0.62rem;
+}
+.ti-setup-divider {
+  width:1px; height:12px; background:var(--border2); flex-shrink:0;
+}
+/* Entry quality pill */
+.entry-great { color:#00e5a0; }
+.entry-good  { color:#34d399; }
+.entry-ok    { color:#fbbf24; }
+.entry-risky { color:#fb7185; }
+
+/* ── TOP PICKS BANNER (Invest tab) ─────────────────────────────────────────── */
+.top-picks-bar {
+  display:flex; gap:10px; margin:0 0 14px; flex-wrap:wrap;
+}
+.top-pick-card {
+  flex:1; min-width:160px; max-width:260px;
+  background:linear-gradient(135deg,rgba(0,229,160,0.06) 0%,rgba(52,211,153,0.03) 100%);
+  border:1px solid rgba(0,229,160,0.3); border-radius:10px;
+  padding:10px 12px; cursor:pointer; transition:all 0.15s;
+}
+.top-pick-card:hover { border-color:rgba(0,229,160,0.6); background:rgba(0,229,160,0.1); }
+.top-pick-rank {
+  font-family:'Oxanium',sans-serif; font-size:0.52rem; font-weight:800;
+  letter-spacing:0.12em; color:#00e5a0; text-transform:uppercase; margin-bottom:4px;
+}
+.top-pick-sym {
+  font-family:'Oxanium',sans-serif; font-size:1.0rem; font-weight:800;
+  color:var(--text); margin-bottom:3px;
+}
+.top-pick-meta {
+  display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;
+}
+.top-pick-stat {
+  font-family:'Oxanium',sans-serif; font-size:0.58rem; font-weight:700;
+  padding:1px 5px; border-radius:3px;
+}
+/* ── INVEST ENTRY QUALITY BAR ──────────────────────────────────────────────── */
+.entry-quality-bar {
+  width:100%; height:8px; border-radius:4px; overflow:hidden;
+  background:var(--border2); margin:4px 0 2px; position:relative;
+}
+.entry-quality-fill {
+  height:100%; border-radius:4px;
+  background:linear-gradient(90deg,#00e5a0 0%,#fbbf24 50%,#fb7185 100%);
+  transition:width 0.3s;
+}
+.entry-quality-cursor {
+  position:absolute; top:-2px; width:3px; height:12px;
+  background:#fff; border-radius:2px; transform:translateX(-50%);
+  box-shadow:0 0 4px rgba(0,0,0,0.5);
+}
+/* ── TREND DIRECTION ON PILLS (Timeframe tab) ──────────────────────────────── */
+.ts-pill-trend {
+  font-family:'Oxanium',sans-serif; font-size:0.52rem; font-weight:800;
+  letter-spacing:0.02em; margin-top:2px; text-align:center;
+  display:flex; gap:2px; justify-content:center;
+}
+/* ── STICKY FIX — use padding-top on body to compensate fixed elements ──────── */
+body.mobile-view {
+  padding-top: 0; /* reset — we handle via mainContent positioning */
+}
+/* Mobile top picks — horizontal scroll */
+.top-picks-bar-mob {
+  display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;
+  padding:0 8px 8px; margin-bottom:8px;
+}
+.top-picks-bar-mob::-webkit-scrollbar { display:none; }
+.top-pick-card-mob {
+  flex-shrink:0; width:140px;
+  background:rgba(0,229,160,0.06); border:1px solid rgba(0,229,160,0.3);
+  border-radius:8px; padding:8px 10px; cursor:pointer;
+}
+/* Light theme */
+body.light-theme .ti-setup-row { background:#f0f2f5; border-color:#dde2ec; }
+body.light-theme .top-pick-card { background:rgba(0,140,100,0.05); border-color:rgba(0,140,100,0.3); }
+body.light-theme .top-pick-card:hover { background:rgba(0,140,100,0.10); }
+body.light-theme .top-pick-card-mob { background:rgba(0,140,100,0.05); border-color:rgba(0,140,100,0.3); }
+
+/* ── SECTOR INDEX PANEL ────────────────────────────────────────────────────── */
+.idx-panel {
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:10px; padding:10px 14px; margin-bottom:12px;
+}
+.idx-panel-hd {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;
+}
+.idx-panel-title {
+  font-family:'Oxanium',sans-serif; font-size:0.78rem; font-weight:800;
+  letter-spacing:0.08em; color:var(--text); text-transform:uppercase;
+}
+.idx-table { width:100%; border-collapse:collapse; }
+.idx-table th {
+  font-family:'Oxanium',sans-serif; font-size:0.62rem; font-weight:800;
+  letter-spacing:0.06em; text-transform:uppercase; color:var(--muted);
+  padding:5px 8px; text-align:left; border-bottom:1px solid var(--border2);
+}
+.idx-table th.right { text-align:right; }
+.idx-table td {
+  font-family:'Oxanium',sans-serif; font-size:0.75rem; font-weight:700;
+  padding:7px 8px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle;
+}
+.idx-table tr:last-child td { border-bottom:none; }
+.idx-table tr:hover td { background:rgba(255,255,255,0.03); }
+.idx-name { font-size:0.8rem; font-weight:800; color:var(--text); }
+.idx-sig-badge {
+  font-family:'Oxanium',sans-serif; font-size:0.62rem; font-weight:800;
+  border-radius:3px; padding:2px 7px; border:1px solid transparent; white-space:nowrap;
+}
+.idx-sig-r4  { color:#f97316; background:rgba(249,115,22,0.12);  border-color:rgba(249,115,22,0.35); }
+.idx-sig-r2  { color:#818cf8; background:rgba(129,140,248,0.12); border-color:rgba(129,140,248,0.35); }
+.idx-sig-s4  { color:#34d399; background:rgba(52,211,153,0.12);  border-color:rgba(52,211,153,0.35); }
+.idx-sig-wtch{ color:#fbbf24; background:rgba(251,191,36,0.10);  border-color:rgba(251,191,36,0.25); }
+.idx-sig-neu { color:#4a5a70; background:rgba(74,90,112,0.08);   border-color:rgba(74,90,112,0.2); }
+.idx-52w-bar {
+  width:80px; height:7px; background:var(--border2);
+  border-radius:3px; overflow:hidden; display:inline-block; vertical-align:middle;
+}
+.idx-52w-fill { height:100%; border-radius:3px; }
+.idx-pivot-chip {
+  font-family:'Oxanium',sans-serif; font-size:0.62rem; font-weight:700;
+  padding:2px 7px; border-radius:3px; white-space:nowrap;
+}
+.sector-idx-badge {
+  display:inline-flex; align-items:center; gap:3px;
+  font-family:'Oxanium',sans-serif; font-size:0.5rem; font-weight:800;
+  border-radius:3px; padding:1px 5px; border:1px solid transparent;
+  margin-left:4px; vertical-align:middle; cursor:default;
+}
+.idx-zone-filter {
+  display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; padding:0 2px;
+}
+.idx-zone-pill {
+  font-family:'Oxanium',sans-serif; font-size:0.6rem; font-weight:800;
+  padding:3px 10px; border-radius:12px; cursor:pointer;
+  border:1px solid var(--border2); color:var(--muted);
+  background:var(--surface2); transition:all 0.15s; white-space:nowrap;
+}
+.idx-zone-pill.active { color:#fff; border-color:transparent; }
+.idx-zone-pill.pill-r4.active  { background:#f97316; }
+.idx-zone-pill.pill-s4.active  { background:#34d399; color:#000; }
+.idx-zone-pill.pill-all.active { background:var(--accent); color:#000; }
+.mob-idx-strip {
+  display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;
+  padding:0 8px 8px; margin-bottom:8px;
+}
+.mob-idx-strip::-webkit-scrollbar { display:none; }
+.mob-idx-card {
+  flex-shrink:0; width:130px;
+  background:var(--surface); border:1px solid var(--border2);
+  border-radius:8px; padding:8px 10px;
+}
+.mob-idx-name  { font-family:'Oxanium',sans-serif; font-size:0.58rem; font-weight:800; color:var(--text); }
+.mob-idx-price { font-family:'Oxanium',sans-serif; font-size:0.78rem; font-weight:800; color:var(--text); margin:2px 0; }
+body.light-theme .idx-panel  { background:#fffefb; border-color:#e8ddd0; }
+body.light-theme .mob-idx-card { background:#fffefb; border-color:#e8ddd0; }
+
 .ts-panel {
   margin:0 0 14px; padding:12px 14px;
   background:var(--surface); border:1px solid var(--border2); border-radius:10px;
@@ -8904,9 +10029,9 @@ body.light-theme #price-sort-bar { background: #f0f2f5; border-color: #c8d0e0; }
   display:flex; align-items:center; gap:3px; margin-top:4px; flex-wrap:wrap;
 }
 .ts-badge {
-  font-family:'Oxanium',sans-serif; font-size:0.5rem; font-weight:800;
-  letter-spacing:0.05em; border-radius:4px; padding:1px 5px;
-  white-space:nowrap; border:1px solid transparent; line-height:1.6;
+  font-family:'Oxanium',sans-serif; font-size:0.65rem; font-weight:800;
+  letter-spacing:0.05em; border-radius:4px; padding:2px 7px;
+  white-space:nowrap; border:1px solid transparent; line-height:1.7;
 }
 .ts-badge.up-s   { color:#00e5a0; background:rgba(0,229,160,0.12);   border-color:rgba(0,229,160,0.35);   }
 .ts-badge.up-w   { color:#34d399; background:rgba(52,211,153,0.10);  border-color:rgba(52,211,153,0.25);  }
@@ -8916,9 +10041,48 @@ body.light-theme #price-sort-bar { background: #f0f2f5; border-color: #c8d0e0; }
 .ts-badge.insuf  { color:#8a9ab0; background:rgba(138,154,176,0.08); border-color:rgba(138,154,176,0.2);  }
 /* Alignment pill */
 .ts-align {
-  font-family:'Oxanium',sans-serif; font-size:0.5rem; font-weight:800;
-  letter-spacing:0.04em; border-radius:20px; padding:1px 7px;
+  font-family:'Oxanium',sans-serif; font-size:0.65rem; font-weight:800;
+  letter-spacing:0.04em; border-radius:20px; padding:2px 8px;
   white-space:nowrap; border:1px solid transparent;
+}
+/* T-BCS block */
+.tbcs-block {
+  margin-top:6px; padding:4px 6px; border-radius:5px;
+  background:var(--surface2); border:1px solid var(--border2);
+  display:inline-flex; align-items:center; gap:6px;
+}
+.tbcs-label {
+  font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
+  letter-spacing:0.08em; color:var(--muted); text-transform:uppercase;
+}
+.tbcs-score {
+  font-family:'Oxanium',sans-serif; font-size:0.85rem; font-weight:800;
+  line-height:1;
+}
+.tbcs-adj {
+  font-family:'Oxanium',sans-serif; font-size:0.58rem; font-weight:700;
+  border-radius:3px; padding:1px 4px;
+}
+.tbcs-adj.pos { color:#00e5a0; background:rgba(0,229,160,0.12); }
+.tbcs-adj.neg { color:#fb7185; background:rgba(251,113,133,0.12); }
+.tbcs-adj.neu { color:#8a9ab0; background:rgba(138,154,176,0.08); }
+/* Trend alignment row border on ti-table rows */
+.ti-row.talign-up   { border-left:3px solid rgba(0,229,160,0.6); }
+.ti-row.talign-mtfu { border-left:3px solid rgba(52,211,153,0.5); }
+.ti-row.talign-dn   { border-left:3px solid rgba(251,113,133,0.5); }
+.ti-row.talign-mtfd { border-left:3px solid rgba(248,113,113,0.4); }
+/* Trend age warning */
+.ts-stale { color:#fbbf24; font-size:0.58rem; font-family:'Oxanium',sans-serif; }
+/* Swipe hint */
+.swipe-hint {
+  text-align:center; font-family:'Oxanium',sans-serif; font-size:0.58rem;
+  color:var(--muted); padding:5px 0 2px; letter-spacing:0.06em;
+  animation:fadeOut 0.5s ease 3s forwards;
+}
+@keyframes fadeOut { to { opacity:0; height:0; padding:0; overflow:hidden; } }
+/* Mobile compact trend row — larger on mobile */
+.ts-mob-tf {
+  font-family:'Oxanium',sans-serif; font-size:0.68rem; font-weight:800;
 }
 .ts-align.all-up   { color:#00e5a0; background:rgba(0,229,160,0.15);   border-color:rgba(0,229,160,0.4);   }
 .ts-align.all-dn   { color:#fb7185; background:rgba(251,113,133,0.15); border-color:rgba(251,113,133,0.4); }
