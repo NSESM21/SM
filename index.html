@@ -1701,11 +1701,20 @@ body.mobile-view #mainContent.has-subtab-bar {
   background: var(--surface2); border-bottom: 1px solid var(--border2);
   padding: 0 8px; gap: 0;
   position: sticky;
-  top: 0;          /* sticks to top of mainContent scroll container */
+  top: 106px;      /* below fixed header(48px) + index strip(58px) */
   z-index: 10;
   flex-shrink: 0;
 }
 .mob-tf-bar::-webkit-scrollbar { display: none; }
+
+/* Events sub-tab bar — sticky below index strip on mobile */
+body.mobile-view .evt-subtab-bar {
+  position: sticky;
+  top: 106px;
+  z-index: 10;
+  background: var(--surface);
+  margin-bottom: 14px;
+}
 .mob-tf-btn {
   font-family:'Oxanium',sans-serif; font-size:0.68rem; font-weight:800;
   letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap;
@@ -3068,7 +3077,7 @@ function buildEarningsPanel() {
 
   return `
     <div class="earnings-panel">
-      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;scrollbar-width:none;align-items:center">
+      <div class="evt-subtab-bar" style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:14px;overflow-x:auto;scrollbar-width:none;align-items:center">
         <button style="${isCorp?stActive:stInactive}" onclick="setEventsSubTab('corp')">
           📋 CORP ACTIONS <span style="font-size:10px;opacity:0.7">(${caUpcoming.length})</span>
         </button>
