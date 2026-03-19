@@ -1700,6 +1700,10 @@ body.mobile-view #mainContent.has-subtab-bar {
   display: flex; align-items: center; overflow-x: auto; scrollbar-width: none;
   background: var(--surface2); border-bottom: 1px solid var(--border2);
   padding: 0 8px; gap: 0;
+  position: sticky;
+  top: 0;          /* sticks to top of mainContent scroll container */
+  z-index: 10;
+  flex-shrink: 0;
 }
 .mob-tf-bar::-webkit-scrollbar { display: none; }
 .mob-tf-btn {
@@ -5016,6 +5020,9 @@ function attachLongPress(chip) {
 function mobRender() {
   const mc = document.getElementById('mainContent');
   const term = searchTerm.toLowerCase();
+
+  // Clear content immediately to prevent flash of previous tab content
+  mc.innerHTML = '';
 
   // Hide subtab bar by default; mobBuildConsol will show it if needed
   const subBarEl = document.getElementById('mobileSubTabBar');
@@ -8766,8 +8773,8 @@ const _origRenderForBCS = render;
 render = function() {
   const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
 
-  // For consolidated tab override entirely to inject sub-tab wrapper
-  if (activeTab === 'consolidated' && !isMob && !document.getElementById('mobileSubTabBar')?.offsetParent) {
+  // For consolidated tab: desktop only — mobile uses mobRender path
+  if (activeTab === 'consolidated' && !isMob) {
     const mc    = document.getElementById('mainContent');
     const sfBar = document.getElementById('sectorFilterBar');
     if (sfBar) { sfBar.classList.remove('hidden'); populateSectorFilter(); }
