@@ -716,7 +716,9 @@ body.mobile-view .modal-title { font-size: 1.3rem; }
   main { padding: 6px !important; }
   /* Preserve mobile mainContent positioning — margin-top not affected by padding override */
   body.mobile-view #mainContent { margin-top: 106px !important; padding-top: 0 !important; height: calc(100vh - 106px - 62px) !important; }
-  body.mobile-view #mainContent.has-subtab-bar { margin-top: 148px !important; height: calc(100vh - 148px - 62px) !important; }
+  body.mobile-view #mainContent.has-subtab-bar,
+  body.mobile-view #mainContent.has-tf-bar,
+  body.mobile-view #mainContent.has-evt-bar { margin-top: 148px !important; height: calc(100vh - 148px - 62px) !important; }
   .master-wrap {
     width: 100vw !important;
     max-width: 100vw !important;
@@ -1703,21 +1705,11 @@ body.mobile-view #mainContent.has-subtab-bar {
   display: flex; align-items: center; overflow-x: auto; scrollbar-width: none;
   background: var(--surface2); border-bottom: 1px solid var(--border2);
   padding: 0 8px; gap: 0;
-  position: sticky;
-  top: 106px;      /* below fixed header(48px) + index strip(58px) */
-  z-index: 10;
-  flex-shrink: 0;
 }
 .mob-tf-bar::-webkit-scrollbar { display: none; }
 
-/* Events sub-tab bar — sticky below index strip on mobile */
-body.mobile-view .evt-subtab-bar {
-  position: sticky;
-  top: 106px;
-  z-index: 10;
-  background: var(--surface);
-  margin-bottom: 14px;
-}
+/* Events sub-tab bar — hidden on mobile (content moved to fixed #mobileEvtBar) */
+body.mobile-view .evt-subtab-bar { display: none !important; }
 .mob-tf-btn {
   font-family:'Oxanium',sans-serif; font-size:0.68rem; font-weight:800;
   letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap;
@@ -2021,6 +2013,12 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
 
 <!-- Mobile signals subtab bar — lives OUTSIDE mainContent so sticky works correctly -->
 <div id="mobileSubTabBar" style="display:none"></div>
+
+<!-- Mobile master TF bar — fixed below index strip, outside mainContent -->
+<div id="mobileTFBar" style="display:none"></div>
+
+<!-- Mobile events subtab bar — fixed below index strip, outside mainContent -->
+<div id="mobileEvtBar" style="display:none"></div>
 
 <main id="mainContent">
   <div class="state-screen">
@@ -4972,7 +4970,7 @@ function setViewMode(mode) {
       mc.style.height = '';
       mc.style.paddingTop = '';
       mc.style.marginTop = '';
-      mc.classList.remove('has-subtab-bar');
+      mc.classList.remove('has-subtab-bar', 'has-tf-bar', 'has-evt-bar');
     }
   }
 
@@ -5054,6 +5052,22 @@ function mobRender() {
     mc.style.height = '';
     mc.style.marginTop = '';
     mc.classList.remove('has-subtab-bar');
+  }
+
+  // Hide TF bar when not on master tab
+  const tfBarEl = document.getElementById('mobileTFBar');
+  if (tfBarEl && activeTab !== 'master') {
+    tfBarEl.innerHTML = '';
+    tfBarEl.style.display = 'none';
+    mc.classList.remove('has-tf-bar');
+  }
+
+  // Hide Events bar when not on earnings tab
+  const evtBarEl = document.getElementById('mobileEvtBar');
+  if (evtBarEl && activeTab !== 'earnings') {
+    evtBarEl.innerHTML = '';
+    evtBarEl.style.display = 'none';
+    mc.classList.remove('has-evt-bar');
   }
   // Always strip any stray inline sub-tab bar that desktop render may have injected
   // into mainContent (happens during view-mode race on resize)
@@ -5177,6 +5191,7 @@ function mobBuildMaster(term) {
   if (mobMasterTFIdx >= masterTFs.length) mobMasterTFIdx = 0;
   const tf = masterTFs[mobMasterTFIdx];
 
+  // Build TF pill bar HTML and inject into fixed #mobileTFBar (outside mainContent)
   const tfBar = masterTFs.map((t, i) => {
     const tfTotal = t.cols.reduce((a, c) => a + c.length, 0);
     return `<button class="mob-tf-btn ${i === mobMasterTFIdx ? 'active' : ''}"
@@ -5184,9 +5199,14 @@ function mobBuildMaster(term) {
       onclick="mobSwitchMasterTF(${i})">${t.label}<span class="mob-tf-count"> · ${tfTotal}</span></button>`;
   }).join('');
 
-  return `
-    <div class="mob-tf-bar">${tfBar}</div>
-    <div class="mob-cat-list">${mobBuildCatList(tf, term)}</div>`;
+  // Inject into fixed bar and show it — mainContent gets extra margin via class
+  const tfBarEl = document.getElementById('mobileTFBar');
+  const mc = document.getElementById('mainContent');
+  if (tfBarEl) { tfBarEl.innerHTML = tfBar; tfBarEl.style.display = 'block'; }
+  if (mc) mc.classList.add('has-tf-bar');
+
+  // Return only the category list — no inline tf-bar
+  return `<div class="mob-cat-list">${mobBuildCatList(tf, term)}</div>`;
 }
 
 function mobBuildConsol(term) {
@@ -5264,7 +5284,32 @@ function mobBuildHeatmap() {
 }
 
 function mobBuildEarnings() {
-  return `<div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 4px;">${buildEarningsPanel()}</div>`;
+  // Build the panel HTML
+  const panelHtml = buildEarningsPanel();
+
+  // Extract the evt-subtab-bar from the panel and inject into fixed #mobileEvtBar
+  // We do this by building the bar HTML separately and hiding the inline one via CSS
+  const isCorp     = activeEventsSubTab === 'corp';
+  const isEarnings = activeEventsSubTab === 'earnings';
+  const isResults  = activeEventsSubTab === 'results';
+  const stActive   = 'padding:10px 14px;border:none;border-bottom:2px solid var(--accent);background:transparent;color:var(--accent);font-family:Oxanium,sans-serif;font-weight:700;font-size:0.72rem;cursor:pointer;';
+  const stInactive = 'padding:10px 14px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--muted);font-family:Oxanium,sans-serif;font-weight:600;font-size:0.72rem;cursor:pointer;';
+
+  const evtBarHTML = `
+    <button style="${isCorp?stActive:stInactive}" onclick="setEventsSubTab('corp')">📋 Corp</button>
+    <button style="${isEarnings?stActive:stInactive}" onclick="setEventsSubTab('earnings')">📊 Earnings</button>
+    <button style="${isResults?stActive:stInactive}" onclick="setEventsSubTab('results')">📅 Results</button>`;
+
+  const evtBarEl = document.getElementById('mobileEvtBar');
+  const mc = document.getElementById('mainContent');
+  if (evtBarEl) { evtBarEl.innerHTML = evtBarHTML; evtBarEl.style.display = 'block'; }
+  if (mc) mc.classList.add('has-evt-bar');
+
+  // Return panel but hide the inline evt-subtab-bar (it's now in the fixed div)
+  return `<div style="overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 4px;">
+    <style>#mainContent .evt-subtab-bar { display:none !important; }</style>
+    ${panelHtml}
+  </div>`;
 }
 
 // ── Mobile Trade Tab — card-per-stock layout, 6-inch optimised ─────────────
@@ -9801,7 +9846,9 @@ body.light-theme #bcs-alert-banner { background:#fff; border-color:rgba(249,115,
   .mob-stock-chip { min-height: 48px; padding: 8px 10px; }
   .mob-cat-name { font-size: 0.72rem; }
   body.mobile-view #mainContent { margin-top: 106px !important; height: calc(100vh - 106px - 56px) !important; padding-top: 0 !important; }
-  body.mobile-view #mainContent.has-subtab-bar { margin-top: 148px !important; height: calc(100vh - 148px - 56px) !important; }
+  body.mobile-view #mainContent.has-subtab-bar,
+  body.mobile-view #mainContent.has-tf-bar,
+  body.mobile-view #mainContent.has-evt-bar { margin-top: 148px !important; height: calc(100vh - 148px - 56px) !important; }
   body.mobile-view #mobileBottomNav { height: 56px; }
   .ti-combo-bar { grid-template-columns: repeat(2,1fr); }
 }
@@ -9936,15 +9983,51 @@ html.mobile-view .sstab-btn {
 
 /* ── #mobileSubTabBar: fixed below index strip, above mainContent ── */
 #mobileSubTabBar {
-  display: none; /* shown by JS only when Signals tab is active */
-  width: 100%; 
+  display: none;
+  width: 100%;
   background: var(--surface);
   border-bottom: 2px solid var(--border2);
   position: fixed;
-  top: 106px; /* 48px header + 58px index strip */
+  top: 106px;
   left: 0; right: 0;
   z-index: 250;
 }
+
+/* ── #mobileTFBar: Master tab TF pills — fixed below index strip ── */
+#mobileTFBar {
+  display: none;
+  width: 100%;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border2);
+  position: fixed;
+  top: 106px;
+  left: 0; right: 0;
+  z-index: 250;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+#mobileTFBar::-webkit-scrollbar { display: none; }
+
+/* ── #mobileEvtBar: Events sub-tabs — fixed below index strip ── */
+#mobileEvtBar {
+  display: none;
+  width: 100%;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border2);
+  position: fixed;
+  top: 106px;
+  left: 0; right: 0;
+  z-index: 250;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+#mobileEvtBar::-webkit-scrollbar { display: none; }
+
+/* mainContent extra margin when any fixed bar is showing */
+body.mobile-view #mainContent.has-tf-bar,
+body.mobile-view #mainContent.has-evt-bar { margin-top: 148px !important; height: calc(100vh - 148px - 62px) !important; }
 .signals-content { min-height:0; }
 .sig-sub-count {
   font-family:'Oxanium',sans-serif; font-size:0.6rem; font-weight:800;
