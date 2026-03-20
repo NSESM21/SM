@@ -9201,7 +9201,8 @@ mobBuildConsol = function(term) {
   } else if (activeSignalsSubTab === 'invest') {
     return swipeHint + mobBuildInvest();
   } else {
-    return swipeHint + mobBuildTrendPanel() + buildMobIndexPanel() + _origMobBuildConsol(term);
+    const diagHtml = '<div style="background:red;color:white;padding:20px;font-size:1rem;font-weight:bold;position:relative;z-index:9999">TIMEFRAME CONTENT LOADED - margin:'+mc.style.marginTop+' height:'+mc.style.height+'</div>';
+    return diagHtml + swipeHint + mobBuildTrendPanel() + buildMobIndexPanel() + _origMobBuildConsol(term);
   }
 };
 
