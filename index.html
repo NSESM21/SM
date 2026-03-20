@@ -2530,6 +2530,16 @@ function buildIdxZoneFilter() {
 // Key = index symbol (uppercase), value = parsed object with all columns
 let indexCache = {};  // 'NIFTY_IT' → { ltp, pct, monthly, dR4, hR4, r15m, dPP, mR4, mR2, mS4, high52, low52, wHigh, wLow, wClose, open, high, low, prvClose, ... }
 
+// Global index exclude set — used by both buildConsolidated (desktop) and mobBuildTrendPanel (mobile)
+const _TS_INDEX_EXCLUDE = new Set([
+  'NIFTY_50','NIFTY50','NIFTY_IT','NIFTY_FMCG','NIFTY_BANK','NIFTY_PHARMA',
+  'NIFTY_AUTO','NIFTY_METAL','NIFTY_ENERGY','NIFTY_REALTY','NIFTY_INFRA',
+  'NIFTY_MEDIA','NIFTY_NEXT_50','NIFTY_MIDCAP_50','NIFTY_MIDCAP50',
+  'INDIA_VIX','INDVIX','NIFTY_PSU_BANK','NIFTY_HEALTHCARE',
+  'GOLDBEES','NIFTYBEES','BANKBEES','JUNIORBEES','LIQUIDBEES',
+  'ICICIB22','MOM100','SETFNN50'
+]);
+
 // Symbols excluded from Invest tab — indices and ETFs can't be accumulated directly
 const INVEST_EXCLUDE = new Set([
   'NIFTY50','NIFTY_50','GOLDBEES','NIFTYBEES','BANKBEES','JUNIORBEES',
@@ -4030,14 +4040,7 @@ function buildConsolidated(term) {
   // trend levels it appears in, then groups by structure.
   // Index symbols — excluded from Trend Structure (they appear in Index Overview panel below)
   // Yahoo Finance doesn't serve NSE index OHLC so trend arrows would always be blank
-  const _TS_INDEX_EXCLUDE = new Set([
-    'NIFTY_50','NIFTY50','NIFTY_IT','NIFTY_FMCG','NIFTY_BANK','NIFTY_PHARMA',
-    'NIFTY_AUTO','NIFTY_METAL','NIFTY_ENERGY','NIFTY_REALTY','NIFTY_INFRA',
-    'NIFTY_MEDIA','NIFTY_NEXT_50','NIFTY_MIDCAP_50','NIFTY_MIDCAP50',
-    'INDIA_VIX','INDVIX','NIFTY_PSU_BANK','NIFTY_HEALTHCARE',
-    'GOLDBEES','NIFTYBEES','BANKBEES','JUNIORBEES','LIQUIDBEES',
-    'ICICIB22','MOM100','SETFNN50'
-  ]);
+  // (_TS_INDEX_EXCLUDE is defined globally)
 
   const _trendSymMap = {};
   masterTFs.forEach(tf => {
