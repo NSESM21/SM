@@ -5049,8 +5049,9 @@ function mobRender() {
   if (subBarEl && activeTab !== 'consolidated') {
     subBarEl.innerHTML = '';
     subBarEl.style.display = 'none';
-    mc.style.height = '';
     mc.style.marginTop = '';
+    mc.style.height = '';
+    mc.style.paddingTop = '';
     mc.classList.remove('has-subtab-bar');
   }
 
@@ -8681,26 +8682,31 @@ function setSignalsSubTab(tab) {
 
   if (isMob) {
     // ── MOBILE PATH ──────────────────────────────────────────────────────────
-    // Strip any stray inline desktop sub-tab bar first
     const stray = mc.querySelector('.signals-subtab-bar');
     if (stray) stray.remove();
 
-    // For timeframe sub-tab: call the full overridden mobBuildConsol which
-    // handles subTabBar injection, swipe hint, index panel and trend panel.
-    // Do NOT call _origMobBuildConsol directly — it bypasses all those additions.
-    if (tab === 'trade') {
-      // Update external sub-tab bar highlights
+    // Helper: ensure sub-tab bar is shown and mainContent has correct margin
+    const _showSubBar = () => {
       const subBarEl = document.getElementById('mobileSubTabBar');
-      if (subBarEl) subBarEl.innerHTML = buildSignalsSubTabBarInner();
+      if (subBarEl) {
+        subBarEl.innerHTML = buildSignalsSubTabBarInner();
+        subBarEl.style.display = 'block';
+      }
+      mc.classList.add('has-subtab-bar');
+      mc.style.marginTop = '148px';
+      mc.style.height = 'calc(100vh - 148px - 62px)';
+      mc.style.paddingTop = '0';
+    };
+
+    if (tab === 'trade') {
+      _showSubBar();
       mc.innerHTML = mobBuildTrade();
     } else if (tab === 'invest') {
-      const subBarEl = document.getElementById('mobileSubTabBar');
-      if (subBarEl) subBarEl.innerHTML = buildSignalsSubTabBarInner();
+      _showSubBar();
       mc.innerHTML = mobBuildInvest();
     } else {
-      // Timeframe: call the full override — it handles everything correctly
+      // Timeframe: call the full override — it handles sub-bar + margin
       mc.innerHTML = mobBuildConsol(searchTerm.toLowerCase());
-      // Re-attach consolidated click handler
       if (_conClickHandler) mc.removeEventListener('click', _conClickHandler);
       _conClickHandler = e => {
         const pill = e.target.closest('.mob-consol-pill');
@@ -9166,16 +9172,17 @@ mobBuildConsol = function(term) {
   const mc = document.getElementById('mainContent');
   const subBarEl = document.getElementById('mobileSubTabBar');
 
-  // Show sub-tab bar and apply class — CSS handles the padding
+  // Show sub-tab bar and apply margin — set inline style directly (most reliable)
   if (subBarEl) {
     subBarEl.innerHTML = buildSignalsSubTabBarInner();
     subBarEl.style.display = 'block';
   }
   if (mc) {
     mc.classList.add('has-subtab-bar');
-    mc.style.height = '';
-    mc.style.paddingTop = '';
-    mc.style.marginTop = '';
+    // Set margin-top inline — more reliable than CSS class alone on iOS Safari
+    mc.style.marginTop = '148px';
+    mc.style.height = 'calc(100vh - 148px - 62px)';
+    mc.style.paddingTop = '0';
   }
 
   // Swipe hint — show once
