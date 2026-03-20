@@ -714,11 +714,8 @@ body.mobile-view .modal-title { font-size: 1.3rem; }
   .sort-btn { padding: 8px 14px !important; font-size: 0.78rem !important; min-height: 40px; }
   /* ── CRITICAL: Full-width scroll fix on mobile ── */
   main { padding: 6px !important; }
-  /* Preserve mobile mainContent positioning — margin-top not affected by padding override */
-  body.mobile-view #mainContent { margin-top: 106px !important; padding-top: 0 !important; height: calc(100vh - 106px - 62px) !important; }
-  body.mobile-view #mainContent.has-subtab-bar,
-  body.mobile-view #mainContent.has-tf-bar,
-  body.mobile-view #mainContent.has-evt-bar { margin-top: 148px !important; height: calc(100vh - 148px - 62px) !important; }
+  /* Mobile mainContent: flex:1 fills remaining space — no margin-top needed */
+  body.mobile-view #mainContent { flex: 1; min-height: 0; padding: 0 !important; margin: 0 !important; }
   .master-wrap {
     width: 100vw !important;
     max-width: 100vw !important;
@@ -1649,7 +1646,18 @@ body.mobile-view .mkt-ticker-strip, html.mobile-view .mkt-ticker-strip { display
 body.mobile-view #refreshBtn,   html.mobile-view #refreshBtn   { display: none !important; }
 body.mobile-view .theme-icon-btn, html.mobile-view .theme-icon-btn { display: none !important; }
 
-body.mobile-view header { height: 48px; padding: 0 12px; gap: 8px; justify-content: flex-start; }
+/* Mobile body: full viewport height, flex column so mainContent fills remaining space */
+body.mobile-view {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+body.mobile-view header { 
+  height: 48px; padding: 0 12px; gap: 8px; justify-content: flex-start;
+  flex-shrink: 0;
+  position: relative; /* override any sticky/fixed positioning in mobile flex context */
+}
 body.mobile-view .logo { font-size: 1.4rem; flex-shrink: 0; }
 body.mobile-view .live-badge { padding: 4px 10px; font-size: 0.62rem; gap: 4px; flex-shrink: 0; }
 body.mobile-view .live-clock { font-size: 0.62rem; }
@@ -1669,9 +1677,9 @@ body.mobile-view #mobileIndexStrip {
   background: var(--surface); border-bottom: 1px solid var(--border2);
   overflow-x: auto; scrollbar-width: none;
   height: 58px; flex-shrink: 0;
-  position: fixed;
-  top: 48px; left: 0; right: 0;
-  z-index: 260;
+  /* In mobile flex column: normal flow — no fixed positioning needed */
+  position: relative;
+  z-index: 10;
 }
 body.mobile-view #mobileIndexStrip::-webkit-scrollbar { display: none; }
 .mix-item {
@@ -1689,17 +1697,13 @@ body.light-theme .mix-item { border-color:#e8ddd0; }
 
 body.mobile-view #mainContent {
   padding: 0;
-  margin-top: 106px; /* push element start below fixed header(48px) + index strip(58px) */
+  padding-bottom: 70px; /* space for fixed bottom nav */
   overflow-y: auto;
-  height: calc(100vh - 106px - 62px); /* viewport minus top offset minus bottom nav */
+  flex: 1;
+  min-height: 0;
   -webkit-overflow-scrolling: touch;
   position: relative;
   z-index: 1;
-}
-/* When signals sub-tab bar is visible, push down further */
-body.mobile-view #mainContent.has-subtab-bar {
-  margin-top: 148px !important; /* 106px + 42px sub-tab bar */
-  height: calc(100vh - 148px - 62px) !important;
 }
 .mob-tf-bar {
   display: flex; align-items: center; overflow-x: auto; scrollbar-width: none;
@@ -5049,9 +5053,6 @@ function mobRender() {
   if (subBarEl && activeTab !== 'consolidated') {
     subBarEl.innerHTML = '';
     subBarEl.style.display = 'none';
-    mc.style.marginTop = '';
-    mc.style.height = '';
-    mc.style.paddingTop = '';
     mc.classList.remove('has-subtab-bar');
   }
 
@@ -5263,6 +5264,8 @@ function mobBuildConsol(term) {
       ? `<span style="font-size:0.58rem;background:rgba(245,158,11,0.2);color:#f59e0b;border-radius:8px;padding:1px 6px;font-family:'Oxanium',sans-serif;font-weight:700">${commonInTF} common</span>`
       : '';
 
+    // Hide empty combination cards (no stocks = don't show the card at all)
+    if (!totalStocks) return '';
     return `<div class="mob-consol-tf-card" data-tf="${tf.label}">
       <div class="mob-consol-tf-hd" style="color:${tf.color};border-left-color:${tf.color}">
         <span class="mob-consol-tf-name">${tf.label}</span>
@@ -8693,9 +8696,6 @@ function setSignalsSubTab(tab) {
         subBarEl.style.display = 'block';
       }
       mc.classList.add('has-subtab-bar');
-      mc.style.marginTop = '148px';
-      mc.style.height = 'calc(100vh - 148px - 62px)';
-      mc.style.paddingTop = '0';
     };
 
     if (tab === 'trade') {
@@ -9179,10 +9179,7 @@ mobBuildConsol = function(term) {
   }
   if (mc) {
     mc.classList.add('has-subtab-bar');
-    // Set margin-top inline — more reliable than CSS class alone on iOS Safari
-    mc.style.marginTop = '148px';
-    mc.style.height = 'calc(100vh - 148px - 62px)';
-    mc.style.paddingTop = '0';
+    // Flex layout handles sizing - no inline styles needed
   }
 
   // Swipe hint — show once
@@ -9201,8 +9198,7 @@ mobBuildConsol = function(term) {
   } else if (activeSignalsSubTab === 'invest') {
     return swipeHint + mobBuildInvest();
   } else {
-    const diagHtml = '<div style="background:red;color:white;padding:20px;font-size:1rem;font-weight:bold;position:relative;z-index:9999">TIMEFRAME CONTENT LOADED - margin:'+mc.style.marginTop+' height:'+mc.style.height+'</div>';
-    return diagHtml + swipeHint + mobBuildTrendPanel() + buildMobIndexPanel() + _origMobBuildConsol(term);
+    return swipeHint + mobBuildTrendPanel() + buildMobIndexPanel() + _origMobBuildConsol(term);
   }
 };
 
@@ -9853,10 +9849,7 @@ body.light-theme #bcs-alert-banner { background:#fff; border-color:rgba(249,115,
   .mob-ti-sym { font-size: 0.84rem; }
   .mob-stock-chip { min-height: 48px; padding: 8px 10px; }
   .mob-cat-name { font-size: 0.72rem; }
-  body.mobile-view #mainContent { margin-top: 106px !important; height: calc(100vh - 106px - 56px) !important; padding-top: 0 !important; }
-  body.mobile-view #mainContent.has-subtab-bar,
-  body.mobile-view #mainContent.has-tf-bar,
-  body.mobile-view #mainContent.has-evt-bar { margin-top: 148px !important; height: calc(100vh - 148px - 56px) !important; }
+  body.mobile-view #mainContent { flex: 1; min-height: 0; padding: 0 !important; margin: 0 !important; }
   body.mobile-view #mobileBottomNav { height: 56px; }
   .ti-combo-bar { grid-template-columns: repeat(2,1fr); }
 }
@@ -10033,9 +10026,7 @@ html.mobile-view .sstab-btn {
 }
 #mobileEvtBar::-webkit-scrollbar { display: none; }
 
-/* mainContent extra margin when any fixed bar is showing */
-body.mobile-view #mainContent.has-tf-bar,
-body.mobile-view #mainContent.has-evt-bar { margin-top: 148px !important; height: calc(100vh - 148px - 62px) !important; }
+/* fixed bar margin handled by flex layout */
 .signals-content { min-height:0; }
 .sig-sub-count {
   font-family:'Oxanium',sans-serif; font-size:0.6rem; font-weight:800;
