@@ -47,6 +47,7 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%230a0c10'/><text x='90' y='120' font-size='90' text-anchor='middle' fill='%2300e5a0'>📈</text></svg>">
 
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oxanium:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
   --bg: #0a0c10;
@@ -6656,56 +6657,63 @@ function downloadCSV(rows, filename) {
 
 function exportSnapshot() {
   document.getElementById('exportDropdown').classList.remove('open');
-  // Use html2canvas-style approach via a canvas copy
-  const main = document.getElementById('mainContent');
-  const wrap = main.querySelector('.master-wrap') || main.querySelector('.con-tbl-wrap');
-  if (!wrap) { showKbToast('⚠ No table to capture'); return; }
-  // Fallback: capture using print-style screenshot hint
-  try {
-    // Create a link to trigger browser print to PDF as an alternative
-    // Main approach: serialize visible table to a standalone HTML and open as image
-    // Sync to heatmap caches
-    if (!window._hmPriceCache) window._hmPriceCache={};
-    if (!window._hmWbCache) window._hmWbCache={};
-    if (!window._hmPeCache) window._hmPeCache={};
-    if (!window._hmMcCache) window._hmMcCache={};
-    const _expPct = q.chgPctFromClose != null ? q.chgPctFromClose : (q.prevClose && q.prevClose > 0 && q.prevClose !== q.price ? (q.price - q.prevClose) / q.prevClose * 100 : 0);
-    window._hmPriceCache[symbol] = { price: q.price, pct: _expPct };
-    const isLight = document.body.classList.contains('light-theme');
-    const tfLabel = activeTab === 'master' && masterTFs.length ? masterTFs[activeMasterTF].label : 'Consolidated';
-    const htmlStr = `<!DOCTYPE html>
-<html><head>
-<meta charset="UTF-8">
-<title>NSE Snapshot — ${tfLabel}</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oxanium:wght@400;700;800&display=swap" rel="stylesheet">
-<style>
-body{font-family:Calibri,sans-serif;background:${isLight?'#f0f2f5':'#0a0c10'};color:${isLight?'#0d1117':'#fff'};padding:16px;margin:0}
-h2{font-family:'Bebas Neue',sans-serif;letter-spacing:0.14em;color:${isLight?'#007a54':'#00e5a0'};margin-bottom:12px}
-table{border-collapse:collapse;width:100%;font-size:0.95rem}
-th{font-family:'Oxanium',sans-serif;font-size:0.78rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;background:${isLight?'#e8eaf0':'#181c24'};border-bottom:2px solid ${isLight?'#c8d0e0':'#252e42'};color:${isLight?'#5a6a80':'#8a9ab0'}}
-td{padding:8px 12px;border-bottom:1px solid ${isLight?'#dde2ec':'#1e2535'};color:${isLight?'#0d1117':'#fff'}}
-.sp{display:inline-block;padding:4px 12px;border-radius:5px;font-weight:700;border:1px solid;font-size:0.9rem}
-.acc{color:#007a54;border-color:rgba(0,179,122,0.45);background:rgba(0,179,122,0.1)}
-.n50{color:#1a7aba;border-color:rgba(56,189,248,0.45);background:rgba(56,189,248,0.1)}
-.nx50{color:#b07d00;border-color:rgba(251,191,36,0.45);background:rgba(251,191,36,0.1)}
-.mid{color:#c0243b;border-color:rgba(251,113,133,0.45);background:rgba(251,113,133,0.1)}
-.sml{color:#6c42d4;border-color:rgba(167,139,250,0.45);background:rgba(167,139,250,0.1)}
-.idx{color:#a8307a;border-color:rgba(244,114,182,0.45);background:rgba(244,114,182,0.1)}
-.trd{color:#0892a5;border-color:rgba(34,211,238,0.45);background:rgba(34,211,238,0.1)}
-</style></head><body>
-<h2>NSE Watchlist · ${tfLabel} · ${new Date().toLocaleString('en-IN')}</h2>
-${wrap.innerHTML}
-</body></html>`;
-    const blob = new Blob([htmlStr], { type: 'text/html' });
-    const url  = URL.createObjectURL(blob);
-    const win  = window.open(url, '_blank');
-    if (win) {
-      win.onload = () => { win.print(); URL.revokeObjectURL(url); };
-    }
-    showKbToast('✓ Snapshot opened — use Print → Save as PDF');
-  } catch(err) {
-    showKbToast('⚠ Snapshot failed: ' + err.message);
+
+  if (typeof html2canvas !== 'function') {
+    showKbToast('⚠ html2canvas not loaded yet — try again in a moment');
+    return;
   }
+
+  // Decide what to capture: full mainContent for all tabs
+  const target = document.getElementById('mainContent');
+  if (!target) { showKbToast('⚠ Nothing to capture'); return; }
+
+  // Build filename from current tab + timestamp
+  const tabName = {
+    master: masterTFs.length ? masterTFs[activeMasterTF].label : 'Master',
+    consolidated: 'Signals-' + activeSignalsSubTab,
+    heatmap: 'Heatmap',
+    earnings: 'Events',
+    compare: 'Compare'
+  }[activeTab] || activeTab;
+  const ts = new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+  const filename = `NSE_${tabName}_${ts}.png`;
+
+  showKbToast('📸 Capturing snapshot…');
+
+  // Temporarily scroll mainContent to top so full content is visible
+  const prevScroll = target.scrollTop;
+  target.scrollTop = 0;
+
+  html2canvas(target, {
+    backgroundColor: document.body.classList.contains('light-theme') ? '#f0f2f5' : '#0a0c10',
+    scale: 2,               // 2x for retina quality
+    useCORS: true,          // allow external fonts/images
+    allowTaint: true,
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth: document.documentElement.scrollWidth,
+    windowHeight: document.documentElement.scrollHeight,
+    logging: false,
+    // Capture full scrollable height of mainContent
+    height: target.scrollHeight,
+    width: target.offsetWidth,
+    y: target.getBoundingClientRect().top + window.scrollY,
+    x: target.getBoundingClientRect().left + window.scrollX,
+  }).then(canvas => {
+    target.scrollTop = prevScroll; // restore scroll
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      showKbToast('✓ Snapshot saved: ' + filename);
+    }, 'image/png');
+  }).catch(err => {
+    target.scrollTop = prevScroll;
+    showKbToast('⚠ Snapshot failed: ' + err.message);
+  });
 }
 
 
