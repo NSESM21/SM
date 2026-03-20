@@ -9953,10 +9953,9 @@ html.mobile-view .sstab-btn {
   width: 100%;
   background: var(--surface);
   border-bottom: 2px solid var(--border2);
-  position: fixed;
-  top: 106px;
-  left: 0; right: 0;
-  z-index: 250;
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
 }
 
 /* ── #mobileTFBar: Master tab TF pills — fixed below index strip ── */
@@ -9965,13 +9964,16 @@ html.mobile-view .sstab-btn {
   width: 100%;
   background: var(--surface2);
   border-bottom: 1px solid var(--border2);
-  position: fixed;
-  top: 106px;
-  left: 0; right: 0;
-  z-index: 250;
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  white-space: nowrap; /* prevent wrapping — scroll horizontally */
+}
+#mobileTFBar.visible {
+  display: block; /* single-line horizontal scroll container */
 }
 #mobileTFBar::-webkit-scrollbar { display: none; }
 
@@ -9981,10 +9983,9 @@ html.mobile-view .sstab-btn {
   width: 100%;
   background: var(--surface);
   border-bottom: 2px solid var(--border2);
-  position: fixed;
-  top: 106px;
-  left: 0; right: 0;
-  z-index: 250;
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
