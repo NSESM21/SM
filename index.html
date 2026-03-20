@@ -4143,8 +4143,8 @@ function buildConsolidated(term) {
   }
 
   // Restore collapsed state
-  let _tsCollapsed = false;
-  try { _tsCollapsed = localStorage.getItem('nse-trend-struct-collapsed') === '1'; } catch(e) {}
+  let _tsCollapsed = true;
+  try { _tsCollapsed = localStorage.getItem('nse-trend-struct-collapsed') !== '0'; } catch(e) {}
 
   const trendStructPanel = `
     <div class="ts-panel" id="trendStructPanel">
@@ -9019,34 +9019,6 @@ function toggleOrientation() {
   }
 }
 
-// ── Mobile: swipe between Signals sub-tabs ────────────────────────────────
-const _sigSubOrder = ['timeframe', 'trade', 'invest'];
-let _sigSwipeX = 0, _sigSwipeActive = false;
-
-document.addEventListener('touchstart', e => {
-  const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
-  if (!isMob || activeTab !== 'consolidated') return;
-  _sigSwipeX = e.touches[0].clientX;
-  _sigSwipeActive = true;
-}, { passive: true });
-
-document.addEventListener('touchend', e => {
-  if (!_sigSwipeActive) return;
-  _sigSwipeActive = false;
-  const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
-  if (!isMob || activeTab !== 'consolidated') return;
-  const dx = e.changedTouches[0].clientX - _sigSwipeX;
-  if (Math.abs(dx) < 50) return;
-  const cur = _sigSubOrder.indexOf(activeSignalsSubTab);
-  let next = dx < 0 ? cur + 1 : cur - 1;
-  next = Math.max(0, Math.min(_sigSubOrder.length - 1, next));
-  if (next === cur) return;
-  activeSignalsSubTab = _sigSubOrder[next];
-  try { localStorage.setItem('nse-signals-subtab', activeSignalsSubTab); } catch(e2) {}
-  render();
-  showKbToast(`${dx < 0 ? '→' : '←'} <strong>${activeSignalsSubTab.charAt(0).toUpperCase() + activeSignalsSubTab.slice(1)}</strong>`);
-}, { passive: true });
-
 // ── Mobile: swipe between Master TF pills ─────────────────────────────────
 // Allows left/right swipe on Master tab to move between Monthly R4, Daily R4 etc.
 let _masterSwipeX = 0, _masterSwipeY = 0, _masterSwipeActive = false;
@@ -9185,23 +9157,13 @@ mobBuildConsol = function(term) {
     // Flex layout handles sizing - no inline styles needed
   }
 
-  // Swipe hint — show once
-  let swipeHint = '';
-  try {
-    if (!localStorage.getItem('nse-swipe-hint-seen')) {
-      swipeHint = '<div class="swipe-hint" id="swipeHint">← swipe between Timeframe · Trade · Invest →</div>';
-      setTimeout(function() {
-        try { localStorage.setItem('nse-swipe-hint-seen', '1'); } catch(e) {}
-      }, 3500);
-    }
-  } catch(e) {}
 
   if (activeSignalsSubTab === 'trade') {
-    return swipeHint + mobBuildTrade();
+    return mobBuildTrade();
   } else if (activeSignalsSubTab === 'invest') {
-    return swipeHint + mobBuildInvest();
+    return mobBuildInvest();
   } else {
-    return swipeHint + mobBuildTrendPanel() + buildMobIndexPanel() + _origMobBuildConsol(term);
+    return mobBuildTrendPanel() + buildMobIndexPanel() + _origMobBuildConsol(term);
   }
 };
 
@@ -9291,8 +9253,8 @@ function mobBuildTrendPanel() {
   }
 
   // Collapsed state
-  let _tsC = false;
-  try { _tsC = localStorage.getItem('nse-trend-struct-collapsed') === '1'; } catch(e) {}
+  let _tsC = true;
+  try { _tsC = localStorage.getItem('nse-trend-struct-collapsed') !== '0'; } catch(e) {}
 
   const legend = `<div style="font-size:0.55rem;color:var(--muted);line-height:1.8;margin-bottom:8px">
     <span style="color:#f472b6">●</span> LT=Monthly R4 &nbsp;
