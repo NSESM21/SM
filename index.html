@@ -7843,9 +7843,10 @@ function computeTBCS(sym, bcsTotal) {
 }
 
 // ── Trend age label: reads updatedAt from trendCache for a symbol ──────────
+// Priority: 1H first (updated every 30min by intraday1HRefresh) → 1D → 1M
 function _trendAgeLabel(sym) {
   const k = sym.toUpperCase();
-  const entry = trendCache[k + '_1D'] || trendCache[k + '_1H'] || trendCache[k + '_1M'];
+  const entry = trendCache[k + '_1H'] || trendCache[k + '_1D'] || trendCache[k + '_1M'];
   if (!entry || !entry.updatedAt) return null;
   try {
     const d = new Date(entry.updatedAt);
