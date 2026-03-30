@@ -5434,6 +5434,7 @@ function mobBuildTrade() {
           <span style="font-family:Oxanium,sans-serif;font-size:0.5rem;color:var(--muted);margin-left:auto">${ts.time}</span>
         </div>`;
       })()}
+      ${_signalLogRow(r.sym, r.consolLabels)}
     </div>`;
   }).join('');
 
@@ -6346,7 +6347,8 @@ document.getElementById('gSearch').addEventListener('input', e => {
 // ═══════════════════════════════════════════════════════════
 loadSheet().then(function() {
   // Fetch trend structure 3s after initial load (after TI-Price fetch at 1.2s)
-  setTimeout(function() { if (typeof fetchTrendCache === 'function') fetchTrendCache(); }, 3000);
+  setTimeout(function() { if (typeof fetchTrendCache  === 'function') fetchTrendCache();  }, 3000);
+  setTimeout(function() { if (typeof fetchSignalLog  === 'function') fetchSignalLog();  }, 4000);
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -6455,6 +6457,7 @@ const _patchedLoad = async function() {
   startAutoRefresh();
   // Re-fetch trend structure 3s after every refresh cycle
   setTimeout(function() { if (typeof fetchTrendCache === 'function') fetchTrendCache(); }, 3000);
+  setTimeout(function() { if (typeof fetchSignalLog  === 'function') fetchSignalLog();  }, 4000);
 };
 
 // ── Trend-only auto-refresh every 30 minutes during market hours ──────────
@@ -6474,6 +6477,7 @@ const _patchedLoad = async function() {
     if (!_isMarketHours()) return; // silent skip outside hours
     if (typeof fetchTrendCache !== 'function') return;
     fetchTrendCache();
+    fetchSignalLog();
     // Show a subtle toast so user knows trend was refreshed
     if (typeof showKbToast === 'function') {
       showKbToast('🔄 Trend data refreshed');
@@ -8103,6 +8107,7 @@ function buildTradeTab() {
           ${trendCacheLoaded ? (_tsBadgeRow(r.sym) || '') : ''}
           ${_tradeSetupRow(r.sym, r.bcs.pct52, fd.price, r.consolLabels)}
           ${_sigTsRow(r.sym, r.consolLabels)}
+        ${_signalLogRow(r.sym, r.consolLabels)}
         </td>
         <td>${w52}</td>
         <td class="ti-combos-cell">${consolPills}</td>
@@ -9322,6 +9327,8 @@ mobSyncBadges = function() {
 
 // ── Cache ──────────────────────────────────────────────────────────────────
 let trendCache       = {};  // 'SYM_1H' | 'SYM_1D' | 'SYM_1M' → { trend, strength, lastType, lastPrice, ... }
+let signalLog        = {};  // 'SYM|COMBO' → { entryTime, entryPrice, atrTF, atrVal, stop, target, validUntil, status }
+let signalLogLoaded  = false;
 let trendAlignCache  = {};  // 'SYM' → 'ALL_UP' | 'ALL_DOWN' | 'MTF_UP' | 'MTF_DOWN' | 'DIVERGED'
 let trendCacheLoaded = false;
 
@@ -9390,6 +9397,110 @@ async function fetchTrendCache() {
   } catch(e) {
     console.warn('[TrendCache] fetch failed:', e.message);
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  fetchSignalLog — loads SIGNAL sheet data from Apps Script
+//  Called 4 seconds after page load, and every 5 min with main refresh
+// ═══════════════════════════════════════════════════════════════════════════
+async function fetchSignalLog() {
+  try {
+    const url  = `${APPS_SCRIPT_URL}?action=signals&t=${Date.now()}`;
+    const ctrl = new AbortController();
+    const tmr  = setTimeout(() => ctrl.abort(), 15000);
+    const res  = await fetch(url, { signal: ctrl.signal, redirect: 'follow', cache: 'no-store' });
+    clearTimeout(tmr);
+    if (!res.ok) { console.warn('[SignalLog] HTTP', res.status); return; }
+
+    let json;
+    try { json = await res.json(); } catch(e) { console.warn('[SignalLog] JSON error:', e.message); return; }
+    if (json.status !== 'ok' || !json.data) { console.warn('[SignalLog] Bad response:', json.status); return; }
+
+    // Build lookup map: 'SYM|COMBO' → signal object
+    signalLog = {};
+    json.data.forEach(d => {
+      const key = d.sym.toUpperCase() + '|' + d.combo;
+      signalLog[key] = d;
+    });
+    signalLogLoaded = true;
+    console.log('[SignalLog] Loaded', json.data.length, 'signals.',
+                json.data.filter(d => d.status === 'ACTIVE').length, 'active');
+
+    // Re-render Trade tab if active so signal data appears
+    if (activeTab === 'consolidated' && activeSignalsSubTab === 'trade') render();
+
+  } catch(e) {
+    console.warn('[SignalLog] fetch failed:', e.message);
+  }
+}
+
+// Helper: get signal log entry for a symbol across its combo labels
+function _getSignalEntry(sym, comboLabels) {
+  if (!signalLogLoaded || !comboLabels) return null;
+  const k = sym.toUpperCase();
+  // Try each combo label, return the most recent ACTIVE one
+  let best = null;
+  (comboLabels || []).forEach(combo => {
+    const entry = signalLog[k + '|' + combo];
+    if (!entry || entry.status !== 'ACTIVE') return;
+    if (!best || new Date(entry.entryTime) > new Date(best.entryTime)) best = entry;
+  });
+  return best;
+}
+
+// Helper: build signal log row HTML for Trade tab
+function _signalLogRow(sym, comboLabels) {
+  const entry = _getSignalEntry(sym, comboLabels);
+  if (!entry) return '';
+
+  const entryDate = new Date(entry.entryTime);
+  const now       = new Date();
+  const diffMs    = now - entryDate;
+  const diffH     = diffMs / 3600000;
+  const diffD     = Math.floor(diffH / 24);
+
+  // Age label
+  let ageLabel, ageCls;
+  if (diffD === 0) {
+    ageLabel = diffH < 1 ? Math.floor(diffMs/60000) + 'm ago' : Math.floor(diffH) + 'h ago';
+    ageCls = 'color:#00e5a0';
+  } else if (diffD === 1) {
+    ageLabel = 'Yesterday';
+    ageCls = 'color:#fbbf24';
+  } else {
+    ageLabel = diffD + 'd ago';
+    ageCls = 'color:#fb7185';
+  }
+
+  // Time string
+  const timeStr = entryDate.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+  const dateStr = diffD === 0 ? 'Today ' + timeStr
+                : diffD === 1 ? 'Yesterday ' + timeStr
+                : entryDate.toLocaleDateString('en-IN', { day:'numeric', month:'short' }) + ' ' + timeStr;
+
+  // Valid until
+  const validUntil = entry.validUntil ? new Date(entry.validUntil) : null;
+  const daysLeft   = validUntil ? Math.ceil((validUntil - now) / 86400000) : null;
+  const validStr   = daysLeft != null
+    ? (daysLeft <= 0 ? '⚠ Expired' : daysLeft + 'd left (' + entry.atrTF + ')')
+    : '';
+  const validCls   = daysLeft != null && daysLeft <= 2 ? 'color:#fb7185' : 'color:var(--muted)';
+
+  // Entry price vs current
+  const fmt = n => n != null ? '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+
+  return `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:4px 8px;
+    background:rgba(0,229,160,0.04);border-radius:4px;border-left:2px solid #00e5a0;flex-wrap:wrap">
+    <span style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:800;color:#00e5a0">📍 SIGNAL LOG</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.55rem;${ageCls}">${ageLabel}</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.52rem;color:var(--muted)">${dateStr}</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.52rem;color:var(--muted);margin-left:auto">
+      Entry ${fmt(entry.entryPrice)}
+      ${entry.stop   ? '· Stop '   + fmt(entry.stop)   : ''}
+      ${entry.target ? '· Tgt '    + fmt(entry.target) : ''}
+    </span>
+    ${validStr ? `<span style="font-family:Oxanium,sans-serif;font-size:0.5rem;${validCls};width:100%;padding-top:1px">${validStr}</span>` : ''}
+  </div>`;
 }
 
 // ── Trigger first-time trend compute via action=computetrend ─────────────────
