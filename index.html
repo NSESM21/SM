@@ -2198,16 +2198,23 @@ function _sigTsGet(sym, comboLabel) {
   try {
     const val = localStorage.getItem(_SIG_TS_PREFIX + sym.toUpperCase() + '|' + comboLabel);
     if (!val) return null;
-    const first = new Date(val);
-    const diffMs = Date.now() - first.getTime();
+    const first  = new Date(val);
+    const now    = new Date();
+    const diffMs = now - first.getTime();
     const diffH  = diffMs / 3600000;
-    const diffD  = Math.floor(diffH / 24);
+
+    // Use CALENDAR date comparison for daysAgo — not hour math
+    // Fixes "Today" showing when signal was yesterday (e.g. 22h ago crosses midnight)
+    const nowDay   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const firstDay = new Date(first.getFullYear(), first.getMonth(), first.getDate());
+    const calDiffD = Math.round((nowDay - firstDay) / 86400000);
+
     return {
-      daysAgo:  diffD,
+      daysAgo:  calDiffD,
       hoursAgo: Math.floor(diffH),
       firstSeen: first,
-      label: diffD === 0 ? 'Today' : diffD === 1 ? 'Yesterday' : diffD + 'd ago',
-      time: first.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' })
+      label: calDiffD === 0 ? 'Today' : calDiffD === 1 ? 'Yesterday' : calDiffD + 'd ago',
+      time: first.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true })
     };
   } catch(e) { return null; }
 }
@@ -9457,49 +9464,66 @@ function _signalLogRow(sym, comboLabels) {
   const now       = new Date();
   const diffMs    = now - entryDate;
   const diffH     = diffMs / 3600000;
-  const diffD     = Math.floor(diffH / 24);
 
-  // Age label
+  // ── Use CALENDAR date comparison, not hour math ──────────────────────────
+  // This fixes "Today" showing for yesterday when diffH < 24 but date has changed
+  const nowDate   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const entryDay  = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+  const calDiffD  = Math.round((nowDate - entryDay) / 86400000); // calendar days difference
+
+  // Age label — use calendar diff
   let ageLabel, ageCls;
-  if (diffD === 0) {
+  if (calDiffD === 0) {
     ageLabel = diffH < 1 ? Math.floor(diffMs/60000) + 'm ago' : Math.floor(diffH) + 'h ago';
     ageCls = 'color:#00e5a0';
-  } else if (diffD === 1) {
+  } else if (calDiffD === 1) {
     ageLabel = 'Yesterday';
     ageCls = 'color:#fbbf24';
   } else {
-    ageLabel = diffD + 'd ago';
+    ageLabel = calDiffD + 'd ago';
     ageCls = 'color:#fb7185';
   }
 
-  // Time string
-  const timeStr = entryDate.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
-  const dateStr = diffD === 0 ? 'Today ' + timeStr
-                : diffD === 1 ? 'Yesterday ' + timeStr
+  // Time string — use IST for display
+  const timeStr = entryDate.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+  const dateStr = calDiffD === 0 ? 'Today ' + timeStr
+                : calDiffD === 1 ? 'Yesterday ' + timeStr
                 : entryDate.toLocaleDateString('en-IN', { day:'numeric', month:'short' }) + ' ' + timeStr;
 
   // Valid until
   const validUntil = entry.validUntil ? new Date(entry.validUntil) : null;
   const daysLeft   = validUntil ? Math.ceil((validUntil - now) / 86400000) : null;
   const validStr   = daysLeft != null
-    ? (daysLeft <= 0 ? '⚠ Expired' : daysLeft + 'd left (' + entry.atrTF + ')')
+    ? (daysLeft <= 0 ? '⚠ Expired' : daysLeft + 'd left')
     : '';
   const validCls   = daysLeft != null && daysLeft <= 2 ? 'color:#fb7185' : 'color:var(--muted)';
 
-  // Entry price vs current
-  const fmt = n => n != null ? '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+  // Entry price vs current price — show if above/below entry
+  const fmt        = n => n != null ? '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+  const fd         = fundCache[sym.toUpperCase()] || {};
+  const curPrice   = fd.price;
+  let priceStatus  = '';
+  if (curPrice != null && entry.entryPrice != null) {
+    const pct = ((curPrice - entry.entryPrice) / entry.entryPrice * 100).toFixed(1);
+    const clr = pct >= 0 ? '#00e5a0' : '#fb7185';
+    const pfx = pct >= 0 ? '▲' : '▼';
+    priceStatus = `<span style="font-family:Oxanium,sans-serif;font-size:0.5rem;color:${clr};margin-left:4px">${pfx}${Math.abs(pct)}% from entry</span>`;
+  }
 
   return `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:4px 8px;
     background:rgba(0,229,160,0.04);border-radius:4px;border-left:2px solid #00e5a0;flex-wrap:wrap">
-    <span style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:800;color:#00e5a0">📍 SIGNAL LOG</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:800;color:#00e5a0">📍 ENTRY LOG</span>
     <span style="font-family:Oxanium,sans-serif;font-size:0.55rem;${ageCls}">${ageLabel}</span>
     <span style="font-family:Oxanium,sans-serif;font-size:0.52rem;color:var(--muted)">${dateStr}</span>
     <span style="font-family:Oxanium,sans-serif;font-size:0.52rem;color:var(--muted);margin-left:auto">
-      Entry ${fmt(entry.entryPrice)}
-      ${entry.stop   ? '· Stop '   + fmt(entry.stop)   : ''}
-      ${entry.target ? '· Tgt '    + fmt(entry.target) : ''}
+      Entry ${fmt(entry.entryPrice)}${entry.atrTF ? ' · ATR(' + entry.atrTF + ') ₹' + entry.atrVal : ''}
+      ${entry.stop   ? ' · Stop '  + fmt(entry.stop)   : ''}
+      ${entry.target ? ' · Tgt '   + fmt(entry.target) : ''}
     </span>
-    ${validStr ? `<span style="font-family:Oxanium,sans-serif;font-size:0.5rem;${validCls};width:100%;padding-top:1px">${validStr}</span>` : ''}
+    <span style="font-family:Oxanium,sans-serif;font-size:0.5rem;width:100%;display:flex;align-items:center;gap:6px;padding-top:1px">
+      ${validStr ? `<span style="${validCls}">${validStr} (${entry.combo || entry.atrTF})</span>` : ''}
+      ${priceStatus}
+    </span>
   </div>`;
 }
 
