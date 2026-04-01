@@ -9424,9 +9424,10 @@ async function fetchSignalLog() {
     if (json.status !== 'ok' || !json.data) { console.warn('[SignalLog] Bad response:', json.status); return; }
 
     // Build lookup map: 'SYM|COMBO' → signal object
+    // Store ALL entries (a symbol can have multiple active combos)
     signalLog = {};
     json.data.forEach(d => {
-      const key = d.sym.toUpperCase() + '|' + d.combo;
+      const key = d.sym.toUpperCase() + '|' + d.combo.trim();
       signalLog[key] = d;
     });
     signalLogLoaded = true;
@@ -9442,17 +9443,31 @@ async function fetchSignalLog() {
 }
 
 // Helper: get signal log entry for a symbol across its combo labels
+// Returns the STRONGEST active combo entry (M-D-H > D-H > D:R2 > H-15m)
 function _getSignalEntry(sym, comboLabels) {
   if (!signalLogLoaded || !comboLabels) return null;
   const k = sym.toUpperCase();
-  // Try each combo label, return the most recent ACTIVE one
-  let best = null;
+
+  // Priority order — strongest combo first
+  const COMBO_PRIORITY = ['M-D-H: R4','D-H: R4','D:R2 & H:R4','H-15m: R4'];
+
+  // Collect all active entries for this symbol
+  const active = [];
   (comboLabels || []).forEach(combo => {
-    const entry = signalLog[k + '|' + combo];
+    const key   = k + '|' + combo.trim();
+    const entry = signalLog[key];
     if (!entry || entry.status !== 'ACTIVE') return;
-    if (!best || new Date(entry.entryTime) > new Date(best.entryTime)) best = entry;
+    active.push(entry);
   });
-  return best;
+
+  if (!active.length) return null;
+
+  // Return highest priority combo
+  for (let pi = 0; pi < COMBO_PRIORITY.length; pi++) {
+    const found = active.find(e => e.combo.trim() === COMBO_PRIORITY[pi]);
+    if (found) return found;
+  }
+  return active[0]; // fallback
 }
 
 // Helper: build signal log row HTML for Trade tab
