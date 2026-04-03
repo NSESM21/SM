@@ -8119,8 +8119,10 @@ function buildTradeTab() {
           ${_patternBadge(r.sym)}
         ${_signalLogRow(r.sym, r.consolLabels)}
         </td>
-        <td>${w52}</td>
-        <td class="ti-combos-cell">${consolPills}</td>
+        <td class="ti-pos-cell">
+          <div class="ti-pos-w52">${w52}</div>
+          <div class="ti-pos-pills">${consolPills}</div>
+        </td>
         <td>${tbcsPill(r.bcs, r.sym)}</td>
       </tr>`;
   }).join('');
@@ -8160,8 +8162,7 @@ function buildTradeTab() {
     <div class="ti-table-wrap">
       <table class="ti-table">
         <thead><tr>
-          <th>Symbol</th><th style="min-width:145px;color:#e2e8f0;letter-spacing:0.08em">Price / Chg%</th><th>52W Position</th>
-          <th>Console Combination(s)</th><th>BCS · T-BCS</th>
+          <th>Symbol</th><th style="min-width:145px;color:#e2e8f0;letter-spacing:0.08em">Price / Chg%</th><th>52W · Combinations</th><th>BCS · T-BCS</th>
         </tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
@@ -8274,6 +8275,20 @@ function buildInvestTab() {
       : '—';
     const earnBadge = getEarnBadge(r.sym);
 
+    // Console combination pills for this sym (from consolidatedTFs)
+    const _symConsols = (() => {
+      const s = new Set();
+      consolidatedTFs.forEach(tf => {
+        if (!BCS_CONSOL_LABELS.includes(tf.label)) return;
+        tf.cols.forEach(col => col.forEach(sym => { if (sym && sym.toUpperCase() === r.sym) s.add(tf.label); }));
+      });
+      return [...s];
+    })();
+    const consolPills = _symConsols.length
+      ? _symConsols.sort((a,b) => (CONSOL_META[b]||{strength:0}).strength - (CONSOL_META[a]||{strength:0}).strength)
+          .map(l => { const m = CONSOL_META[l]||{color:'#818cf8',desc:l}; return `<span class="ti-tf-pill consol" style="border-color:${m.color}55;color:${m.color};background:${m.color}14" title="${m.desc}">${l}</span>`; }).join('')
+      : '<span style="font-size:0.6rem;color:var(--muted)">—</span>';
+
     // Status badge: still in S4 zone vs moved above R4
     const statusBadge = `<span class="ti-s4-badge">M-S4</span>`;
 
@@ -8306,7 +8321,10 @@ function buildInvestTab() {
           <span class="ti-sector">${sector}${Object.keys(indexCache).length ? _sectorIdxBadge(sector) : ''}</span>
         </td>
         <td class="ti-price">${priceStr}<br>${pctStr}${trendCacheLoaded ? (_tsBadgeRow(r.sym) || '') : ''}</td>
-        <td>${w52}</td>
+        <td class="ti-pos-cell">
+          <div class="ti-pos-w52">${w52}</div>
+          <div class="ti-pos-pills">${consolPills}</div>
+        </td>
         <td>
           <div class="ti-fund-grid">
             <span class="ti-fund-lbl">ROE</span><span class="${fd.roe != null && fd.roe * 100 >= 15 ? 'val-green' : ''}">${roe}</span>
@@ -8446,7 +8464,7 @@ function buildInvestTab() {
     <div class="ti-table-wrap">
       <table class="ti-table">
         <thead><tr>
-          <th>Symbol</th><th style="min-width:145px;color:#e2e8f0;letter-spacing:0.08em">Price / Chg%</th><th>52W Position</th><th>Fundamentals</th><th>BCS · T-BCS + Risk</th>
+          <th>Symbol</th><th style="min-width:145px;color:#e2e8f0;letter-spacing:0.08em">Price / Chg%</th><th>52W · Combinations</th><th>Fundamentals</th><th>BCS · T-BCS + Risk</th>
         </tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
@@ -8801,7 +8819,7 @@ function buildSignalsSubTabBar() {
 
   return `<div class="signals-subtab-bar" id="signalsSubTabBar">
     <button class="sstab-btn" style="${base}${st('timeframe','#818cf8')}" onclick="setSignalsSubTab('timeframe')">
-      ⚡ Timeframe <span class="sig-sub-count" style="color:#818cf8">${tfCount||'—'}</span>
+      ⚡ TF <span class="sig-sub-count" style="color:#818cf8">${tfCount||'—'}</span>
     </button>
     <button class="sstab-btn" style="${base}${st('trade','#f97316')}" onclick="setSignalsSubTab('trade')">
       ⚡ <u>T</u>rade <span class="sig-sub-count" style="color:#f97316">${tradeCount||'—'}</span>${hasNew?'<span class="sig-new-dot"></span>':''}
@@ -8810,7 +8828,7 @@ function buildSignalsSubTabBar() {
       🌱 <u>I</u>nvest <span class="sig-sub-count" style="color:#34d399">${investCount||'—'}</span>
     </button>
     <button class="sstab-btn" style="${base}${st('candles','#f0c040')}" onclick="setSignalsSubTab('candles')">
-      🕯️ Candles <span class="sig-sub-count" style="color:#f0c040">${(window._patternSignals||[]).length||'—'}</span>
+      🕯 Cndl <span class="sig-sub-count" style="color:#f0c040">${(window._patternSignals||[]).length||'—'}</span>
     </button>
   </div>`;
 }
@@ -8839,7 +8857,7 @@ function buildSignalsSubTabBarInner() {
     : `border-bottom:2px solid transparent;color:var(--muted);background:transparent;`;
   return `
     <button class="sstab-btn" style="${base}${st('timeframe','#818cf8')}" onclick="setSignalsSubTab('timeframe')">
-      ⚡ Timeframe <span class="sig-sub-count" style="color:#818cf8">${tfCount||'—'}</span>
+      ⚡ TF <span class="sig-sub-count" style="color:#818cf8">${tfCount||'—'}</span>
     </button>
     <button class="sstab-btn" style="${base}${st('trade','#f97316')}" onclick="setSignalsSubTab('trade')">
       ⚡ <u>T</u>rade <span class="sig-sub-count" style="color:#f97316">${tradeCount||'—'}</span>${hasNew?'<span class="sig-new-dot"></span>':''}
@@ -8848,7 +8866,7 @@ function buildSignalsSubTabBarInner() {
       🌱 <u>I</u>nvest <span class="sig-sub-count" style="color:#34d399">${investCount||'—'}</span>
     </button>
     <button class="sstab-btn" style="${base}${st('candles','#f0c040')}" onclick="setSignalsSubTab('candles')">
-      🕯️ Candles <span class="sig-sub-count" style="color:#f0c040">${(window._patternSignals||[]).length||'—'}</span>
+      🕯 Cndl <span class="sig-sub-count" style="color:#f0c040">${(window._patternSignals||[]).length||'—'}</span>
     </button>`;
 }
 
@@ -8974,8 +8992,9 @@ updateTabBadges = function() {
 
 // ── Keyboard shortcuts ─────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  // Never intercept when typing in an input
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+  // Never intercept when typing in an input or interacting with a select/editable element
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' ||
+      e.target.tagName === 'SELECT' || e.target.isContentEditable) {
     // Only handle Escape inside inputs — to exit search
     if (e.key === 'Escape') {
       const gs = document.getElementById('gSearch');
@@ -9871,6 +9890,19 @@ async function fetchSignalsData() {
   }
 }
 
+// ── Global helper: compact pattern date — strips "India Standard Time" / GMT verbose text ──
+function _fmtPatDate(raw) {
+  if (!raw) return '—';
+  try {
+    const d = new Date(raw);
+    if (!isNaN(d)) {
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return d.getDate() + ' ' + months[d.getMonth()];
+    }
+  } catch(e) {}
+  return String(raw).replace(/\s*\d{2}:\d{2}:\d{2}\s*GMT[+\-]\d{4}\s*\([^)]*\)/g,'').replace(/\d{4}\s*$/,'').trim().slice(0,12);
+}
+
 function _patternBadge(sym) {
   const sigs = window._patternSignals;
   if (!sigs || !sigs.length) return '';
@@ -9887,9 +9919,10 @@ function _patternBadge(sym) {
   const bg  = best.signal === 'BULLISH' ? 'rgba(0,229,160,0.09)'
             : best.signal === 'BEARISH' ? 'rgba(251,113,133,0.09)' : 'rgba(251,191,36,0.07)';
   const icon = best.signal === 'BULLISH' ? '🕯️↑' : best.signal === 'BEARISH' ? '🕯️↓' : '🕯️';
+  const dateLabel = _fmtPatDate(best.date);
   return `<div class="pat-badge" style="border-left-color:${col};background:${bg}">
     <span style="color:${col};font-weight:800">${icon} ${best.pattern}</span>
-    <span class="pat-badge-meta">${best.tf} · ${best.date}</span>
+    <span class="pat-badge-meta">${best.tf} · ${dateLabel}</span>
     <span class="pat-badge-body" style="margin-left:auto">Body ${best.bodyPct}%</span>
   </div>`;
 }
@@ -9937,7 +9970,7 @@ function _buildPatternStrip() {
       .map(s => `<span class="pat-pill"
           onclick="openSymbolModal('${s.sym}')"
           style="color:${col};background:${bg};border-color:${col}44"
-          title="${s.pattern} · ${s.tf} · ${s.date} · Body ${s.bodyPct}%">
+          title="${s.pattern} · ${s.tf} · ${_fmtPatDate(s.date)} · Body ${s.bodyPct}%">
           ${s.sym}<span style="opacity:0.65;font-size:0.52rem;margin-left:3px">${s.tf}</span>
         </span>`)
       .join('');
@@ -10011,6 +10044,9 @@ function buildCandlesTab() {
   const bearCount = filtered.filter(s => s.signal === 'BEARISH').length;
   const neutCount = filtered.filter(s => s.signal === 'NEUTRAL').length;
 
+  // Helper: use global compact date formatter
+  const fmtPatDate = _fmtPatDate;
+
   // Filter bar
   const btnBase = `font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:700;
     padding:3px 10px;border-radius:4px;border:1px solid;cursor:pointer;transition:all 0.15s;`;
@@ -10070,7 +10106,7 @@ function buildCandlesTab() {
         <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;font-weight:700;color:${col}">${s.pattern}</span>
         <div style="display:flex;gap:10px;font-family:Oxanium,sans-serif;font-size:0.58rem;color:var(--muted)">
           <span>Body ${s.bodyPct}%</span>
-          <span>${s.date}</span>
+          <span>${fmtPatDate(s.date)}</span>
         </div>
       </div>
     </div>`;
@@ -10167,28 +10203,35 @@ function _setCandleFilter(key, val) {
 .ti-table-wrap { overflow-x:auto; border-radius:8px; border:1px solid var(--border2);
   background:var(--surface); }
 .ti-table { width:100%; border-collapse:collapse; white-space:nowrap; }
-.ti-table thead th { font-family:'Oxanium',sans-serif; font-size:0.68rem; font-weight:800;
-  letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);
-  padding:10px 14px; background:var(--surface2); border-bottom:1px solid var(--border2);
+.ti-table thead th { font-family:'Oxanium',sans-serif; font-size:0.75rem; font-weight:800;
+  letter-spacing:0.1em; text-transform:uppercase; color:#8ab0d0;
+  padding:12px 18px; background:var(--surface2); border-bottom:2px solid var(--border2);
   text-align:left; }
+.ti-table thead th[style*="color:#e2e8f0"] { color:#e2e8f0 !important; font-size:0.8rem; }
 .ti-row { cursor:pointer; transition:background 0.12s; }
-.ti-row:hover td { background:rgba(255,255,255,0.03) !important; }
-.ti-row td { padding:11px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.ti-row:hover td { background:rgba(255,255,255,0.04) !important; }
+.ti-row td { padding:14px 18px; border-bottom:1px solid var(--border); vertical-align:top; }
 .ti-row.s4-highlight td { background:rgba(52,211,153,0.04); }
 .ti-row.s4-highlight:hover td { background:rgba(52,211,153,0.08) !important; }
 
-.ti-sym-cell { min-width:100px; }
-.ti-sym { font-family:'Oxanium',sans-serif; font-size:0.9rem; font-weight:800;
+.ti-sym-cell { min-width:130px; vertical-align:middle !important; }
+.ti-sym { font-family:'Oxanium',sans-serif; font-size:1.05rem; font-weight:800;
   letter-spacing:0.04em; color:var(--text); }
-.ti-sector { font-size:0.65rem; color:var(--muted); display:block; margin-top:2px; }
+.ti-sector { font-size:0.68rem; color:var(--muted); display:block; margin-top:3px; }
 .ti-price { font-family:'Oxanium',sans-serif; font-size:1.05rem; font-weight:700;
-  color:var(--text); min-width:130px; border-left:2px solid rgba(255,255,255,0.06); }
-.ti-price .ti-price-val { font-size:1.18rem; font-weight:800; letter-spacing:0.02em; display:block; line-height:1.2; }
-.ti-price .ti-pct-val   { font-size:0.95rem; font-weight:800; letter-spacing:0.03em; }
+  color:var(--text); min-width:260px; border-left:3px solid rgba(0,229,160,0.18);
+  padding-left:20px !important; }
+.ti-price .ti-price-val { font-size:1.45rem; font-weight:800; letter-spacing:0.01em; display:block; line-height:1.2; margin-bottom:2px; }
+.ti-price .ti-pct-val   { font-size:1.05rem; font-weight:800; letter-spacing:0.03em; }
 /* Mobile: keep ti-price compact */
-body.mobile-view .ti-price { font-size:0.82rem; min-width:80px; border-left:none; }
+body.mobile-view .ti-price { font-size:0.82rem; min-width:80px; border-left:none; padding-left:14px !important; }
 body.mobile-view .ti-price .ti-price-val { font-size:0.82rem; }
 body.mobile-view .ti-price .ti-pct-val   { font-size:0.78rem; }
+
+/* ── Merged 52W + Combinations column ── */
+.ti-pos-cell { min-width:160px; vertical-align:middle !important; }
+.ti-pos-w52  { margin-bottom:8px; }
+.ti-pos-pills { display:flex; flex-wrap:wrap; gap:3px; }
 
 .ti-tf-pill { font-family:'Oxanium',sans-serif; font-size:0.58rem; font-weight:700;
   letter-spacing:0.05em; padding:2px 7px; border-radius:4px; border:1px solid;
@@ -10404,20 +10447,23 @@ body.mobile-view .signals-subtab-bar,
 html.mobile-view .signals-subtab-bar {
   position: relative; top: auto;
   padding: 0;
+  flex-wrap: nowrap;
 }
 body.mobile-view .sstab-btn,
 html.mobile-view .sstab-btn {
   flex: 1 1 0; text-align: center;
-  padding: 11px 4px;
-  font-size: 0.72rem; letter-spacing: 0.03em; min-width: 0;
+  padding: 9px 2px;
+  font-size: 0.62rem; letter-spacing: 0; min-width: 0;
+  overflow: hidden; white-space: nowrap;
 }
 @media (max-width: 600px) {
   body.mobile-view .signals-subtab-bar,
-  html.mobile-view .signals-subtab-bar { position:relative; top:auto; padding:0; }
+  html.mobile-view .signals-subtab-bar { position:relative; top:auto; padding:0; flex-wrap:nowrap; }
   body.mobile-view .sstab-btn,
   html.mobile-view .sstab-btn {
-    flex:1 1 0; text-align:center; padding:11px 4px;
-    font-size:0.72rem; letter-spacing:0.03em; min-width:0;
+    flex:1 1 0; text-align:center; padding:9px 2px;
+    font-size:0.62rem; letter-spacing:0; min-width:0;
+    overflow:hidden; white-space:nowrap;
   }
 }
 
