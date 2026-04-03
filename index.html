@@ -8068,10 +8068,10 @@ function buildTradeTab() {
     const fd = _getLiveFd(r.sym);
     const price    = fd.price;
     const chgPct = _getChgPct(fd);
-    const priceStr = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+    const priceStr = price ? `<span class="ti-price-val">₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>` : '<span class="ti-price-val">—</span>';
     const pctStr   = chgPct != null
-      ? `<span class="${chgPct >= 0 ? 'val-green' : 'val-red'}">${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%</span>`
-      : '<span style="color:var(--muted)">—</span>';
+      ? `<span class="ti-pct-val ${chgPct >= 0 ? 'val-green' : 'val-red'}">${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%</span>`
+      : '<span class="ti-pct-val" style="color:var(--muted)">—</span>';
     const w52 = r.bcs.pct52 != null
       ? `<div class="ti-52w-bar"><div class="ti-52w-fill" style="width:${r.bcs.pct52}%"></div></div><span style="font-size:10px;color:var(--muted)">${r.bcs.pct52}%</span>`
       : '—';
@@ -8160,7 +8160,7 @@ function buildTradeTab() {
     <div class="ti-table-wrap">
       <table class="ti-table">
         <thead><tr>
-          <th>Symbol</th><th>Price / Chg%</th><th>52W Position</th>
+          <th>Symbol</th><th style="min-width:145px;color:#e2e8f0;letter-spacing:0.08em">Price / Chg%</th><th>52W Position</th>
           <th>Console Combination(s)</th><th>BCS · T-BCS</th>
         </tr></thead>
         <tbody>${tableRows}</tbody>
@@ -8237,11 +8237,11 @@ function buildInvestTab() {
   const tableRows = rows.map(r => {
     const fd = Object.assign({}, _getLiveFd(r.sym), { pct52: r.bcs.pct52 });
     const price    = fd.price;
-    const priceStr = price ? `₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—';
+    const priceStr = price ? `<span class="ti-price-val">₹${Number(price).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>` : '<span class="ti-price-val">—</span>';
     const chgPct = _getChgPct(fd);
     const pctStr   = chgPct != null
-      ? `<span class="${chgPct >= 0 ? 'val-green' : 'val-red'}">${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%</span>`
-      : '—';
+      ? `<span class="ti-pct-val ${chgPct >= 0 ? 'val-green' : 'val-red'}">${chgPct >= 0 ? '+' : ''}${chgPct.toFixed(2)}%</span>`
+      : '<span class="ti-pct-val" style="color:var(--muted)">—</span>';
     const roe  = fd.roe   != null ? (fd.roe  * 100).toFixed(1) + '%' : '—';
     const roce = fd.roce  != null ? (fd.roce * 100).toFixed(1) + '%' : '—';
     const de   = fd.debtToEquity != null ? fd.debtToEquity.toFixed(2) : '—';
@@ -8446,7 +8446,7 @@ function buildInvestTab() {
     <div class="ti-table-wrap">
       <table class="ti-table">
         <thead><tr>
-          <th>Symbol</th><th>Price / Chg%</th><th>52W Position</th><th>Fundamentals</th><th>BCS · T-BCS + Risk</th>
+          <th>Symbol</th><th style="min-width:145px;color:#e2e8f0;letter-spacing:0.08em">Price / Chg%</th><th>52W Position</th><th>Fundamentals</th><th>BCS · T-BCS + Risk</th>
         </tr></thead>
         <tbody>${tableRows}</tbody>
       </table>
@@ -10077,27 +10077,27 @@ function buildCandlesTab() {
   }).join('');
 
   return `<div style="padding:0">
-    <!-- Filter bar -->
-    <div style="padding:10px 14px;border-bottom:1px solid var(--border2);display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface)">
-      <div style="display:flex;gap:4px">${sigBtns}</div>
-      <div style="width:1px;height:20px;background:var(--border2)"></div>
-      <div style="display:flex;gap:4px">${tfBtns}</div>
-      <div style="width:1px;height:20px;background:var(--border2)"></div>
+    <!-- Filter bar — sticky so it stays visible while scrolling on mobile -->
+    <div style="position:sticky;top:0;z-index:8;padding:8px 12px;border-bottom:1px solid var(--border2);display:flex;flex-wrap:nowrap;gap:6px;align-items:center;background:var(--surface);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;white-space:nowrap">
+      <div style="display:flex;gap:4px;flex-shrink:0">${sigBtns}</div>
+      <div style="width:1px;height:20px;background:var(--border2);flex-shrink:0"></div>
+      <div style="display:flex;gap:4px;flex-shrink:0">${tfBtns}</div>
+      <div style="width:1px;height:20px;background:var(--border2);flex-shrink:0"></div>
       <select onchange="_setCandleFilter('pattern',this.value)"
         style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:700;
           background:var(--surface2);color:var(--text);border:1px solid var(--border2);
-          border-radius:4px;padding:3px 8px;cursor:pointer">
+          border-radius:4px;padding:3px 8px;cursor:pointer;flex-shrink:0">
         ${patOptions}
       </select>
       <input type="text" placeholder="Search symbol…" value="${_candleFilter.search}"
         oninput="_setCandleFilter('search',this.value)"
         style="font-family:Oxanium,sans-serif;font-size:0.62rem;
           background:var(--surface2);color:var(--text);border:1px solid var(--border2);
-          border-radius:4px;padding:3px 10px;width:130px;outline:none">
+          border-radius:4px;padding:3px 10px;width:110px;outline:none;flex-shrink:0">
     </div>
     ${statsBar}
     <!-- Cards grid -->
-    <div style="padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;overflow-y:auto;max-height:calc(100vh - 280px)">
+    <div style="padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px">
       ${cards || `<div style="grid-column:1/-1;text-align:center;padding:40px;font-family:Oxanium,sans-serif;color:var(--muted)">No patterns match your filters</div>`}
     </div>
   </div>`;
@@ -10107,11 +10107,29 @@ function _setCandleFilter(key, val) {
   _candleFilter[key] = val;
   const mc = document.getElementById('mainContent');
   if (!mc) return;
-  const sc = document.getElementById('signalsContent');
-  if (sc) sc.innerHTML = buildCandlesTab();
-  // Refresh sub-tab bar counts
-  const sbar = document.getElementById('signalsSubTabBar');
-  if (sbar) sbar.innerHTML = buildSignalsSubTabBarInner();
+
+  const isMob = document.body.classList.contains('mobile-view') ||
+                document.documentElement.classList.contains('mobile-view');
+
+  if (isMob) {
+    // ── MOBILE PATH: mainContent IS the candle container ──────────────────
+    // Re-inject the sub-tab bar into the fixed #mobileSubTabBar element
+    const subBarEl = document.getElementById('mobileSubTabBar');
+    if (subBarEl) {
+      subBarEl.innerHTML = buildSignalsSubTabBarInner();
+      subBarEl.style.display = 'block';
+    }
+    mc.classList.add('has-subtab-bar');
+    // Replace mainContent directly — same as setSignalsSubTab('candles') does
+    mc.innerHTML = buildCandlesTab();
+  } else {
+    // ── DESKTOP PATH: update #signalsContent inner panel ──────────────────
+    const sc = document.getElementById('signalsContent');
+    if (sc) sc.innerHTML = buildCandlesTab();
+    // Refresh sub-tab bar counts
+    const sbar = document.getElementById('signalsSubTabBar');
+    if (sbar) sbar.innerHTML = buildSignalsSubTabBarInner();
+  }
 }
 
 </script>
@@ -10163,8 +10181,14 @@ function _setCandleFilter(key, val) {
 .ti-sym { font-family:'Oxanium',sans-serif; font-size:0.9rem; font-weight:800;
   letter-spacing:0.04em; color:var(--text); }
 .ti-sector { font-size:0.65rem; color:var(--muted); display:block; margin-top:2px; }
-.ti-price { font-family:'Oxanium',sans-serif; font-size:0.82rem; font-weight:700;
-  color:var(--text); min-width:90px; }
+.ti-price { font-family:'Oxanium',sans-serif; font-size:1.05rem; font-weight:700;
+  color:var(--text); min-width:130px; border-left:2px solid rgba(255,255,255,0.06); }
+.ti-price .ti-price-val { font-size:1.18rem; font-weight:800; letter-spacing:0.02em; display:block; line-height:1.2; }
+.ti-price .ti-pct-val   { font-size:0.95rem; font-weight:800; letter-spacing:0.03em; }
+/* Mobile: keep ti-price compact */
+body.mobile-view .ti-price { font-size:0.82rem; min-width:80px; border-left:none; }
+body.mobile-view .ti-price .ti-price-val { font-size:0.82rem; }
+body.mobile-view .ti-price .ti-pct-val   { font-size:0.78rem; }
 
 .ti-tf-pill { font-family:'Oxanium',sans-serif; font-size:0.58rem; font-weight:700;
   letter-spacing:0.05em; padding:2px 7px; border-radius:4px; border:1px solid;
