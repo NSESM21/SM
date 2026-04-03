@@ -2238,12 +2238,12 @@ function _sigTsRow(sym, comboLabels) {
   // Colour: Day 1 = green (fresh), Day 2 = yellow (still valid), Day 3+ = red (stale)
   const col = dayNum === 1 ? '#00e5a0' : dayNum === 2 ? '#fbbf24' : '#fb7185';
   const freshLabel = dayNum === 1 ? '🟢 Fresh signal' : dayNum === 2 ? '🟡 1 day old' : `🔴 ${ts.daysAgo}d old — stale`;
-  return `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:3px 6px;
+  return `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 10px;
     background:${dayNum===1?'rgba(0,229,160,0.06)':dayNum===2?'rgba(251,191,36,0.06)':'rgba(251,113,133,0.06)'};
-    border-radius:4px;border-left:2px solid ${col}">
-    <span style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:800;color:${col}">⏱ Day ${dayNum}</span>
-    <span style="font-family:Oxanium,sans-serif;font-size:0.55rem;color:var(--muted)">${freshLabel}</span>
-    <span style="font-family:Oxanium,sans-serif;font-size:0.52rem;color:var(--muted);margin-left:auto">
+    border-radius:5px;border-left:3px solid ${col}">
+    <span style="font-family:Oxanium,sans-serif;font-size:0.85rem;font-weight:800;color:${col}">⏱ Day ${dayNum}</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.78rem;color:var(--muted)">${freshLabel}</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;color:var(--muted);margin-left:auto">
       ${ts.label} ${ts.time}
     </span>
   </div>`;
@@ -8336,13 +8336,14 @@ function buildInvestTab() {
           </div>
         </td>
         <td>
+          ${trendCacheLoaded ? (_tsBadgeRow(r.sym) || '') : ''}
           ${tbcsPill(r.bcs, r.sym)}
           ${_investSetupRow(r.sym, fd.price)}
-          <div style="margin-top:5px;padding:4px 6px;background:var(--surface2);border-radius:5px;font-size:0.6rem;color:var(--muted)">
-            <span style="color:var(--text);font-family:Oxanium,sans-serif;font-weight:700">${_posSizeLabel(r.bcs.total, null, fd.sector || fundSector[r.sym] || '', fd)}</span>
+          <div style="margin-top:6px;padding:5px 8px;background:var(--surface2);border-radius:5px;font-size:0.75rem;color:var(--muted);font-family:Oxanium,sans-serif">
+            <span style="color:var(--text);font-weight:800">${_posSizeLabel(r.bcs.total, null, fd.sector || fundSector[r.sym] || '', fd)}</span>
             <span style="opacity:0.6"> suggested size</span>
           </div>
-          <div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px">${riskFlags.join('')}</div>
+          <div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px">${riskFlags.join('')}</div>
         </td>
       </tr>`;
   }).join('');
@@ -9555,20 +9556,20 @@ function _signalLogRow(sym, comboLabels) {
     const pct = ((curPrice - entry.entryPrice) / entry.entryPrice * 100).toFixed(1);
     const clr = pct >= 0 ? '#00e5a0' : '#fb7185';
     const pfx = pct >= 0 ? '▲' : '▼';
-    priceStatus = `<span style="font-family:Oxanium,sans-serif;font-size:0.5rem;color:${clr};margin-left:4px">${pfx}${Math.abs(pct)}% from entry</span>`;
+    priceStatus = `<span style="font-family:Oxanium,sans-serif;font-size:0.72rem;color:${clr};margin-left:4px">${pfx}${Math.abs(pct)}% from entry</span>`;
   }
 
-  return `<div style="display:flex;align-items:center;gap:6px;margin-top:4px;padding:4px 8px;
-    background:rgba(0,229,160,0.04);border-radius:4px;border-left:2px solid #00e5a0;flex-wrap:wrap">
-    <span style="font-family:Oxanium,sans-serif;font-size:0.58rem;font-weight:800;color:#00e5a0">📍 ENTRY LOG</span>
-    <span style="font-family:Oxanium,sans-serif;font-size:0.55rem;${ageCls}">${ageLabel}</span>
-    <span style="font-family:Oxanium,sans-serif;font-size:0.52rem;color:var(--muted)">${dateStr}</span>
-    <span style="font-family:Oxanium,sans-serif;font-size:0.52rem;color:var(--muted);margin-left:auto">
+  return `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 10px;
+    background:rgba(0,229,160,0.04);border-radius:5px;border-left:3px solid #00e5a0;flex-wrap:wrap">
+    <span style="font-family:Oxanium,sans-serif;font-size:0.82rem;font-weight:800;color:#00e5a0">📍 ENTRY LOG</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.78rem;${ageCls}">${ageLabel}</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;color:var(--muted)">${dateStr}</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;color:var(--muted);margin-left:auto">
       Entry ${fmt(entry.entryPrice)}${entry.atrTF ? ' · ATR(' + entry.atrTF + ') ₹' + entry.atrVal : ''}
       ${entry.stop   ? ' · Stop '  + fmt(entry.stop)   : ''}
       ${entry.target ? ' · Tgt '   + fmt(entry.target) : ''}
     </span>
-    <span style="font-family:Oxanium,sans-serif;font-size:0.5rem;width:100%;display:flex;align-items:center;gap:6px;padding-top:1px">
+    <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;width:100%;display:flex;align-items:center;gap:6px;padding-top:2px">
       ${validStr ? `<span style="${validCls}">${validStr} (${entry.combo || entry.atrTF})</span>` : ''}
       ${priceStatus}
     </span>
@@ -9920,7 +9921,7 @@ function _patternBadge(sym) {
             : best.signal === 'BEARISH' ? 'rgba(251,113,133,0.09)' : 'rgba(251,191,36,0.07)';
   const icon = best.signal === 'BULLISH' ? '🕯️↑' : best.signal === 'BEARISH' ? '🕯️↓' : '🕯️';
   const dateLabel = _fmtPatDate(best.date);
-  return `<div class="pat-badge" style="border-left-color:${col};background:${bg}">
+  return `<div class="pat-badge pat-badge-lg" style="border-left-color:${col};background:${bg};margin-top:6px">
     <span style="color:${col};font-weight:800">${icon} ${best.pattern}</span>
     <span class="pat-badge-meta">${best.tf} · ${dateLabel}</span>
     <span class="pat-badge-body" style="margin-left:auto">Body ${best.bodyPct}%</span>
@@ -10253,18 +10254,18 @@ body.mobile-view .ti-price .ti-pct-val   { font-size:0.78rem; }
   border-radius:4px; padding:1px 6px; letter-spacing:0.06em; }
 .ti-earn-soon { font-family:'Oxanium',sans-serif; font-size:0.62rem; font-weight:700;
   color:#f59e0b; }
-.ti-risk-flag { font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
-  background:rgba(251,113,133,0.15); color:#fb7185; border-radius:3px; padding:1px 5px;
+.ti-risk-flag { font-family:'Oxanium',sans-serif; font-size:0.72rem; font-weight:800;
+  background:rgba(251,113,133,0.15); color:#fb7185; border-radius:4px; padding:3px 8px;
   border:1px solid rgba(251,113,133,0.3); }
-.ti-risk-warn { font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
-  background:rgba(251,191,36,0.15); color:#fbbf24; border-radius:3px; padding:1px 5px;
+.ti-risk-warn { font-family:'Oxanium',sans-serif; font-size:0.72rem; font-weight:800;
+  background:rgba(251,191,36,0.15); color:#fbbf24; border-radius:4px; padding:3px 8px;
   border:1px solid rgba(251,191,36,0.3); }
-.ti-risk-good { font-family:'Oxanium',sans-serif; font-size:0.55rem; font-weight:800;
-  background:rgba(52,211,153,0.12); color:#34d399; border-radius:3px; padding:1px 5px;
+.ti-risk-good { font-family:'Oxanium',sans-serif; font-size:0.72rem; font-weight:800;
+  background:rgba(52,211,153,0.12); color:#34d399; border-radius:4px; padding:3px 8px;
   border:1px solid rgba(52,211,153,0.3); }
-.ti-fund-grid { display:grid; grid-template-columns:32px auto 32px auto 32px auto;
-  gap:2px 8px; align-items:center; font-size:0.72rem; min-width:200px; }
-.ti-fund-lbl { color:var(--muted); font-size:0.62rem; }
+.ti-fund-grid { display:grid; grid-template-columns:44px auto 44px auto 44px auto;
+  gap:5px 12px; align-items:center; font-size:0.92rem; font-weight:700; min-width:220px; }
+.ti-fund-lbl { color:var(--muted); font-size:0.72rem; font-weight:600; letter-spacing:0.04em; font-family:'Oxanium',sans-serif; }
 .ti-legend { display:flex; gap:14px; flex-wrap:wrap; margin-top:12px;
   font-size:0.68rem; color:var(--muted); font-family:'Oxanium',sans-serif; }
 
@@ -10529,24 +10530,28 @@ body.light-theme .sig-sub-count { background:rgba(0,0,0,0.06); }
 
 /* ── TRADE SETUP ROW ─────────────────────────────────────────────────────── */
 .ti-setup-row {
-  display:flex; align-items:center; gap:8px; margin-top:5px;
-  padding:4px 8px; border-radius:5px;
+  display:flex; align-items:center; gap:10px; margin-top:7px;
+  padding:6px 10px; border-radius:6px;
   background:var(--surface2); border:1px solid var(--border);
   flex-wrap:wrap; font-family:'Oxanium',sans-serif;
 }
 .ti-setup-item {
-  display:flex; align-items:center; gap:4px;
-  font-size:0.58rem; white-space:nowrap;
+  display:flex; align-items:center; gap:5px;
+  font-size:0.72rem; white-space:nowrap;
 }
 .ti-setup-lbl {
-  color:var(--muted); font-weight:600; letter-spacing:0.04em;
+  color:var(--muted); font-weight:600; letter-spacing:0.04em; font-size:0.68rem;
 }
 .ti-setup-val {
-  font-weight:800; font-size:0.62rem;
+  font-weight:800; font-size:0.88rem;
 }
 .ti-setup-divider {
-  width:1px; height:12px; background:var(--border2); flex-shrink:0;
+  width:1px; height:14px; background:var(--border2); flex-shrink:0;
 }
+/* Mobile: keep compact */
+body.mobile-view .ti-setup-item { font-size:0.58rem; }
+body.mobile-view .ti-setup-lbl  { font-size:0.55rem; }
+body.mobile-view .ti-setup-val  { font-size:0.62rem; }
 /* Entry quality pill */
 .entry-great { color:#00e5a0; }
 .entry-good  { color:#34d399; }
@@ -10779,13 +10784,16 @@ body.light-theme #price-sort-bar { background: #f0f2f5; border-color: #c8d0e0; }
 
 /* ── TREND STRUCTURE BADGES ─────────────────────────────────────────────── */
 .ts-badge-row {
-  display:flex; align-items:center; gap:3px; margin-top:4px; flex-wrap:wrap;
+  display:flex; align-items:center; gap:5px; margin-top:6px; flex-wrap:wrap;
 }
 .ts-badge {
-  font-family:'Oxanium',sans-serif; font-size:0.65rem; font-weight:800;
-  letter-spacing:0.05em; border-radius:4px; padding:2px 7px;
-  white-space:nowrap; border:1px solid transparent; line-height:1.7;
+  font-family:'Oxanium',sans-serif; font-size:0.88rem; font-weight:800;
+  letter-spacing:0.04em; border-radius:5px; padding:4px 10px;
+  white-space:nowrap; border:1px solid transparent; line-height:1.5;
 }
+/* Desktop: keep badges readable but not overwhelming in non-price columns */
+body.mobile-view .ts-badge { font-size:0.65rem; padding:2px 7px; }
+body.mobile-view .ts-badge-row { gap:3px; margin-top:4px; }
 .ts-badge.up-s   { color:#00e5a0; background:rgba(0,229,160,0.12);   border-color:rgba(0,229,160,0.35);   }
 .ts-badge.up-w   { color:#34d399; background:rgba(52,211,153,0.10);  border-color:rgba(52,211,153,0.25);  }
 .ts-badge.dn-s   { color:#fb7185; background:rgba(251,113,133,0.12); border-color:rgba(251,113,133,0.35); }
@@ -10794,10 +10802,11 @@ body.light-theme #price-sort-bar { background: #f0f2f5; border-color: #c8d0e0; }
 .ts-badge.insuf  { color:#8a9ab0; background:rgba(138,154,176,0.08); border-color:rgba(138,154,176,0.2);  }
 /* Alignment pill */
 .ts-align {
-  font-family:'Oxanium',sans-serif; font-size:0.65rem; font-weight:800;
-  letter-spacing:0.04em; border-radius:20px; padding:2px 8px;
+  font-family:'Oxanium',sans-serif; font-size:0.82rem; font-weight:800;
+  letter-spacing:0.04em; border-radius:20px; padding:4px 10px;
   white-space:nowrap; border:1px solid transparent;
 }
+body.mobile-view .ts-align { font-size:0.65rem; padding:2px 8px; }
 /* T-BCS block */
 .tbcs-block {
   margin-top:6px; padding:4px 6px; border-radius:5px;
@@ -10903,6 +10912,17 @@ body.light-theme .ts-modal-panel { border-color:#e8ddd0; }
   white-space: nowrap;
   cursor: default;
 }
+/* Larger variant used in Trade tab price column */
+.pat-badge-lg {
+  display: flex;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 5px 10px;
+  border-radius: 5px;
+  gap: 8px;
+  border-left-width: 3px;
+}
+body.mobile-view .pat-badge-lg { font-size:0.62rem; padding:3px 7px; gap:5px; }
 .pat-badge.bull { color:#00e5a0; background:rgba(0,229,160,0.10); border-color:rgba(0,229,160,0.35); }
 .pat-badge.bear { color:#fb7185; background:rgba(251,113,133,0.10); border-color:rgba(251,113,133,0.35); }
 .pat-badge.neut { color:#a0aec0; background:rgba(160,174,192,0.10); border-color:rgba(160,174,192,0.30); }
