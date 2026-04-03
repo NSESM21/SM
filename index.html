@@ -3381,6 +3381,7 @@ async function loadSheet() {
     // ── Fetch corporate actions + earnings result dates in background ──
     setTimeout(() => fetchCorpActionsData(), 3500);
     setTimeout(() => fetchEarningsData(),    4200);
+    setTimeout(() => fetchSignalsData(),     6000);
 
   } catch(e) {
     console.error('Fetch failed:', e);
@@ -5441,6 +5442,7 @@ function mobBuildTrade() {
           <span style="font-family:Oxanium,sans-serif;font-size:0.5rem;color:var(--muted);margin-left:auto">${ts.time}</span>
         </div>`;
       })()}
+      ${_patternBadge(r.sym)}
       ${_signalLogRow(r.sym, r.consolLabels)}
     </div>`;
   }).join('');
@@ -8114,6 +8116,7 @@ function buildTradeTab() {
           ${trendCacheLoaded ? (_tsBadgeRow(r.sym) || '') : ''}
           ${_tradeSetupRow(r.sym, r.bcs.pct52, fd.price, r.consolLabels)}
           ${_sigTsRow(r.sym, r.consolLabels)}
+          ${_patternBadge(r.sym)}
         ${_signalLogRow(r.sym, r.consolLabels)}
         </td>
         <td>${w52}</td>
@@ -8695,7 +8698,7 @@ function openSymbolModal(sym) {
 let activeSignalsSubTab = 'timeframe';
 try {
   const saved = localStorage.getItem('nse-signals-subtab');
-  if (saved === 'trade' || saved === 'invest' || saved === 'timeframe') activeSignalsSubTab = saved;
+  if (saved === 'trade' || saved === 'invest' || saved === 'timeframe' || saved === 'candles') activeSignalsSubTab = saved;
 } catch(e) {}
 
 function setSignalsSubTab(tab) {
@@ -8728,6 +8731,9 @@ function setSignalsSubTab(tab) {
     } else if (tab === 'invest') {
       _showSubBar();
       mc.innerHTML = mobBuildInvest();
+    } else if (tab === 'candles') {
+      _showSubBar();
+      mc.innerHTML = buildCandlesTab();
     } else {
       // Timeframe: call the full override — it handles sub-bar + margin
       mc.innerHTML = mobBuildConsol(searchTerm.toLowerCase());
@@ -8803,6 +8809,9 @@ function buildSignalsSubTabBar() {
     <button class="sstab-btn" style="${base}${st('invest','#34d399')}" onclick="setSignalsSubTab('invest')">
       🌱 <u>I</u>nvest <span class="sig-sub-count" style="color:#34d399">${investCount||'—'}</span>
     </button>
+    <button class="sstab-btn" style="${base}${st('candles','#f0c040')}" onclick="setSignalsSubTab('candles')">
+      🕯️ Candles <span class="sig-sub-count" style="color:#f0c040">${(window._patternSignals||[]).length||'—'}</span>
+    </button>
   </div>`;
 }
 
@@ -8837,6 +8846,9 @@ function buildSignalsSubTabBarInner() {
     </button>
     <button class="sstab-btn" style="${base}${st('invest','#34d399')}" onclick="setSignalsSubTab('invest')">
       🌱 <u>I</u>nvest <span class="sig-sub-count" style="color:#34d399">${investCount||'—'}</span>
+    </button>
+    <button class="sstab-btn" style="${base}${st('candles','#f0c040')}" onclick="setSignalsSubTab('candles')">
+      🕯️ Candles <span class="sig-sub-count" style="color:#f0c040">${(window._patternSignals||[]).length||'—'}</span>
     </button>`;
 }
 
@@ -8848,6 +8860,8 @@ function buildSignalsWrapper(term) {
     content = buildConsolidated(term || searchTerm.toLowerCase());
   } else if (activeSignalsSubTab === 'trade') {
     content = buildTradeTab();
+  } else if (activeSignalsSubTab === 'candles') {
+    content = buildCandlesTab();
   } else {
     content = buildInvestTab();
   }
@@ -9823,6 +9837,283 @@ async function refreshTrendCache() {
   showKbToast('✓ Trend structure refreshed');
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+//  PATTERN SIGNALS INTEGRATION (pattern.gs)
+// ═══════════════════════════════════════════════════════════════════════
+
+window._patternSignals = [];
+
+async function fetchSignalsData() {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 25000);
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=patterns&t=${Date.now()}`,
+      { signal: ctrl.signal, redirect: 'follow', cache: 'no-store' });
+    clearTimeout(t);
+    if (!res.ok) { console.warn('[Patterns] HTTP', res.status); return; }
+    const json = await res.json();
+    if (json.status !== 'ok' || !json.data || !json.data.length) {
+      console.log('[Patterns] No data yet — run runDetectAllPatterns() in Apps Script');
+      return;
+    }
+    window._patternSignals = json.data;
+    console.log('[Patterns] Loaded', json.data.length, 'pattern signals');
+    // Re-render the pattern strip in-place without full render()
+    const stripEl = document.getElementById('patternStrip');
+    if (stripEl) {
+      const fresh = _buildPatternStrip();
+      if (fresh) stripEl.outerHTML = fresh;
+    } else if (activeTab === 'consolidated') {
+      render();
+    }
+  } catch(e) {
+    console.warn('[Patterns] fetch failed:', e.message);
+  }
+}
+
+function _patternBadge(sym) {
+  const sigs = window._patternSignals;
+  if (!sigs || !sigs.length) return '';
+  const symUp = (sym || '').toUpperCase();
+  const TF_PRIORITY = ['1D', '1W', '1H', '1M'];
+  let best = null;
+  for (const tf of TF_PRIORITY) {
+    const match = sigs.find(s => s.sym.toUpperCase() === symUp && s.tf === tf);
+    if (match) { best = match; break; }
+  }
+  if (!best) return '';
+  const col = best.signal === 'BULLISH' ? '#00e5a0'
+            : best.signal === 'BEARISH' ? '#fb7185' : '#fbbf24';
+  const bg  = best.signal === 'BULLISH' ? 'rgba(0,229,160,0.09)'
+            : best.signal === 'BEARISH' ? 'rgba(251,113,133,0.09)' : 'rgba(251,191,36,0.07)';
+  const icon = best.signal === 'BULLISH' ? '🕯️↑' : best.signal === 'BEARISH' ? '🕯️↓' : '🕯️';
+  return `<div class="pat-badge" style="border-left-color:${col};background:${bg}">
+    <span style="color:${col};font-weight:800">${icon} ${best.pattern}</span>
+    <span class="pat-badge-meta">${best.tf} · ${best.date}</span>
+    <span class="pat-badge-body" style="margin-left:auto">Body ${best.bodyPct}%</span>
+  </div>`;
+}
+
+function _buildPatternStrip() {
+  const sigs = window._patternSignals;
+  const _noDataStrip = (msg) => `<div id="patternStrip"
+    style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;
+      padding:6px 14px;background:var(--surface);border-bottom:1px solid var(--border2);
+      overflow-x:auto;scrollbar-width:none;min-height:36px">
+    <span style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;
+      letter-spacing:0.1em;color:var(--muted);flex-shrink:0">&#x1F56F;&#xFE0F; CANDLE</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.58rem;color:var(--muted);opacity:0.6">${msg}</span>
+  </div>`;
+  if (!sigs || !sigs.length) return _noDataStrip('Loading pattern data… run runDetectAllPatterns() in Apps Script');
+  // Use all signals — no watchlist filter (pattern sheet may cover different universe)
+  const bullish = sigs.filter(s => s.signal === 'BULLISH');
+  const bearish = sigs.filter(s => s.signal === 'BEARISH');
+  if (!bullish.length && !bearish.length) return _noDataStrip('No BULLISH/BEARISH patterns found (' + sigs.length + ' neutral signals loaded)');
+
+  const tfOrder = ['1M','1W','1D','1H'];
+  const bullByTF = {}, bearByTF = {};
+  tfOrder.forEach(tf => {
+    bullByTF[tf] = bullish.filter(s => s.tf === tf).length;
+    bearByTF[tf] = bearish.filter(s => s.tf === tf).length;
+  });
+  const tfCounts = tfOrder
+    .filter(tf => (bullByTF[tf]||0) + (bearByTF[tf]||0) > 0)
+    .map(tf => {
+      const b = bullByTF[tf]||0, r = bearByTF[tf]||0;
+      return `<span style="font-family:Oxanium,sans-serif;font-size:0.55rem;font-weight:700;
+        color:var(--muted);background:var(--surface2);border:1px solid var(--border2);
+        border-radius:4px;padding:1px 6px;white-space:nowrap">
+        ${tf}: ${b>0?`<span style="color:#00e5a0">▲${b}</span>`:''}
+        ${b>0&&r>0?' ':''}
+        ${r>0?`<span style="color:#fb7185">▼${r}</span>`:''}
+      </span>`;
+    }).join('');
+
+  function pills(arr, col, bg) {
+    const seen = new Set();
+    return arr
+      .filter(s => { const k=s.sym.toUpperCase(); if(seen.has(k)) return false; seen.add(k); return true; })
+      .slice(0, 10)
+      .map(s => `<span class="pat-pill"
+          onclick="openSymbolModal('${s.sym}')"
+          style="color:${col};background:${bg};border-color:${col}44"
+          title="${s.pattern} · ${s.tf} · ${s.date} · Body ${s.bodyPct}%">
+          ${s.sym}<span style="opacity:0.65;font-size:0.52rem;margin-left:3px">${s.tf}</span>
+        </span>`)
+      .join('');
+  }
+
+  return `<div id="patternStrip"
+    style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;
+      padding:6px 14px;background:var(--surface);border-bottom:1px solid var(--border2);
+      overflow-x:auto;scrollbar-width:none;min-height:36px">
+    <span style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;
+      letter-spacing:0.1em;color:var(--muted);flex-shrink:0">🕯️ CANDLE</span>
+    ${tfCounts ? `<div style="display:flex;gap:4px;flex-shrink:0">${tfCounts}</div>` : ''}
+    ${bullish.length ? `
+      <span style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;
+        color:#00e5a0;flex-shrink:0">▲${bullish.length}</span>
+      ${pills(bullish,'#00e5a0','rgba(0,229,160,0.08)')}` : ''}
+    ${bearish.length ? `
+      <span style="color:var(--border2);font-size:0.8rem;flex-shrink:0;margin:0 2px">|</span>
+      <span style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;
+        color:#fb7185;flex-shrink:0">▼${bearish.length}</span>
+      ${pills(bearish,'#fb7185','rgba(251,113,133,0.08)')}` : ''}
+    <span style="margin-left:auto;font-family:Oxanium,sans-serif;font-size:0.52rem;
+      color:var(--muted);flex-shrink:0;white-space:nowrap">
+      ${sigs.length} patterns · click to open
+    </span>
+  </div>`;
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════
+//  CANDLES TAB  — full pattern browser with filters
+// ═══════════════════════════════════════════════════════════════════════
+
+let _candleFilter = { signal: 'ALL', tf: 'ALL', pattern: 'ALL', search: '' };
+
+function buildCandlesTab() {
+  const sigs = window._patternSignals || [];
+
+  if (!sigs.length) {
+    return `<div style="padding:40px;text-align:center;font-family:Oxanium,sans-serif;color:var(--muted)">
+      🕯️ No pattern data yet — run <strong>runDetectAllPatterns()</strong> in Apps Script
+    </div>`;
+  }
+
+  // Unique values for filter dropdowns
+  const allPatterns = [...new Set(sigs.map(s => s.pattern))].sort();
+  const allTFs      = ['1H','1D','1W','1M'];
+  const TF_ORDER    = { '1H':0,'1D':1,'1W':2,'1M':3 };
+
+  // Apply filters
+  let filtered = sigs.filter(s => {
+    if (_candleFilter.signal  !== 'ALL' && s.signal  !== _candleFilter.signal)  return false;
+    if (_candleFilter.tf      !== 'ALL' && s.tf       !== _candleFilter.tf)      return false;
+    if (_candleFilter.pattern !== 'ALL' && s.pattern  !== _candleFilter.pattern) return false;
+    if (_candleFilter.search) {
+      const q = _candleFilter.search.toLowerCase();
+      if (!s.sym.toLowerCase().includes(q) && !s.pattern.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  // Sort: signal (BULLISH first), then TF, then sym
+  filtered.sort((a, b) => {
+    const sOrd = { BULLISH:0, BEARISH:1, NEUTRAL:2 };
+    if ((sOrd[a.signal]||9) !== (sOrd[b.signal]||9)) return (sOrd[a.signal]||9) - (sOrd[b.signal]||9);
+    if ((TF_ORDER[a.tf]||9) !== (TF_ORDER[b.tf]||9)) return (TF_ORDER[a.tf]||9) - (TF_ORDER[b.tf]||9);
+    return a.sym.localeCompare(b.sym);
+  });
+
+  const bullCount = filtered.filter(s => s.signal === 'BULLISH').length;
+  const bearCount = filtered.filter(s => s.signal === 'BEARISH').length;
+  const neutCount = filtered.filter(s => s.signal === 'NEUTRAL').length;
+
+  // Filter bar
+  const btnBase = `font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:700;
+    padding:3px 10px;border-radius:4px;border:1px solid;cursor:pointer;transition:all 0.15s;`;
+
+  const sigBtns = ['ALL','BULLISH','BEARISH','NEUTRAL'].map(s => {
+    const col = s === 'BULLISH' ? '#00e5a0' : s === 'BEARISH' ? '#fb7185' : s === 'NEUTRAL' ? '#fbbf24' : 'var(--muted)';
+    const active = _candleFilter.signal === s;
+    return `<button onclick="_setCandleFilter('signal','${s}')"
+      style="${btnBase}color:${active?'#111':col};background:${active?col:'transparent'};border-color:${col}44">
+      ${s === 'ALL' ? 'All' : s === 'BULLISH' ? '▲ Bull' : s === 'BEARISH' ? '▼ Bear' : '— Neut'}
+    </button>`;
+  }).join('');
+
+  const tfBtns = ['ALL',...allTFs].map(tf => {
+    const active = _candleFilter.tf === tf;
+    return `<button onclick="_setCandleFilter('tf','${tf}')"
+      style="${btnBase}color:${active?'#111':'var(--muted)'};background:${active?'var(--muted)':'transparent'};border-color:rgba(160,174,192,0.3)">
+      ${tf}
+    </button>`;
+  }).join('');
+
+  const patOptions = ['ALL',...allPatterns].map(p =>
+    `<option value="${p}" ${_candleFilter.pattern === p ? 'selected' : ''}>${p === 'ALL' ? 'All Patterns' : p}</option>`
+  ).join('');
+
+  // Summary stats
+  const statsBar = `<div style="display:flex;gap:16px;padding:8px 14px;font-family:Oxanium,sans-serif;font-size:0.65rem;border-bottom:1px solid var(--border2)">
+    <span style="color:var(--muted)">Showing <strong style="color:var(--text)">${filtered.length}</strong> of ${sigs.length}</span>
+    <span style="color:#00e5a0">▲ ${bullCount} Bullish</span>
+    <span style="color:#fb7185">▼ ${bearCount} Bearish</span>
+    <span style="color:#fbbf24">— ${neutCount} Neutral</span>
+  </div>`;
+
+  // Pattern cards
+  const cards = filtered.map(s => {
+    const col  = s.signal === 'BULLISH' ? '#00e5a0' : s.signal === 'BEARISH' ? '#fb7185' : '#fbbf24';
+    const bg   = s.signal === 'BULLISH' ? 'rgba(0,229,160,0.06)' : s.signal === 'BEARISH' ? 'rgba(251,113,133,0.06)' : 'rgba(251,191,36,0.05)';
+    const icon = s.signal === 'BULLISH' ? '▲' : s.signal === 'BEARISH' ? '▼' : '—';
+    const fd   = fundCache[s.sym] || {};
+    const sector = fd.sector || '';
+
+    return `<div onclick="openSymbolModal('${s.sym}')"
+      style="background:${bg};border:1px solid ${col}22;border-left:3px solid ${col};
+        border-radius:6px;padding:10px 12px;cursor:pointer;transition:all 0.15s"
+      onmouseover="this.style.borderColor='${col}66'"
+      onmouseout="this.style.borderColor='${col}22';this.style.borderLeftColor='${col}'">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-family:Oxanium,sans-serif;font-size:0.85rem;font-weight:800;color:var(--text)">${s.sym}</span>
+          <span style="font-family:Oxanium,sans-serif;font-size:0.55rem;font-weight:700;padding:1px 5px;
+            border-radius:3px;background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border2)">${s.tf}</span>
+          ${sector ? `<span style="font-family:Oxanium,sans-serif;font-size:0.52rem;color:var(--muted);opacity:0.7">${sector}</span>` : ''}
+        </div>
+        <span style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:800;color:${col}">${icon} ${s.signal}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;font-weight:700;color:${col}">${s.pattern}</span>
+        <div style="display:flex;gap:10px;font-family:Oxanium,sans-serif;font-size:0.58rem;color:var(--muted)">
+          <span>Body ${s.bodyPct}%</span>
+          <span>${s.date}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div style="padding:0">
+    <!-- Filter bar -->
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border2);display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface)">
+      <div style="display:flex;gap:4px">${sigBtns}</div>
+      <div style="width:1px;height:20px;background:var(--border2)"></div>
+      <div style="display:flex;gap:4px">${tfBtns}</div>
+      <div style="width:1px;height:20px;background:var(--border2)"></div>
+      <select onchange="_setCandleFilter('pattern',this.value)"
+        style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:700;
+          background:var(--surface2);color:var(--text);border:1px solid var(--border2);
+          border-radius:4px;padding:3px 8px;cursor:pointer">
+        ${patOptions}
+      </select>
+      <input type="text" placeholder="Search symbol…" value="${_candleFilter.search}"
+        oninput="_setCandleFilter('search',this.value)"
+        style="font-family:Oxanium,sans-serif;font-size:0.62rem;
+          background:var(--surface2);color:var(--text);border:1px solid var(--border2);
+          border-radius:4px;padding:3px 10px;width:130px;outline:none">
+    </div>
+    ${statsBar}
+    <!-- Cards grid -->
+    <div style="padding:12px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;overflow-y:auto;max-height:calc(100vh - 280px)">
+      ${cards || `<div style="grid-column:1/-1;text-align:center;padding:40px;font-family:Oxanium,sans-serif;color:var(--muted)">No patterns match your filters</div>`}
+    </div>
+  </div>`;
+}
+
+function _setCandleFilter(key, val) {
+  _candleFilter[key] = val;
+  const mc = document.getElementById('mainContent');
+  if (!mc) return;
+  const sc = document.getElementById('signalsContent');
+  if (sc) sc.innerHTML = buildCandlesTab();
+  // Refresh sub-tab bar counts
+  const sbar = document.getElementById('signalsSubTabBar');
+  if (sbar) sbar.innerHTML = buildSignalsSubTabBarInner();
+}
+
 </script>
 
 <style>
@@ -10527,5 +10818,59 @@ body.light-theme .ts-badge.dn-w  { color:#993030; background:rgba(153,48,48,0.08
 body.light-theme .ts-badge.chop  { color:#8a6000; background:rgba(138,96,0,0.08);  border-color:rgba(138,96,0,0.3);  }
 body.light-theme .ts-pivot-seq, body.light-theme .ts-pivot-seq { background:#f5f0e8; border-color:#e0d6c8; }
 body.light-theme .ts-modal-panel { border-color:#e8ddd0; }
+
+/* ── Pattern badges & strip ─────────────────────────────────────── */
+.pat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: Oxanium, sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid;
+  white-space: nowrap;
+  cursor: default;
+}
+.pat-badge.bull { color:#00e5a0; background:rgba(0,229,160,0.10); border-color:rgba(0,229,160,0.35); }
+.pat-badge.bear { color:#fb7185; background:rgba(251,113,133,0.10); border-color:rgba(251,113,133,0.35); }
+.pat-badge.neut { color:#a0aec0; background:rgba(160,174,192,0.10); border-color:rgba(160,174,192,0.30); }
+body.light-theme .pat-badge.bull { color:#007a50; background:rgba(0,122,80,0.08); border-color:rgba(0,122,80,0.35); }
+body.light-theme .pat-badge.bear { color:#b01830; background:rgba(176,24,48,0.08); border-color:rgba(176,24,48,0.35); }
+body.light-theme .pat-badge.neut { color:#4a5568; background:rgba(74,85,104,0.08); border-color:rgba(74,85,104,0.25); }
+
+.pat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: Oxanium, sans-serif;
+  font-size: 0.60rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.pat-pill.bull { color:#00e5a0; background:rgba(0,229,160,0.12); border-color:rgba(0,229,160,0.40); }
+.pat-pill.bear { color:#fb7185; background:rgba(251,113,133,0.12); border-color:rgba(251,113,133,0.40); }
+.pat-pill.neut { color:#a0aec0; background:rgba(160,174,192,0.12); border-color:rgba(160,174,192,0.30); }
+body.light-theme .pat-pill.bull { color:#007a50; background:rgba(0,122,80,0.10); border-color:rgba(0,122,80,0.40); }
+body.light-theme .pat-pill.bear { color:#b01830; background:rgba(176,24,48,0.10); border-color:rgba(176,24,48,0.40); }
+body.light-theme .pat-pill.neut { color:#4a5568; background:rgba(74,85,104,0.10); border-color:rgba(74,85,104,0.30); }
+
+.pat-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 5px 8px 4px;
+  margin: 0 0 6px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+body.light-theme .pat-strip {
+  background: rgba(0,0,0,0.02);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
 </style>
 </body>
