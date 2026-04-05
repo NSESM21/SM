@@ -5292,6 +5292,8 @@ function mobBuildCatList(tf, term) {
   const cats = CATS.map((cat, ci) => {
     let stocks = tf.cols[ci] || [];
     if (term) stocks = stocks.filter(s => s.toLowerCase().includes(term));
+    if (typeof activeSector !== 'undefined' && activeSector !== 'ALL')
+      stocks = stocks.filter(s => (fundSector[s.toUpperCase()] || '') === activeSector);
     if (!stocks.length) return '';
     const chips = stocks.map(s => {
       const pd = modalPriceData[s.toUpperCase()] || {};
@@ -5403,6 +5405,8 @@ function mobBuildConsol(term) {
     const catRows = CATS.map((cat, ci) => {
       let stocks = tf.cols[ci] || [];
       if (term) stocks = stocks.filter(s => s.toLowerCase().includes(term));
+      if (typeof activeSector !== 'undefined' && activeSector !== 'ALL')
+        stocks = stocks.filter(s => (fundSector[s.toUpperCase()] || '') === activeSector);
       if (!stocks.length) return '';
 
       const pills = stocks.map(s => {
@@ -5496,7 +5500,7 @@ function mobBuildTrade() {
     }));
   });
 
-  const rows = Object.entries(symConsolMap)
+  let rows = Object.entries(symConsolMap)
     .map(([sym, consolSet]) => ({
       sym, consolLabels: [...consolSet],
       bcs: allScores[sym] || computeBCS(sym)
@@ -5505,6 +5509,8 @@ function mobBuildTrade() {
       if (b.consolLabels.length !== a.consolLabels.length) return b.consolLabels.length - a.consolLabels.length;
       return b.bcs.total - a.bcs.total;
     });
+  if (typeof activeSector !== 'undefined' && activeSector !== 'ALL')
+    rows = rows.filter(r => (fundSector[r.sym] || '') === activeSector);
 
   if (!rows.length) {
     return `<div style="padding:48px 20px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif;font-size:0.85rem">
@@ -5629,9 +5635,16 @@ function mobBuildInvest() {
       No stocks in Monthly S4 yet</div>`;
   }
 
-  const rows = [...s4Stocks]
+  let rows = [...s4Stocks]
     .map(sym => ({ sym, bcs: allScores[sym] || computeBCS(sym) }))
     .sort((a, b) => b.bcs.total - a.bcs.total);
+  if (typeof activeSector !== 'undefined' && activeSector !== 'ALL')
+    rows = rows.filter(r => (fundSector[r.sym] || '') === activeSector);
+
+  if (!rows.length) {
+    return `<div style="padding:48px 20px;text-align:center;color:var(--muted);font-family:Oxanium,sans-serif;font-size:0.85rem">
+      No stocks in <strong style="color:var(--accent)">${activeSector}</strong> sector in Monthly S4</div>`;
+  }
 
   const pureCount = rows.length;
 
