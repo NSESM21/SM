@@ -1633,6 +1633,68 @@ html.mobile-view #mobileBottomNav {
 }
 body.light-theme #mobileBottomNav { background: rgba(250,247,242,0.97); border-color: #dde2ec; }
 
+/* ── Mobile Sector FAB ── */
+#mobSectorFab {
+  display: none;
+  position: fixed;
+  bottom: 72px;
+  right: 14px;
+  z-index: 490;
+  background: var(--surface2);
+  border: 1.5px solid var(--border2);
+  border-radius: 22px;
+  padding: 7px 13px 7px 10px;
+  cursor: pointer;
+  color: var(--muted);
+  align-items: center;
+  gap: 5px;
+  font-family: 'Oxanium', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+#mobSectorFab.active { background: var(--accent); border-color: var(--accent); color: #000; }
+body.mobile-view #mobSectorFab, html.mobile-view #mobSectorFab { display: flex; }
+body.mobile-view.fab-hide #mobSectorFab, html.mobile-view.fab-hide #mobSectorFab { display: none !important; }
+/* ── Mobile Sector Bottom Sheet ── */
+#mobSectorSheet {
+  display: none; position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); align-items: flex-end;
+}
+#mobSectorSheet.open { display: flex; }
+#mobSectorSheetPanel {
+  width: 100%; background: var(--surface);
+  border-top: 1px solid var(--border2); border-radius: 16px 16px 0 0;
+  padding: 0 0 env(safe-area-inset-bottom); max-height: 70vh; overflow-y: auto;
+  animation: slideUpSector 0.22s ease;
+}
+@keyframes slideUpSector { from { transform: translateY(100%); } to { transform: translateY(0); } }
+#mobSectorSheetHd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 10px; border-bottom: 1px solid var(--border2);
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+#mobSectorSheetGrid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 14px 16px;
+}
+.mob-sector-pill {
+  font-family: 'Oxanium', sans-serif; font-size: 0.68rem; font-weight: 700;
+  padding: 10px 8px; border-radius: 8px; border: 1px solid var(--border2);
+  background: var(--surface2); color: var(--muted); cursor: pointer;
+  text-align: center; transition: all 0.15s; letter-spacing: 0.02em;
+}
+.mob-sector-pill.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 800; }
+.mob-sector-pill.all-pill { grid-column: 1 / -1; background: var(--surface2); color: var(--text); }
+.mob-sector-pill.all-pill.active { background: var(--accent); color: #000; }
+body.light-theme #mobSectorSheetPanel { background: #fff; }
+body.light-theme #mobSectorSheetHd { background: #fff; border-color: #e0d6c8; }
+body.light-theme .mob-sector-pill { background: #f5f0e8; border-color: #e0d6c8; color: #4a5a70; }
+body.light-theme .mob-sector-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
 body.mobile-view .sheet-bar,    html.mobile-view .sheet-bar    { display: none !important; }
 body.mobile-view #sectorFilterBar, html.mobile-view #sectorFilterBar { display: none !important; }
 body.mobile-view #parseDiagBar, html.mobile-view #parseDiagBar { display: none !important; }
@@ -2072,6 +2134,21 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
 
 <div id="kb-toast"></div>
 
+<!-- ── Mobile Sector FAB + Bottom Sheet ─────────────────────── -->
+<button id="mobSectorFab" onclick="openMobSectorSheet()" title="Filter by Sector">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  <span id="mobSectorFabLabel">Sector</span>
+</button>
+<div id="mobSectorSheet" onclick="if(event.target===this)closeMobSectorSheet()">
+  <div id="mobSectorSheetPanel">
+    <div id="mobSectorSheetHd">
+      <span style="font-family:Oxanium,sans-serif;font-size:0.75rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase">Filter by Sector</span>
+      <button onclick="closeMobSectorSheet()" style="background:var(--surface2);border:1px solid var(--border2);color:var(--muted);border-radius:6px;padding:4px 10px;font-family:Oxanium,sans-serif;font-size:0.65rem;cursor:pointer">Done</button>
+    </div>
+    <div id="mobSectorSheetGrid"></div>
+  </div>
+</div>
+
 <div id="kb-help-overlay" onclick="if(event.target===this)toggleKbHelp()">
   <div id="kb-help-panel">
     <h3>⌨ Keyboard Shortcuts <span onclick="toggleKbHelp()">✕ close</span></h3>
@@ -2082,6 +2159,7 @@ body.mobile-view .compare-tbl-wrap { overflow-x:auto; }
       <div class="kb-row"><span class="kb-key">S</span><span class="kb-desc">Signals tab</span></div>
       <div class="kb-row"><span class="kb-key">T</span><span class="kb-desc">Signals → Trade sub-tab</span></div>
       <div class="kb-row"><span class="kb-key">I</span><span class="kb-desc">Signals → Invest sub-tab</span></div>
+      <div class="kb-row"><span class="kb-key">K</span><span class="kb-desc">Signals → Candle sub-tab</span></div>
       <div class="kb-row"><span class="kb-key">E</span><span class="kb-desc">Events tab</span></div>
       <div class="kb-row"><span class="kb-key">H</span><span class="kb-desc">Heatmap tab</span></div>
       <div class="kb-row"><span class="kb-key">C</span><span class="kb-desc">Compare tab</span></div>
@@ -2863,11 +2941,86 @@ function populateSectorFilter() {
   if (typeof _autoHideSectorBar === 'function') _autoHideSectorBar();
 }
 
-function setSectorFilter(sector, btn) {
+function setSectorFilter(sector, btnEl) {
   activeSector = sector;
+  // Update desktop pills
   document.querySelectorAll('.sector-pill').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  render();
+  if (btnEl) btnEl.classList.add('active');
+  // Update mobile sheet pills
+  document.querySelectorAll('.mob-sector-pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.sector === sector);
+  });
+  // Update FAB label + active state
+  _updateMobSectorFab();
+  // Re-render content
+  if (activeTab === 'consolidated' && activeSignalsSubTab === 'candles') {
+    _renderCandleTab(false);
+  } else {
+    render();
+  }
+}
+
+function _updateMobSectorFab() {
+  const fab = document.getElementById('mobSectorFab');
+  const lbl = document.getElementById('mobSectorFabLabel');
+  if (!fab) return;
+  const isActive = activeSector && activeSector !== 'ALL';
+  fab.classList.toggle('active', isActive);
+  if (lbl) lbl.textContent = isActive ? activeSector.replace('Fast Moving Consumer Goods','FMCG').replace('Consumer Discretionary','Con. Disc').replace('Information Technology','IT').replace('Financial Services','Fin. Svc').replace('Telecommunication','Telecom') : 'Sector';
+}
+
+function _updateMobFabVisibility() {
+  const isMob = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
+  if (!isMob) return;
+  const hideTabs = ['earnings', 'compare'];
+  const shouldHide = hideTabs.includes(activeTab);
+  document.body.classList.toggle('fab-hide', shouldHide);
+  document.documentElement.classList.toggle('fab-hide', shouldHide);
+}
+
+function openMobSectorSheet() {
+  // Build sectors from all stocks
+  const sectors = new Set();
+  [...masterTFs, ...consolidatedTFs].flatMap(tf => tf.cols.flat()).forEach(s => {
+    const sec = fundSector[s.toUpperCase()];
+    if (sec) sectors.add(sec);
+  });
+  // Also add from candle signals if available
+  if (window._patternSignals) {
+    window._patternSignals.forEach(s => {
+      const sec = (fundSector && fundSector[s.sym.toUpperCase()]) || s.sector || '';
+      if (sec) sectors.add(sec);
+    });
+  }
+
+  const grid = document.getElementById('mobSectorSheetGrid');
+  if (!grid) return;
+
+  const sorted = [...sectors].sort();
+  grid.innerHTML =
+    `<button class="mob-sector-pill all-pill${activeSector === 'ALL' ? ' active' : ''}" data-sector="ALL" onclick="mobSectorSelect('ALL')">All Sectors</button>` +
+    sorted.map(sec => {
+      const short = sec.replace('Fast Moving Consumer Goods','FMCG').replace('Consumer Discretionary','Con. Disc').replace('Information Technology','Info Tech').replace('Financial Services','Fin. Services').replace('Telecommunication','Telecom');
+      return `<button class="mob-sector-pill${activeSector === sec ? ' active' : ''}" data-sector="${sec}" onclick="mobSectorSelect('${sec.replace(/'/g,"\'")}')" title="${sec}">${short}</button>`;
+    }).join('');
+
+  document.getElementById('mobSectorSheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMobSectorSheet() {
+  document.getElementById('mobSectorSheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function mobSectorSelect(sector) {
+  setSectorFilter(sector, null);
+  closeMobSectorSheet();
+}
+
+// Candle tab sector dropdown handler (mobile only)
+function mobCandleSectorChange(sector) {
+  setSectorFilter(sector, null);
 }
 
 // ── Corporate action type config ─────────────────────────────────────────
@@ -3076,7 +3229,7 @@ function buildEarningsPanel() {
           <strong style="color:#a78bfa">Manual</strong> EARNINGS sheet.
           ${!hasData ? '<br><span style="color:#fbbf24">⚠ No data yet — run <code>runUpdateEarningsOnly()</code> in Apps Script to scrape result dates.</span>' : ''}
         </div>
-        ${thisWeek > 0 ? `<span style="font-family:Oxanium,sans-serif;font-size:0.7rem;font-weight:800;background:rgba(245,158,11,0.15);color:#f59e0b;border-radius:6px;padding:3px 10px">🔔 ${thisWeek} results this week</span>` : ''}
+        
       </div>
       ${upcoming.length > 0 ? `
       <h3>📅 Upcoming Results — ${upcoming.length} stocks</h3>
@@ -3904,6 +4057,8 @@ function render() {
   if (isMobile) {
     mobRender();
     updateTabBadges();
+    _updateMobFabVisibility();
+    _updateMobSectorFab();
     return;
   }
 
@@ -4607,7 +4762,6 @@ function renderModalRows(priceData) {
           <div class="fund-card-sym-wrap">
             <span class="fund-card-sym">${symbol}</span>
             ${isUndervalued ? '<span class="undervalued-tag">★ Value</span>' : ''}
-            ${(() => { const _d = daysUntilEarnings(q.earningsDate); return (_d !== null && _d >= 0 && _d <= 45) ? `<span class="earn-date-tag" title="Earnings: ${q.earningsDate}">🔔 ${q.earningsDate}</span>` : ''; })()}
             <a href="https://www.nseindia.com/get-quotes/equity?symbol=${symbol}" target="_blank" class="fund-card-sym-link">NSE ↗</a>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
@@ -5007,6 +5161,7 @@ function mbnSwitch(tab) {
   document.querySelectorAll('.stab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.mbn-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   render();
+  _updateMobFabVisibility();
 }
 
 
@@ -6427,6 +6582,9 @@ document.addEventListener('DOMContentLoaded', () => {
     db.addEventListener('mouseenter', () => db.classList.remove('auto-hidden'));
     db.addEventListener('mouseleave', () => _autoHideDiagBar());
   }
+  // Init mobile FAB visibility
+  _updateMobFabVisibility();
+  _updateMobSectorFab();
 });
 
 // Kick off the timers on page load
@@ -9041,6 +9199,11 @@ document.addEventListener('keydown', e => {
     try { localStorage.setItem('nse-signals-subtab', 'invest'); } catch(e2) {}
     render(); showKbToast('<strong>I</strong> — Signals: Invest');
   }
+  if (e.key === 'k' || e.key === 'K') {
+    activeTab = 'consolidated'; activeSignalsSubTab = 'candles';
+    try { localStorage.setItem('nse-signals-subtab', 'candles'); } catch(e2) {}
+    render(); showKbToast('<strong>K</strong> — Signals: Candle');
+  }
 });
 
 // ── Orientation toggle ──────────────────────────────────────────────────────
@@ -10018,14 +10181,18 @@ function buildCandlesTab() {
 
   // Unique values for filter dropdowns
   const allPatterns = [...new Set(sigs.map(s => s.pattern))].sort();
-  const allTFs      = ['1H','1D','1W','1M'];
-  const TF_ORDER    = { '1H':0,'1D':1,'1W':2,'1M':3 };
+  const allTFs      = ['1W','1M'];
+  const TF_ORDER    = { '1W':0,'1M':1 };
 
   // Apply filters
   let filtered = sigs.filter(s => {
     if (_candleFilter.signal  !== 'ALL' && s.signal  !== _candleFilter.signal)  return false;
     if (_candleFilter.tf      !== 'ALL' && s.tf       !== _candleFilter.tf)      return false;
     if (_candleFilter.pattern !== 'ALL' && s.pattern  !== _candleFilter.pattern) return false;
+    if (typeof activeSector !== 'undefined' && activeSector !== 'ALL') {
+      const sec = (fundSector && fundSector[s.sym.toUpperCase()]) || s.sector || '';
+      if (sec !== activeSector) return false;
+    }
     if (_candleFilter.search) {
       const q = _candleFilter.search.toLowerCase();
       if (!s.sym.toLowerCase().includes(q) && !s.pattern.toLowerCase().includes(q)) return false;
@@ -10072,6 +10239,13 @@ function buildCandlesTab() {
   const patOptions = ['ALL',...allPatterns].map(p =>
     `<option value="${p}" ${_candleFilter.pattern === p ? 'selected' : ''}>${p === 'ALL' ? 'All Patterns' : p}</option>`
   ).join('');
+
+  // Sector dropdown for mobile (desktop uses the global FAB/pill bar)
+  const allSectors = [...new Set(sigs.map(s => (fundSector && fundSector[s.sym.toUpperCase()]) || s.sector || '').filter(Boolean))].sort();
+  const sectorOptions = ['ALL', ...allSectors].map(sec =>
+    `<option value="${sec}" ${(typeof activeSector !== 'undefined' ? activeSector : 'ALL') === sec ? 'selected' : ''}>${sec === 'ALL' ? 'All Sectors' : sec.replace('Fast Moving Consumer Goods','FMCG').replace('Consumer Discretionary','Con. Disc').replace('Information Technology','Info Tech').replace('Financial Services','Fin. Services').replace('Telecommunication','Telecom')}</option>`
+  ).join('');
+  const isMobileView = document.body.classList.contains('mobile-view') || document.documentElement.classList.contains('mobile-view');
 
   // Summary stats
   const statsBar = `<div style="display:flex;gap:16px;padding:8px 14px;font-family:Oxanium,sans-serif;font-size:0.65rem;border-bottom:1px solid var(--border2)">
@@ -10120,6 +10294,13 @@ function buildCandlesTab() {
       <div style="width:1px;height:20px;background:var(--border2);flex-shrink:0"></div>
       <div style="display:flex;gap:4px;flex-shrink:0">${tfBtns}</div>
       <div style="width:1px;height:20px;background:var(--border2);flex-shrink:0"></div>
+      ${isMobileView ? `<select onchange="mobCandleSectorChange(this.value)"
+        style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:700;
+          background:var(--surface2);color:${(typeof activeSector!=='undefined'&&activeSector!=='ALL')?'var(--accent)':'var(--text)'};border:1px solid ${(typeof activeSector!=='undefined'&&activeSector!=='ALL')?'var(--accent)':'var(--border2)'};
+          border-radius:4px;padding:3px 8px;cursor:pointer;flex-shrink:0">
+        ${sectorOptions}
+      </select>
+      <div style="width:1px;height:20px;background:var(--border2);flex-shrink:0"></div>` : ''}
       <select onchange="_setCandleFilter('pattern',this.value)"
         style="font-family:Oxanium,sans-serif;font-size:0.62rem;font-weight:700;
           background:var(--surface2);color:var(--text);border:1px solid var(--border2);
@@ -10128,6 +10309,7 @@ function buildCandlesTab() {
       </select>
       <input type="text" placeholder="Search symbol…" value="${_candleFilter.search}"
         oninput="_setCandleFilter('search',this.value)"
+        onkeydown="event.stopPropagation()"
         style="font-family:Oxanium,sans-serif;font-size:0.62rem;
           background:var(--surface2);color:var(--text);border:1px solid var(--border2);
           border-radius:4px;padding:3px 10px;width:110px;outline:none;flex-shrink:0">
@@ -10140,32 +10322,39 @@ function buildCandlesTab() {
   </div>`;
 }
 
+let _candleFilterTimer = null;
 function _setCandleFilter(key, val) {
   _candleFilter[key] = val;
+  if (key === 'search') {
+    clearTimeout(_candleFilterTimer);
+    _candleFilterTimer = setTimeout(() => _renderCandleTab(true), 120);
+    return;
+  }
+  _renderCandleTab(false);
+}
+
+function _renderCandleTab(restoreFocus) {
   const mc = document.getElementById('mainContent');
   if (!mc) return;
-
   const isMob = document.body.classList.contains('mobile-view') ||
                 document.documentElement.classList.contains('mobile-view');
-
+  let selEnd = 0;
+  const oldInput = document.querySelector('#signalsContent input[placeholder="Search symbol\u2026"], #mainContent input[placeholder="Search symbol\u2026"]');
+  if (oldInput) selEnd = oldInput.selectionEnd;
   if (isMob) {
-    // ── MOBILE PATH: mainContent IS the candle container ──────────────────
-    // Re-inject the sub-tab bar into the fixed #mobileSubTabBar element
     const subBarEl = document.getElementById('mobileSubTabBar');
-    if (subBarEl) {
-      subBarEl.innerHTML = buildSignalsSubTabBarInner();
-      subBarEl.style.display = 'block';
-    }
+    if (subBarEl) { subBarEl.innerHTML = buildSignalsSubTabBarInner(); subBarEl.style.display = 'block'; }
     mc.classList.add('has-subtab-bar');
-    // Replace mainContent directly — same as setSignalsSubTab('candles') does
     mc.innerHTML = buildCandlesTab();
   } else {
-    // ── DESKTOP PATH: update #signalsContent inner panel ──────────────────
     const sc = document.getElementById('signalsContent');
     if (sc) sc.innerHTML = buildCandlesTab();
-    // Refresh sub-tab bar counts
     const sbar = document.getElementById('signalsSubTabBar');
     if (sbar) sbar.innerHTML = buildSignalsSubTabBarInner();
+  }
+  if (restoreFocus) {
+    const newInput = document.querySelector('#signalsContent input[placeholder="Search symbol\u2026"], #mainContent input[placeholder="Search symbol\u2026"]');
+    if (newInput) { newInput.focus(); try { newInput.setSelectionRange(selEnd, selEnd); } catch(e2) {} }
   }
 }
 
