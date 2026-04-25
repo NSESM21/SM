@@ -3988,7 +3988,7 @@ function buildTable(tfs, term) {
         const symCa = corpActions.find(a => (a.symbol||'').toUpperCase() === stock.toUpperCase() && daysUntilEarnings(a.exDate) !== null && daysUntilEarnings(a.exDate) >= 0);
         const tip = stock + (sec ? ' · ' + sec : '') + (symCa ? ' · ' + (symCa.type||'Corp Action') + ': ' + symCa.exDate : '');
         const secTag = sec ? `<span class="sp-sector">${sec}</span>` : '';
-        cells += `<td><span class="sp ${cat.cls}${match?' hl':''}" title="${tip}">${label}${earnBadge}${secTag}</span></td>`;
+        cells += `<td><span class="sp ${cat.cls}${match?' hl':''}" title="${tip}" style="cursor:pointer" onclick="openSymbolModal('${stock}')">${label}${earnBadge}${secTag}</span></td>`;
       } else {
         cells += `<td></td>`;
       }
@@ -4375,7 +4375,7 @@ let modalPriceData = {};
 let activeModalTab = 'price';
 let lastModalTab = 'price';
 
-function openModal(tfLabel, catLabel, stocks) {
+function openModal(tfLabel, catLabel, stocks, forceTab) {
   const existing = document.getElementById('tv-modal');
   if (existing) existing.remove();
   modalPriceData = {};
@@ -4481,7 +4481,10 @@ function openModal(tfLabel, catLabel, stocks) {
   document.body.appendChild(modal);
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
   // Feature 6 — restore last used modal tab
-  if (lastModalTab && lastModalTab !== 'price') {
+  // If forceTab is provided (e.g. 'price' from MASTER tab), always use it
+  if (forceTab) {
+    switchModalTab(forceTab);
+  } else if (lastModalTab && lastModalTab !== 'price') {
     switchModalTab(lastModalTab);
   }
   fetchStockPrices(stocks);
@@ -7510,10 +7513,10 @@ async function _hmAutoSync(syms, statusEl, progressEl) {
 function hmCellClick(sym) {
   for (const tf of masterTFs) {
     for (let ci=0; ci<tf.cols.length; ci++) {
-      if (tf.cols[ci].includes(sym)) { openModal(tf.label, CATS[ci].label, tf.cols[ci]); return; }
+      if (tf.cols[ci].includes(sym)) { openModal(tf.label, CATS[ci].label, tf.cols[ci], 'price'); return; }
     }
   }
-  openModal('Heatmap', sym, [sym]);
+  openModal('Heatmap', sym, [sym], 'price');
 }
 
 
@@ -8867,13 +8870,13 @@ function openSymbolModal(sym) {
   for (const tf of [...masterTFs, ...consolidatedTFs]) {
     for (let ci = 0; ci < tf.cols.length; ci++) {
       if (tf.cols[ci].includes(sym) || tf.cols[ci].includes(sym.toUpperCase())) {
-        openModal(tf.label, CATS[ci]?.label || '', [sym]);
+        openModal(tf.label, CATS[ci]?.label || '', [sym], 'price');
         return;
       }
     }
   }
-  // Fallback: open with just the symbol
-  openModal('', '', [sym]);
+  // Fallback: open with just the symbol — force price tab
+  openModal('', '', [sym], 'price');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -9653,31 +9656,41 @@ async function fetchSignalLog() {
 }
 
 // Helper: get signal log entry for a symbol across its combo labels
-// Returns the STRONGEST active combo entry (M-D-H > D-H > D:R2 > H-15m)
+// Priority: ACTIVE highest combo first → fallback to most recent closed signal
 function _getSignalEntry(sym, comboLabels) {
   if (!signalLogLoaded || !comboLabels) return null;
   const k = sym.toUpperCase();
 
-  // Priority order — strongest combo first
   const COMBO_PRIORITY = ['M-D-H: R4','D-H: R4','D:R2 & H:R4','H-15m: R4'];
-
-  // Collect all active entries for this symbol
   const active = [];
+  const closed = [];
+
   (comboLabels || []).forEach(combo => {
     const key   = k + '|' + combo.trim();
     const entry = signalLog[key];
-    if (!entry || entry.status !== 'ACTIVE') return;
-    active.push(entry);
+    if (!entry) return;
+    if (entry.status === 'ACTIVE') active.push(entry);
+    else if (['TARGET_HIT','STOP_HIT','EXPIRED'].includes(entry.status)) closed.push(entry);
   });
 
-  if (!active.length) return null;
-
-  // Return highest priority combo
-  for (let pi = 0; pi < COMBO_PRIORITY.length; pi++) {
-    const found = active.find(e => e.combo.trim() === COMBO_PRIORITY[pi]);
-    if (found) return found;
+  if (active.length) {
+    for (let pi = 0; pi < COMBO_PRIORITY.length; pi++) {
+      const found = active.find(e => e.combo.trim() === COMBO_PRIORITY[pi]);
+      if (found) return found;
+    }
+    return active[0];
   }
-  return active[0]; // fallback
+
+  if (closed.length) {
+    closed.sort((a, b) => {
+      const at = a.exitTime ? new Date(a.exitTime) : new Date(a.entryTime);
+      const bt = b.exitTime ? new Date(b.exitTime) : new Date(b.entryTime);
+      return bt - at;
+    });
+    return closed[0];
+  }
+
+  return null;
 }
 
 // Helper: build signal log row HTML for Trade tab
@@ -9685,49 +9698,76 @@ function _signalLogRow(sym, comboLabels) {
   const entry = _getSignalEntry(sym, comboLabels);
   if (!entry) return '';
 
-  const entryDate = new Date(entry.entryTime);
-  const now       = new Date();
-  const diffMs    = now - entryDate;
-  const diffH     = diffMs / 3600000;
+  const isActive    = entry.status === 'ACTIVE';
+  const isTargetHit = entry.status === 'TARGET_HIT';
+  const isStopHit   = entry.status === 'STOP_HIT';
+  const isClosed    = !isActive;
 
-  // ── Use CALENDAR date comparison, not hour math ──────────────────────────
-  // This fixes "Today" showing for yesterday when diffH < 24 but date has changed
-  const nowDate   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const entryDay  = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
-  const calDiffD  = Math.round((nowDate - entryDay) / 86400000); // calendar days difference
+  // ── Status config ─────────────────────────────────────────────────────────
+  const STATUS_MAP = {
+    ACTIVE:     { color:'#00e5a0', bg:'rgba(0,229,160,0.04)',   border:'#00e5a0', icon:'📍', label:'ENTRY LOG'     },
+    TARGET_HIT: { color:'#fbbf24', bg:'rgba(251,191,36,0.06)', border:'#fbbf24', icon:'🎯', label:'TARGET HIT'    },
+    STOP_HIT:   { color:'#fb7185', bg:'rgba(251,113,133,0.06)',border:'#fb7185', icon:'🛑', label:'STOP HIT'      },
+    EXPIRED:    { color:'#8a9ab0', bg:'rgba(138,154,176,0.04)',border:'#8a9ab0', icon:'⏱', label:'SIGNAL CLOSED'  }
+  };
+  let s = STATUS_MAP[entry.status] || STATUS_MAP.EXPIRED;
 
-  // Age label — use calendar diff
+  const fmt      = n => n != null ? '₹' + Number(n).toLocaleString('en-IN',
+    { minimumFractionDigits:2, maximumFractionDigits:2 }) : '—';
+  const fd       = fundCache[sym.toUpperCase()] || {};
+  const curPrice = isClosed
+    ? (entry.exitPrice != null ? entry.exitPrice : fd.price)
+    : fd.price;
+
+  // ── For ACTIVE: check if price has already crossed target or stop ─────────
+  let priceAlertLabel = '';
+  if (isActive && curPrice != null) {
+    if (entry.target != null && curPrice >= entry.target) {
+      s = { ...STATUS_MAP.TARGET_HIT, label:'TARGET REACHED' };
+      priceAlertLabel = `<span style="font-family:Oxanium,sans-serif;font-size:0.72rem;
+        font-weight:800;color:#fbbf24;margin-left:4px">🎯 Target Reached</span>`;
+    } else if (entry.stop != null && curPrice <= entry.stop) {
+      s = { ...STATUS_MAP.STOP_HIT, label:'STOP REACHED' };
+      priceAlertLabel = `<span style="font-family:Oxanium,sans-serif;font-size:0.72rem;
+        font-weight:800;color:#fb7185;margin-left:4px">🛑 Stop Reached</span>`;
+    }
+  }
+
+  // ── Timing ────────────────────────────────────────────────────────────────
+  const refDate  = isClosed && entry.exitTime ? new Date(entry.exitTime) : new Date(entry.entryTime);
+  const now      = new Date();
+  const nowDate  = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const refDay   = new Date(refDate.getFullYear(), refDate.getMonth(), refDate.getDate());
+  const calDiffD = Math.round((nowDate - refDay) / 86400000);
+  const diffMs   = now - refDate;
+  const diffH    = diffMs / 3600000;
+
   let ageLabel, ageCls;
   if (calDiffD === 0) {
     ageLabel = diffH < 1 ? Math.floor(diffMs/60000) + 'm ago' : Math.floor(diffH) + 'h ago';
-    ageCls = 'color:#00e5a0';
+    ageCls   = 'color:#00e5a0';
   } else if (calDiffD === 1) {
-    ageLabel = 'Yesterday';
-    ageCls = 'color:#fbbf24';
+    ageLabel = 'Yesterday'; ageCls = 'color:#fbbf24';
   } else {
-    ageLabel = calDiffD + 'd ago';
-    ageCls = 'color:#fb7185';
+    ageLabel = calDiffD + 'd ago'; ageCls = 'color:#fb7185';
   }
 
-  // Time string — use IST for display
-  const timeStr = entryDate.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+  const timeStr = refDate.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
   const dateStr = calDiffD === 0 ? 'Today ' + timeStr
                 : calDiffD === 1 ? 'Yesterday ' + timeStr
-                : entryDate.toLocaleDateString('en-IN', { day:'numeric', month:'short' }) + ' ' + timeStr;
+                : refDate.toLocaleDateString('en-IN', { day:'numeric', month:'short' }) + ' ' + timeStr;
 
-  // Valid until
-  const validUntil = entry.validUntil ? new Date(entry.validUntil) : null;
-  const daysLeft   = validUntil ? Math.ceil((validUntil - now) / 86400000) : null;
-  const validStr   = daysLeft != null
-    ? (daysLeft <= 0 ? '⚠ Expired' : daysLeft + 'd left')
-    : '';
-  const validCls   = daysLeft != null && daysLeft <= 2 ? 'color:#fb7185' : 'color:var(--muted)';
+  // ── Valid until (ACTIVE only) ─────────────────────────────────────────────
+  let validStr = '', validCls = '';
+  if (isActive) {
+    const validUntil = entry.validUntil ? new Date(entry.validUntil) : null;
+    const daysLeft   = validUntil ? Math.ceil((validUntil - now) / 86400000) : null;
+    validStr = daysLeft != null ? (daysLeft <= 0 ? '⚠ Expired' : daysLeft + 'd left') : '';
+    validCls = daysLeft != null && daysLeft <= 2 ? 'color:#fb7185' : 'color:var(--muted)';
+  }
 
-  // Entry price vs current price — show if above/below entry
-  const fmt        = n => n != null ? '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
-  const fd         = fundCache[sym.toUpperCase()] || {};
-  const curPrice   = fd.price;
-  let priceStatus  = '';
+  // ── P&L % ─────────────────────────────────────────────────────────────────
+  let priceStatus = '';
   if (curPrice != null && entry.entryPrice != null) {
     const pct = ((curPrice - entry.entryPrice) / entry.entryPrice * 100).toFixed(1);
     const clr = pct >= 0 ? '#00e5a0' : '#fb7185';
@@ -9735,19 +9775,45 @@ function _signalLogRow(sym, comboLabels) {
     priceStatus = `<span style="font-family:Oxanium,sans-serif;font-size:0.72rem;color:${clr};margin-left:4px">${pfx}${Math.abs(pct)}% from entry</span>`;
   }
 
-  return `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 10px;
-    background:rgba(0,229,160,0.04);border-radius:5px;border-left:3px solid #00e5a0;flex-wrap:wrap">
-    <span style="font-family:Oxanium,sans-serif;font-size:0.82rem;font-weight:800;color:#00e5a0">📍 ENTRY LOG</span>
-    <span style="font-family:Oxanium,sans-serif;font-size:0.78rem;${ageCls}">${ageLabel}</span>
-    <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;color:var(--muted)">${dateStr}</span>
-    <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;color:var(--muted);margin-left:auto">
-      Entry ${fmt(entry.entryPrice)}${entry.atrTF ? ' · ATR(' + entry.atrTF + ') ₹' + entry.atrVal : ''}
+  // ── For closed: show original entry details on second line ────────────────
+  const entryDate    = new Date(entry.entryTime);
+  const entryDayRef  = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
+  const entryDiffD   = Math.round((nowDate - entryDayRef) / 86400000);
+  const entryTimeStr = entryDate.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+  const entryDateStr = entryDiffD === 0 ? 'Today ' + entryTimeStr
+                     : entryDiffD === 1 ? 'Yesterday ' + entryTimeStr
+                     : entryDate.toLocaleDateString('en-IN', { day:'numeric', month:'short' }) + ' ' + entryTimeStr;
+
+  const closedExtraRow = isClosed ? `
+    <span style="font-family:Oxanium,sans-serif;font-size:0.70rem;color:var(--muted);
+      width:100%;padding-top:2px;display:block">
+      Entered: ${entryDateStr} · Entry ${fmt(entry.entryPrice)}
+      ${entry.atrTF ? ' · ATR(' + entry.atrTF + ') ₹' + entry.atrVal : ''}
       ${entry.stop   ? ' · Stop '  + fmt(entry.stop)   : ''}
       ${entry.target ? ' · Tgt '   + fmt(entry.target) : ''}
-    </span>
-    <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;width:100%;display:flex;align-items:center;gap:6px;padding-top:2px">
-      ${validStr ? `<span style="${validCls}">${validStr} (${entry.combo || entry.atrTF})</span>` : ''}
-      ${priceStatus}
+      · <span style="color:${s.color};font-weight:700">${entry.combo}</span>
+    </span>` : '';
+
+  return `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding:6px 10px;
+    background:${s.bg};border-radius:5px;border-left:3px solid ${s.border};flex-wrap:wrap">
+    <span style="font-family:Oxanium,sans-serif;font-size:0.82rem;font-weight:800;color:${s.color}">${s.icon} ${s.label}</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.78rem;${ageCls}">${ageLabel}</span>
+    <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;color:var(--muted)">${dateStr}</span>
+    ${isActive
+      ? `<span style="font-family:Oxanium,sans-serif;font-size:0.72rem;color:var(--muted);margin-left:auto">
+          Entry ${fmt(entry.entryPrice)}${entry.atrTF ? ' · ATR(' + entry.atrTF + ') ₹' + entry.atrVal : ''}
+          ${entry.stop   ? ' · Stop '  + fmt(entry.stop)   : ''}
+          ${entry.target ? ' · Tgt '   + fmt(entry.target) : ''}
+        </span>`
+      : `<span style="font-family:Oxanium,sans-serif;font-size:0.72rem;color:var(--muted);margin-left:auto">
+          Exit ${fmt(entry.exitPrice || curPrice)}${priceStatus}
+        </span>`
+    }
+    <span style="font-family:Oxanium,sans-serif;font-size:0.72rem;width:100%;
+      display:flex;align-items:center;gap:6px;padding-top:2px;flex-wrap:wrap">
+      ${isActive && validStr ? `<span style="${validCls}">${validStr} (${entry.combo})</span>` : ''}
+      ${isActive ? priceAlertLabel || priceStatus : ''}
+      ${closedExtraRow}
     </span>
   </div>`;
 }
